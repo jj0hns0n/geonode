@@ -1,0 +1,14 @@
+<html>
+    <head>
+        <title>Portals</title>
+    </head>
+    <body>
+        <h1>Portals</h1>
+
+        <ul>
+            {% for portal in portal_list %}
+                <li><a href="{% url portals_edit portal.pk %}">{{ portal }}</a></li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

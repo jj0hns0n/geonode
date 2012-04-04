@@ -231,6 +231,7 @@ INSTALLED_APPS = (
     'profiles',
     'avatar',
     'south',
+    "cbv",
     'geonode.core',
     'geonode.maps',
     'geonode.proxy',
@@ -251,7 +252,7 @@ ABSOLUTE_URL_OVERRIDES = {
 AUTH_PROFILE_MODULE = 'maps.Contact'
 REGISTRATION_OPEN = False
 
-SERVE_MEDIA = DEBUG;
+SERVE_MEDIA = DEBUG
 
 #GEONODE_CLIENT_LOCATION = "http://localhost:8001/geonode-client/"
 GEONODE_CLIENT_LOCATION = "/media/static/"

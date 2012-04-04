@@ -1,14 +1,19 @@
-<html>
-    <head>
-        <title>Edit Portal: {{ portal }}</title>
-    </head>
-    <body>
-        <h1>Edit Portal: {{ portal }}/h1>
+{% extends "page_layout.html" %}
 
-        <ul>
-            {% for portal in portal_list %}
-                <li><a href="{% url portals_edit portal.pk %}">{{ portal }}</a></li>
-            {% endfor %}
-        </ul>
-    </body>
-</html>
+{% block title %}
+    {% if portal %}Edit Portal: {{ portal }}{% else %}Create Portal{% endif %}
+{% endblock title %}
+
+{% block main %}
+    
+<h1>{% if portal %}Edit Portal: {{ portal }}{% else %}Create Portal{% endif %}</h1>
+
+<form action="" method="post" class="form">
+    {% csrf_token %}
+    {{ form }}
+    <div class="submit-row">
+        <button type="submit">Save</button>
+    </div>
+</form>
+
+{% endblock main %}

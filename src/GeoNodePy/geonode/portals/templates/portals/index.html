@@ -1,0 +1,79 @@
+{% extends "portals/base.html" %}
+
+{% block content %}
+    {% if portal.summary %}<p id="summary">{{ portal.summary|safe }}</p>{% endif %}
+
+    {% if featured_maps %}
+    <h2>Featured Maps</h2>
+    <ul>
+        {% for m in featured_maps %}
+            <li>
+                <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
+                {% if user.is_staff %}
+                <ul class="actions">
+                    <li><a href="">Unfeature</a></li>
+                    <li><a href="{% url geonode.portals.views.portal_remove_map portal.slug m.map.pk %}">Remove</a></li>
+                </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <h2>Maps</h2>
+    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_map portal.slug %}">Add</a></p>{% endif %}
+    <ul>
+        {% for m in maps %}
+            <li>
+                <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
+                {% if user.is_staff %}
+                <ul class="actions">
+                    <li><a href="">Feature</a></li>
+                    <li><a href="{% url geonode.portals.views.portal_remove_map portal.slug m.map.pk %}">Remove</a></li>
+                </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <h2>Datasets</h2>
+    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_dataset portal.slug %}">Add</a></p>{% endif %}
+    <ul>
+        {% for dataset in portal.datasets.all %}
+            <li>
+                <a href="{{ dataset.get_absolute_url }}">{{ dataset.title }}</a>
+                {% if user.is_staff %}
+                <ul class="actions">
+                    <li><a href="{% url geonode.portals.views.portal_remove_dataset portal.slug dataset.pk %}">Remove</a></li>
+                </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <h2>Links</h2>
+    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_link portal.slug %}">Add</a></p>{% endif %}
+    <ul>
+        {% for link in portal.links.all %}
+            <li>
+                <a href="{{ link.link }}">{{ link.label }}</a>
+                {% if user.is_staff %}
+                <ul class="actions">
+                    <li><a href="{% url geonode.portals.views.portal_delete_link portal.slug link.pk %}">Delete</a></li>
+                </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <h2>Documents</h2>
+    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_document portal.slug %}">Add</a></p>{% endif %}
+    <ul>
+        {% for document in portal.documents.all %}
+            <li>
+                <a href="{{ document.file.url }}">{{ document.label }}</a>
+                {% if user.is_staff %}
+                <ul class="actions">
+                    <li><a href="{% url geonode.portals.views.portal_delete_document portal.slug document.pk %}">Delete</a></li>
+                </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock content %}

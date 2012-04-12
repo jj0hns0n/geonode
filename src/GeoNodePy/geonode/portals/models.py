@@ -1,14 +1,19 @@
 from django.db import models
 
+from django.contrib.sites.models import Site
+
 from geonode.maps.models import Map, Layer
 
 
 class Portal(models.Model):
-    name = models.SlugField(max_length=150, unique=True)
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=25, unique=True, null=True)
     summary = models.TextField(blank=True, null=True)
     teaser = models.TextField(blank=True, null=True)
 
-    logo = models.FileField(upload_to="portals/logo/")
+    site = models.ForeignKey(Site, blank=True, null=True)
+
+    logo = models.FileField(upload_to="portals/logo/", blank=True, null=True)
 
     maps = models.ManyToManyField(Map, through="PortalMap")
     datasets = models.ManyToManyField(Layer)
@@ -18,7 +23,22 @@ class Portal(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ("portals_detail", [self.pk])
+        site = Site.objects.get_current()
+        try:
+            if site.portal:
+                return ("geonode.portals.views.index")
+        except:
+            pass
+        return ("portals_detail", [self.slug])
+
+    def save(self, *args, **kwargs):
+        if not self.site:
+            site = Site.objects.create(
+                domain="{0}.geonode.org".format(self.slug),
+                name=self.name
+            )
+            self.site = site
+        super(Portal, self).save(*args, **kwargs)
 
 
 class PortalMap(models.Model):
@@ -40,6 +60,7 @@ class PortalContextItem(models.Model):
 
 
 class Document(models.Model):
+    portal = models.ForeignKey(Portal, related_name="documents")
     file = models.FileField(upload_to="portals/document/")
     label = models.CharField(max_length=255)
 
@@ -48,6 +69,7 @@ class Document(models.Model):
 
 
 class Link(models.Model):
+    portal = models.ForeignKey(Portal, related_name="links")
     label = models.CharField(max_length=255)
     link = models.URLField()
 

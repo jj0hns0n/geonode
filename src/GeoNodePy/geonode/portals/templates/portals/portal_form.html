@@ -8,9 +8,9 @@
     
 <h1>{% if portal %}Edit Portal: {{ portal }}{% else %}Create Portal{% endif %}</h1>
 
-<form action="" method="post" class="form">
+<form action="" method="post" class="form" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form }}
+    {{ form.as_p }}
     <div class="submit-row">
         <button type="submit">Save</button>
     </div>

@@ -1,6 +1,16 @@
 {% extends "portals/base.html" %}
+{% load portals %}
+{% block head %}
+    {{ block.super }}
+    {% portal_stylesheet %}
+{% endblock %}
 
 {% block content %}
+
+    {% if user.is_staff %}
+    <p class="edit pull-right"><a href="{% url portals_edit portal.pk %}">Edit</a></p>
+    {% endif %}
+
     {% if portal.summary %}<p id="summary">{{ portal.summary|safe }}</p>{% endif %}
 
     {% if featured_maps %}

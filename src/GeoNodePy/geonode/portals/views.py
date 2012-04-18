@@ -1,5 +1,6 @@
 import json
 
+from django.forms.formsets import formset_factory
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect, get_object_or_404
@@ -8,7 +9,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.sites.models import Site
 
 from geonode.maps.models import Layer
-from .forms import DocumentForm, LinkForm, PortalForm, PortalMapForm
+from .forms import (DocumentForm, LinkForm,
+    PortalForm, PortalContextItemForm, PortalMapForm)
 from .models import Portal, PortalMap  # PortalContextItem
 
 
@@ -46,6 +48,8 @@ def index(request, **kwargs):
 
     """
     portal = get_portal(kwargs)
+
+    request.session["active_portal"] = portal
 
     featured_maps = PortalMap.objects.filter(portal=portal, featured=True)
     maps = PortalMap.objects.filter(portal=portal, featured=False)
@@ -108,6 +112,39 @@ def portal_edit(request, pk):
 
     return render_to_response("portals/portal_form.html",
         {"form": form, "portal": portal},
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
+def portal_customize(request, slug):
+    portal = get_object_or_404(Portal, slug=slug)
+    ItemFormSet = formset_factory(PortalContextItemForm, extra=0)
+
+    if request.method == "POST":
+        formset = ItemFormSet(request.POST)
+        if formset.is_valid():
+            for form in formset.forms:
+                if form.is_valid():
+                    form.save(portal)
+
+            portal.save_css()
+
+            return redirect("portals_detail", portal.slug)
+
+    else:
+        formset = ItemFormSet(initial=[
+            {"name": "font-family", "value": portal.get_context_value("font-family")},
+            {"name": "body background-color", "value": portal.get_context_value("body background-color")},
+            {"name": "body font-color", "value": portal.get_context_value("body font-color")},
+            {"name": "header background-color", "value": portal.get_context_value("header background-color")},
+            {"name": "header background-image", "value": portal.get_context_value("header background-image")},
+            {"name": "nav background-color", "value": portal.get_context_value("nav background-color")},
+            {"name": "nav font-color", "value": portal.get_context_value("nav font-color")},
+        ])
+
+    return render_to_response("portals/portal_customize.html",
+        {"formset": formset, "portal": portal},
         context_instance=RequestContext(request)
     )
 
@@ -269,7 +306,7 @@ def portal_add_document(request, **kwargs):
     portal = get_portal(kwargs)
 
     if request.method == "POST":
-        form = DocumentForm(request.POST, portal=portal)
+        form = DocumentForm(request.POST, request.FILES, portal=portal)
         if form.is_valid():
             document = form.save()
             if request.is_ajax():

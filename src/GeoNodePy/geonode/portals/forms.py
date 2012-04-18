@@ -1,4 +1,5 @@
 from django import forms
+from django.forms.formsets import BaseFormSet
 
 from geonode.maps.models import Map
 from .models import Document, Link, Portal, PortalContextItem, PortalMap
@@ -33,17 +34,32 @@ class PortalForm(forms.ModelForm):
     class Meta:
         model = Portal
         exclude = (
-            "summary",
             "maps",
             "datasets",
             "site"
         )
 
 
-class PortalContextItemForm(forms.ModelForm):
+class PortalContextItemForm(forms.Form):
 
-    class Meta:
-        model = PortalContextItem
+    name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    value = forms.CharField(max_length=255, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(PortalContextItemForm, self).__init__(*args, **kwargs)
+
+    def save(self, portal):
+        data = self.cleaned_data
+        item, created = PortalContextItem.objects.get_or_create(
+            portal=portal,
+            name=data["name"],
+            defaults={
+                "value": data["value"]
+            }
+        )
+        if not created:
+            item.value = data["value"]
+            item.save()
 
 
 class PortalMapForm(forms.ModelForm):

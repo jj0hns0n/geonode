@@ -1,4 +1,8 @@
+import os
+
+from django.conf import settings
 from django.db import models
+from django.template.loader import render_to_string
 
 from django.contrib.sites.models import Site
 
@@ -14,6 +18,7 @@ class Portal(models.Model):
     site = models.ForeignKey(Site, blank=True, null=True)
 
     logo = models.FileField(upload_to="portals/logo/", blank=True, null=True)
+    css = models.FileField(upload_to="portals/css/", blank=True, null=True)
 
     maps = models.ManyToManyField(Map, through="PortalMap")
     datasets = models.ManyToManyField(Layer)
@@ -31,6 +36,12 @@ class Portal(models.Model):
             pass
         return ("portals_detail", [self.slug])
 
+    def get_context_value(self, name):
+        try:
+            return self.context_items.get(name=name).value
+        except:
+            return ""
+
     def save(self, *args, **kwargs):
         if not self.site:
             site = Site.objects.create(
@@ -40,6 +51,19 @@ class Portal(models.Model):
             self.site = site
         super(Portal, self).save(*args, **kwargs)
 
+    def save_css(self):
+        css = render_to_string("portals/portal_style.css", {"portal": self})
+        if not os.path.exists(os.path.join(settings.MEDIA_ROOT, "portals/css")):
+            os.makedirs(os.path.join(settings.MEDIA_ROOT, "portals/css"))
+
+        css_file = open(os.path.join(settings.MEDIA_ROOT, "portals/css/{0}.css".format(self.slug)), "w")
+        css_file.write(css)
+        css_file.close()
+
+    @property
+    def stylesheet(self):
+        return "{0}portals/css/{1}.css".format(settings.MEDIA_URL, self.slug)
+
 
 class PortalMap(models.Model):
     portal = models.ForeignKey(Portal)
@@ -48,7 +72,7 @@ class PortalMap(models.Model):
 
 
 class PortalContextItem(models.Model):
-    portal = models.ForeignKey(Portal)
+    portal = models.ForeignKey(Portal, related_name="context_items")
     name = models.SlugField(max_length=150)
     value = models.TextField()
 

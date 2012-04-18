@@ -17,3 +17,19 @@
 </form>
 
 {% endblock main %}
+
+{% block head %}
+    {{ block.super }}
+<style>
+    #id_summary { width: 600px; }
+</style>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.css"></link>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap.min.css"></link>
+<script src="{{ STATIC_URL }}static/externals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
+<script src="{{ STATIC_URL }}static/externals/wysihtml5/jquery-1.7.1.min.js"></script>
+<script src="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap.min.js"></script>
+<script src="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.js"></script>
+<script>
+    $(function() { $("#id_summary").wysihtml5(); });
+</script>
+{% endblock %}

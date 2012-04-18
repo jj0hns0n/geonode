@@ -1,8 +1,6 @@
-<html>
-    <head>
-        <title>Portals</title>
-    </head>
-    <body>
+{% extends "portals/base.html" %}
+
+{% block content %}
         <h1>Portals</h1>
 
         <ul>
@@ -10,5 +8,5 @@
                 <li><a href="{% url portals_detail portal.slug %}">{{ portal }}</a></li>
             {% endfor %}
         </ul>
-    </body>
-</html>
+
+{% endblock %}

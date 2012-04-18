@@ -17,7 +17,7 @@ def portal_stylesheet(context):
     except:
         if context["request"].session.get("active_portal"):
             return {"portal": context["request"].session["active_portal"]}
-        return ""
+        return {"portal": None}
 
 
 """ Requires Django 1.4

@@ -30,6 +30,17 @@
 <script src="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap.min.js"></script>
 <script src="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.js"></script>
 <script>
-    $(function() { $("#id_summary").wysihtml5(); });
+    jQuery.fn.slugify = function(obj) {
+        jQuery(this).data('obj', jQuery(obj));
+        jQuery(this).keyup(function() {
+            var obj = jQuery(this).data('obj');
+            var slug = jQuery(this).val().replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-]/g,'').toLowerCase();
+            obj.val(slug);
+        });
+    }
+    $(function() { 
+        $("#id_summary").wysihtml5();
+        $("#id_name").slugify("#id_slug");
+    });
 </script>
 {% endblock %}

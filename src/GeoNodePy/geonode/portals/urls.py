@@ -4,6 +4,7 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('geonode.portals.views',
     url(r"^$", "portals", name="portals_list"),
     url(r"^create/$", "portal_create", name="portals_add"),
+    url(r"clearsession/$", "clear_session", name="portals_clear_session"),
     url(r"^(?P<pk>\d+)/edit/$", "portal_edit", name="portals_edit"),
     url(r"^(?P<slug>[\w-]+)/customize/$", "portal_customize", name="portals_customize"),
     url(r"^(?P<slug>[\w-]+)/$", "index", name="portals_detail"),

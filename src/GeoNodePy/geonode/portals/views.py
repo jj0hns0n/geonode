@@ -11,7 +11,7 @@ from django.contrib.sites.models import Site
 from geonode.maps.models import Layer
 from .forms import (DocumentForm, LinkForm,
     PortalForm, PortalContextItemForm, PortalMapForm)
-from .models import Portal, PortalMap  # PortalContextItem
+from .models import Portal, PortalMap, PortalContextItem
 
 
 def get_portal(kwargs):
@@ -68,6 +68,15 @@ def index(request, **kwargs):
         },
         context_instance=RequestContext(request)
     )
+
+
+def clear_session(request):
+    try:
+        del request.session["active_portal"]
+    except:
+        pass
+
+    return redirect("portals_list")
 
 
 @staff_member_required
@@ -133,15 +142,12 @@ def portal_customize(request, slug):
             return redirect("portals_detail", portal.slug)
 
     else:
-        formset = ItemFormSet(initial=[
-            {"name": "font-family", "value": portal.get_context_value("font-family")},
-            {"name": "body background-color", "value": portal.get_context_value("body background-color")},
-            {"name": "body font-color", "value": portal.get_context_value("body font-color")},
-            {"name": "header background-color", "value": portal.get_context_value("header background-color")},
-            {"name": "header background-image", "value": portal.get_context_value("header background-image")},
-            {"name": "nav background-color", "value": portal.get_context_value("nav background-color")},
-            {"name": "nav font-color", "value": portal.get_context_value("nav font-color")},
-        ])
+        form_properties = []
+        for choice in PortalContextItem.PROPERTY_CHOICES:
+            form_properties.append(
+                {"name": choice[1], "value": portal.get_context_value(choice[0])}
+            )
+        formset = ItemFormSet(initial=form_properties)
 
     return render_to_response("portals/portal_customize.html",
         {"formset": formset, "portal": portal},
@@ -173,7 +179,6 @@ def portal_add_map(request, **kwargs):
 
     else:
         form = PortalMapForm(portal=portal)
-        print form.fields["portal"]
 
     return render_to_response("portals/map_add.html",
         {

@@ -12,7 +12,7 @@
     {{ formset.management_form }}
     {% csrf_token %}
     {% for form in formset.forms %}
-    {{ form.as_p }}
+    <fieldset>{{ form.as_p }}</fieldset>
     {% endfor %}
     <div class="submit-row">
         <button type="submit">Save</button>
@@ -23,4 +23,5 @@
 
 {% block head %}
     {{ block.super }}
+    <script src="{{ STATIC_URL }}static/script/portal_customize.js"></script>
 {% endblock %}

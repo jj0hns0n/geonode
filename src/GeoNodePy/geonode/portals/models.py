@@ -18,7 +18,7 @@ class Portal(models.Model):
     site = models.ForeignKey(Site, blank=True, null=True)
 
     logo = models.FileField(upload_to="portals/logo/", blank=True, null=True)
-    css = models.FileField(upload_to="portals/css/", blank=True, null=True)
+    custom_css = models.FileField(upload_to="portals/css/", blank=True, null=True)
 
     maps = models.ManyToManyField(Map, through="PortalMap")
     datasets = models.ManyToManyField(Layer)
@@ -72,6 +72,17 @@ class PortalMap(models.Model):
 
 
 class PortalContextItem(models.Model):
+
+    PROPERTY_CHOICES = (
+        ("body background-color", "Page background color"),
+        ("header background-color", "Header background color"),
+        ("header background-image", "Header background image"),
+        ("body font-family", "Body font"),
+        ("body font-color", "Body font color"),
+        ("nav background-color", "Navigation background color"),
+        ("nav font-color", "Navigation font color"),
+    )
+
     portal = models.ForeignKey(Portal, related_name="context_items")
     name = models.SlugField(max_length=150)
     value = models.TextField()

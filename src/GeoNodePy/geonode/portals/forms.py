@@ -1,5 +1,4 @@
 from django import forms
-from django.forms.formsets import BaseFormSet
 
 from geonode.maps.models import Map
 from .models import Document, Link, Portal, PortalContextItem, PortalMap
@@ -36,7 +35,8 @@ class PortalForm(forms.ModelForm):
         exclude = (
             "maps",
             "datasets",
-            "site"
+            "site",
+            "custom_css"  # @@ this could allow for greater control
         )
 
 

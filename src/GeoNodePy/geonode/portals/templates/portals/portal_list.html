@@ -2,7 +2,9 @@
 
 {% block content %}
         <h1>Portals</h1>
-
+        {% if user.is_staff %}
+        <p class="edit pull-right"><a href="{% url portals_add %}">Create New Portal</a></p>
+        {% endif %}
         <ul>
             {% for portal in portal_list %}
                 <li><a href="{% url portals_detail portal.slug %}">{{ portal }}</a></li>

@@ -1,14 +1,17 @@
 {% extends "portals/base.html" %}
+{% load i18n %}
 
-{% block content %}
-    <h1>Delete Link</h1>
+{% block main %}
+    <h1>{% trans "Delete Link" %}</h1>
 
     <form action="" method="post">
         {% csrf_token %}
-        <p>Are you sure you want to delete the link "{{ link.label }}" from this portal?</p>
+        <p>{% blocktrans with link.label as link_label %}
+            Are you sure you want to delete the link "{{ link_label }}" from this portal?
+        {% endblocktrans %}</p>
         <div class="actions">
-            <button type="submit" class="btn btn-primary">Delete</button>
-            <a href="{{ portal.get_absolute_url }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-primary">{% trans "Delete" %}</button>
+            <a href="{{ portal.get_absolute_url }}" class="btn">{% trans "Cancel" %}</a>
         </div>
     </form>
-{% endblock content %}
+{% endblock main %}

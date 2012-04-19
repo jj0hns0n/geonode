@@ -1,84 +1,101 @@
 {% extends "portals/base.html" %}
-
-{% block content %}
-
-    {% if user.is_staff %}
-    <p class="edit pull-right"><a href="{% url portals_edit portal.pk %}">Edit</a> | <a href="{% url portals_customize portal.slug %}">Customize</a></p>
-    {% endif %}
-
+{% load i18n %}
+{% block main %}
+    <div class="page-header">
+        <h1>{{ portal.name }}</h1>
+        {% if user.is_staff %}
+        {% url portals_edit portal.pk as edit_portal %}
+        {% url portals_customize portal.slug as customize_portal %}
+        <div class="btn-group edit">
+            <a class="btn btn-info dropdown-toggle" data-toggle="dropdown" href="#">
+                Manage
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+                {% blocktrans %}
+                <li><a href="{{ edit_portal }}" class="edit">Edit</a></li>
+                <li><a href="{{ customize_portal }}" class="customize">Customize Theme</a></li>{% endblocktrans %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    <div class="row">
+        <div class="span12">
     {% if portal.summary %}<p id="summary">{{ portal.summary|safe }}</p>{% endif %}
-
+        </div>
+    </div>
+    <div class="row">
+    <div class="span6">
     {% if featured_maps %}
-    <h2>Featured Maps</h2>
+    <h2>{% trans "Featured Maps" %}</h2>
     <ul>
         {% for m in featured_maps %}
             <li>
                 <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
                 {% if user.is_staff %}
-                <ul class="actions">
-                    <li><a href="">Unfeature</a></li>
-                    <li><a href="{% url geonode.portals.views.portal_remove_map portal.slug m.map.pk %}">Remove</a></li>
-                </ul>
+                    <a href="" title="{% trans "Unfeature" %}"><i class="icon-arrow-down"></i></a>
+                    <a href="{% url geonode.portals.views.portal_remove_map portal.slug m.map.pk %}">{% trans "Remove" %}</a>
                 {% endif %}
             </li>
         {% endfor %}
     </ul>
     {% endif %}
-    <h2>Maps</h2>
-    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_map portal.slug %}">Add</a></p>{% endif %}
+    <h2>{% trans "Maps" %}</h2>
+    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_map portal.slug %}" class="btn">{% trans "Add" %}</a></p>{% endif %}
     <ul>
         {% for m in maps %}
             <li>
                 <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
                 {% if user.is_staff %}
-                <ul class="actions">
-                    <li><a href="">Feature</a></li>
-                    <li><a href="{% url geonode.portals.views.portal_remove_map portal.slug m.map.pk %}">Remove</a></li>
-                </ul>
+                    <a href="" title="{% trans "Feature" %}"><i class="icon-arrow-up"></i></a>
+                    <a href="{% url geonode.portals.views.portal_remove_map portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
                 {% endif %}
             </li>
         {% endfor %}
     </ul>
-    <h2>Datasets</h2>
-    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_dataset portal.slug %}">Add</a></p>{% endif %}
+</div>
+<div class="span6">
+    <h2>{% trans "Datasets" %}</h2>
+    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_dataset portal.slug %}" class="btn">{% trans "Add" %}</a></p>{% endif %}
     <ul>
         {% for dataset in portal.datasets.all %}
             <li>
                 <a href="{{ dataset.get_absolute_url }}">{{ dataset.title }}</a>
                 {% if user.is_staff %}
-                <ul class="actions">
-                    <li><a href="{% url geonode.portals.views.portal_remove_dataset portal.slug dataset.pk %}">Remove</a></li>
-                </ul>
+                <a href="{% url geonode.portals.views.portal_remove_dataset portal.slug dataset.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"</i></a>
                 {% endif %}
             </li>
         {% endfor %}
     </ul>
-    <h2>Links</h2>
-    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_link portal.slug %}">Add</a></p>{% endif %}
+    <h2>{% trans "Links" %}</h2>
+    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_link portal.slug %}" class="btn">{% trans "Add" %}</a></p>{% endif %}
     <ul>
         {% for link in portal.links.all %}
             <li>
                 <a href="{{ link.link }}">{{ link.label }}</a>
                 {% if user.is_staff %}
-                <ul class="actions">
-                    <li><a href="{% url geonode.portals.views.portal_delete_link portal.slug link.pk %}">Delete</a></li>
-                </ul>
+                    <a href="{% url geonode.portals.views.portal_delete_link portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a></li>
                 {% endif %}
             </li>
         {% endfor %}
     </ul>
-    <h2>Documents</h2>
-    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_document portal.slug %}">Add</a></p>{% endif %}
+    <h2>{% trans "Documents" %}</h2>
+    {% if user.is_staff %}<p class="add"><a href="{% url geonode.portals.views.portal_add_document portal.slug %}" class="btn">{% trans "Add" %}</a></p>{% endif %}
     <ul>
         {% for document in portal.documents.all %}
             <li>
                 <a href="{{ document.file.url }}">{{ document.label }}</a>
                 {% if user.is_staff %}
-                <ul class="actions">
-                    <li><a href="{% url geonode.portals.views.portal_delete_document portal.slug document.pk %}">Delete</a></li>
-                </ul>
+                    <a href="{% url geonode.portals.views.portal_delete_document portal.slug document.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
                 {% endif %}
             </li>
         {% endfor %}
     </ul>
-{% endblock content %}
+</div>
+</div>
+{% endblock main %}
+{% block extra_script %}
+    <script src="{{ STATIC_URL }}static/externals/jqueryminicolors/jquery.miniColors.min.js"></script>
+    <script src="{{ STATIC_URL }}static/script/portal.js"></script>
+    <script src="{{ STATIC_URL }}static/script/portal_customize.js"></script>
+{% endblock %}

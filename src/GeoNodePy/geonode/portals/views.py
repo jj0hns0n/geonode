@@ -143,9 +143,9 @@ def portal_customize(request, slug):
 
     else:
         form_properties = []
-        for choice in PortalContextItem.PROPERTY_CHOICES:
+        for choice in PortalContextItem.PROPERTY_CHOICES.keys():
             form_properties.append(
-                {"name": choice[1], "value": portal.get_context_value(choice[0])}
+                {"name": PortalContextItem.PROPERTY_CHOICES[choice], "value": portal.get_context_value(choice)}
             )
         formset = ItemFormSet(initial=form_properties)
 

@@ -50,9 +50,13 @@ class PortalContextItemForm(forms.Form):
 
     def save(self, portal):
         data = self.cleaned_data
+        name = data["name"]
+        key = PortalContextItem.PROPERTY_CHOICES.keys()[
+            PortalContextItem.PROPERTY_CHOICES.values().index(name)
+        ]
         item, created = PortalContextItem.objects.get_or_create(
             portal=portal,
-            name=data["name"],
+            name=key,
             defaults={
                 "value": data["value"]
             }

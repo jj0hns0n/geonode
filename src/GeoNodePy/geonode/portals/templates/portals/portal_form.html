@@ -1,18 +1,29 @@
-{% extends "page_layout.html" %}
+{% extends "portals/base.html" %}
+{% load i18n %}
 
 {% block title %}
-    {% if portal %}Edit Portal: {{ portal }}{% else %}Create Portal{% endif %}
+    {% if portal %}
+        {% blocktrans %}Edit Portal: {{ portal }}{% endblocktrans %}
+    {% else %}
+        {% blocktrans %}Create Portal{% endblocktrans %}
+    {% endif %}
 {% endblock title %}
 
 {% block main %}
     
-<h1>{% if portal %}Edit Portal: {{ portal }}{% else %}Create Portal{% endif %}</h1>
+<h1>
+{% if portal %}
+    {% blocktrans %}Edit Portal: {{ portal }}{% endblocktrans %}
+{% else %}
+    {% blocktrans %}Create Portal{% endblocktrans %}
+{% endif %}
+</h1>
 
 <form action="" method="post" class="form" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
     <div class="submit-row">
-        <button type="submit">Save</button>
+        <button type="submit">{% trans "Save" %}</button>
     </div>
 </form>
 
@@ -23,11 +34,11 @@
 <style>
     #id_summary { width: 600px; }
 </style>
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.css"></link>
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap.min.css"></link>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.css">
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap.min.css">
+{% endblock %}
+{% block extra_script %}
 <script src="{{ STATIC_URL }}static/externals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
-<script src="{{ STATIC_URL }}static/externals/wysihtml5/jquery-1.7.1.min.js"></script>
-<script src="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap.min.js"></script>
 <script src="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.js"></script>
 <script>
     jQuery.fn.slugify = function(obj) {

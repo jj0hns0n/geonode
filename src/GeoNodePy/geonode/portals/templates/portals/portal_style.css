@@ -4,19 +4,8 @@
     background-image: url({{ portal.logo.url }});
 }
 {% endif %}
-{% portal_variable "body background-color" as bodybgcolor %}
-{% portal_variable "body font-color" as bodyfontcolor %}
-{% portal_variable "font-family" as fontfamily %}
-{% if bodybgcolor or bodyfontcolor or fontfamily %}
-body {
-    {% if fontfamily %}font-family: {{ fontfamily }};{% endif %}
-    {% if bodybgcolor %}background-color: {{ bodybgcolor }};{% endif %}
-    {% if bodyfontcolor %}font-color: {{ bodyfontcolor }};{% endif %}
+{% for item in portal.context_items.all %}
+{{ item.selector }} {
+    {{ item.css_property}}: {{ item.value }};
 }
-{% endif %}
-{% portal_variable "header background-color" as headerbgcolor %}
-{% if headerbgcolor %}
-#header {
-    background-color: {{ headerbgcolor }};
-}
-{% endif %}
+{% endfor %}

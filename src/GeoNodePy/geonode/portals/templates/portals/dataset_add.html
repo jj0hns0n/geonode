@@ -1,7 +1,8 @@
 {% extends "portals/base.html" %}
+{% load i18n %}
 
-{% block content %}
-    <h1>Add Dataset</h1>
+{% block main %}
+    <h1>{% trans "Add Dataset" %}</h1>
 
     <form action="" method="post">
         {% csrf_token %}
@@ -15,8 +16,8 @@
             </select>
         </div>
         <div class="actions">
-            <button type="submit" class="btn btn-primary">Add</button>
-            <a href="{{ portal.get_absolute_url }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
+            <a href="{{ portal.get_absolute_url }}" class="btn">{% trans "Cancel" %}</a>
         </div>
     </form>
-{% endblock content %}
+{% endblock main %}

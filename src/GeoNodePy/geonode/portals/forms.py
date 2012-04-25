@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 
 from geonode.maps.models import Map
 from .models import Document, Link, Portal, PortalContextItem, PortalMap
@@ -30,6 +31,8 @@ class LinkForm(forms.ModelForm):
 
 class PortalForm(forms.ModelForm):
 
+    RESERVED_SLUGS = ("www", )
+
     class Meta:
         model = Portal
         exclude = (
@@ -38,6 +41,12 @@ class PortalForm(forms.ModelForm):
             "site",
             "custom_css"  # @@ this could allow for greater control
         )
+
+    def clean_slug(self):
+        slug = self.cleaned_data["slug"]
+        if slug in self.RESERVED_SLUGS:
+            raise forms.ValidationError(_("This is a reserved word. Please choose another."))
+        return slug
 
 
 class PortalContextItemForm(forms.Form):

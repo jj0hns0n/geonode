@@ -1,7 +1,8 @@
 {% load portals %}
 {% if portal.logo %}
-#logo {
+.nav-logo {
     background-image: url({{ portal.logo.url }});
+    background-size: auto 50px;
 }
 {% endif %}
 {% for item in portal.context_items.all %}
@@ -9,3 +10,15 @@
     {{ item.css_property}}: {{ item.value }};
 }
 {% endfor %}
+#customize_form fieldset {
+    float: left;
+    margin-right: 20px;
+}
+#customize_form input.miniColors {
+    width: 65px;
+}
+#customize_form input[type=text] {
+    width: 80px;
+}
+#customize p { color: #000; }
+#id_summary { width: 400px; }

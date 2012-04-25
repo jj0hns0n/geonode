@@ -24,6 +24,7 @@
     {{ form.as_p }}
     <div class="submit-row">
         <button type="submit">{% trans "Save" %}</button>
+        <button class="cancel">{% trans "Cancel" %}</button>
     </div>
 </form>
 
@@ -32,10 +33,9 @@
 {% block head %}
     {{ block.super }}
 <style>
-    #id_summary { width: 600px; }
+    #id_summary { width: 480px; }
 </style>
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.css">
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap.min.css">
 {% endblock %}
 {% block extra_script %}
 <script src="{{ STATIC_URL }}static/externals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>

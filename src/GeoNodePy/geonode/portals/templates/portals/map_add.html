@@ -11,7 +11,7 @@
         <div class="actions">
             <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
             <button type="submit" class="btn btn-primary" name="featured" value="true">{% trans "Add as Featured" %}</button>
-            <a href="{{ portal.get_absolute_url }}" class="btn">{% trans "Cancel" %}</a>
+            <a href="{{ portal.get_absolute_url }}" class="btn cancel">{% trans "Cancel" %}</a>
         </div>
     </form>
 {% endblock main %}

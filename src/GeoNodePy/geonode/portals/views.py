@@ -4,7 +4,9 @@ from django.forms.formsets import formset_factory
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect, get_object_or_404
+from django.utils.translation import ugettext_lazy as _
 
+from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.sites.models import Site
 
@@ -14,14 +16,8 @@ from .forms import (DocumentForm, LinkForm,
 from .models import Portal, PortalMap, PortalContextItem
 
 
-def get_portal(kwargs):
-    if kwargs.get("slug"):
-        portal = get_object_or_404(Portal, slug=kwargs.get("slug"))
-    else:
-        site = Site.objects.get_current()
-        portal = get_object_or_404(Portal, site__pk=site.pk)
-
-    return portal
+def hosts_callback(request, portal_slug):
+    request.portal_slug = portal_slug
 
 
 def portals(request):
@@ -47,12 +43,21 @@ def index(request, **kwargs):
     - Edit additional info (see portal_edit view)
 
     """
-    portal = get_portal(kwargs)
-
-    request.session["active_portal"] = portal
+    if hasattr(request, "portal_slug"):
+        portal = get_object_or_404(Portal, slug=request.portal_slug)
+    elif kwargs.get("portal_slug"):
+        portal = get_object_or_404(Portal, slug=kwargs.get("portal_slug"))
+    else:
+        site = Site.objects.get_current()
+        portal = get_object_or_404(Portal, site__pk=site.pk)
 
     featured_maps = PortalMap.objects.filter(portal=portal, featured=True)
     maps = PortalMap.objects.filter(portal=portal, featured=False)
+
+    extra_context = {}
+
+    if request.user.is_staff:
+        extra_context["portal_customize_snippet"] = portal_customize(request, portal.slug).content
 
     # @@ Featured Maps, all maps and datasets, documents, links
 
@@ -66,17 +71,8 @@ def index(request, **kwargs):
             "featured_maps": featured_maps,
             "maps": maps
         },
-        context_instance=RequestContext(request)
+        context_instance=RequestContext(request, extra_context)
     )
-
-
-def clear_session(request):
-    try:
-        del request.session["active_portal"]
-    except:
-        pass
-
-    return redirect("portals_list")
 
 
 @staff_member_required
@@ -139,6 +135,8 @@ def portal_customize(request, slug):
 
             portal.save_css()
 
+            messages.success(request, _("Your changes to the portal's theme were saved"))
+
             return redirect("portals_detail", portal.slug)
 
     else:
@@ -156,9 +154,9 @@ def portal_customize(request, slug):
 
 
 @staff_member_required
-def portal_add_map(request, **kwargs):
+def portal_add_map(request, slug):
 
-    portal = get_portal(kwargs)
+    portal = get_object_or_404(Portal, slug=slug)
 
     if request.method == "POST":
         form = PortalMapForm(request.POST, portal=portal)
@@ -190,9 +188,9 @@ def portal_add_map(request, **kwargs):
 
 
 @staff_member_required
-def portal_remove_map(request, map_pk, **kwargs):
+def portal_remove_map(request, slug, map_pk):
 
-    portal = get_portal(kwargs)
+    portal = get_object_or_404(Portal, slug=slug)
     map = get_object_or_404(PortalMap.objects.filter(portal=portal), map__pk=map_pk)
 
     if request.method == "POST":
@@ -209,9 +207,9 @@ def portal_remove_map(request, map_pk, **kwargs):
 
 
 @staff_member_required
-def portal_add_dataset(request, **kwargs):
+def portal_add_dataset(request, slug):
 
-    portal = get_portal(kwargs)
+    portal = get_object_or_404(Portal, slug=slug)
     datasets = Layer.objects.exclude(pk__in=[d.pk for d in portal.datasets.all()])
 
     if request.method == "POST":
@@ -239,9 +237,9 @@ def portal_add_dataset(request, **kwargs):
 
 
 @staff_member_required
-def portal_remove_dataset(request, dataset_pk, **kwargs):
+def portal_remove_dataset(request, slug, dataset_pk):
 
-    portal = get_portal(kwargs)
+    portal = get_object_or_404(Portal, slug=slug)
     dataset = get_object_or_404(portal.datasets, pk=dataset_pk)
 
     if request.method == "POST":
@@ -258,9 +256,9 @@ def portal_remove_dataset(request, dataset_pk, **kwargs):
 
 
 @staff_member_required
-def portal_add_link(request, **kwargs):
+def portal_add_link(request, slug):
 
-    portal = get_portal(kwargs)
+    portal = get_object_or_404(Portal, slug=slug)
 
     if request.method == "POST":
         form = LinkForm(request.POST, portal=portal)
@@ -287,9 +285,9 @@ def portal_add_link(request, **kwargs):
 
 
 @staff_member_required
-def portal_delete_link(request, link_pk, **kwargs):
+def portal_delete_link(request, slug, link_pk):
 
-    portal = get_portal(kwargs)
+    portal = get_object_or_404(Portal, slug=slug)
     link = get_object_or_404(portal.links, pk=link_pk)
 
     if request.method == "POST":
@@ -306,9 +304,9 @@ def portal_delete_link(request, link_pk, **kwargs):
 
 
 @staff_member_required
-def portal_add_document(request, **kwargs):
+def portal_add_document(request, slug):
 
-    portal = get_portal(kwargs)
+    portal = get_object_or_404(Portal, slug=slug)
 
     if request.method == "POST":
         form = DocumentForm(request.POST, request.FILES, portal=portal)
@@ -335,9 +333,9 @@ def portal_add_document(request, **kwargs):
 
 
 @staff_member_required
-def portal_delete_document(request, document_pk, **kwargs):
+def portal_delete_document(request, slug, document_pk):
 
-    portal = get_portal(kwargs)
+    portal = get_object_or_404(Portal, slug=slug)
     document = get_object_or_404(portal.documents, pk=document_pk)
 
     if request.method == "POST":

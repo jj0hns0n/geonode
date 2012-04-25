@@ -4,12 +4,12 @@
 {% block main %}
     <h1>{% trans "Add Link" %}</h1>
 
-    <form action="" method="post">
+    <form action="{% url portals_add_link portal.slug %}" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <div class="actions">
             <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
-            <a href="{{ portal.get_absolute_url }}" class="btn">{% trans "Cancel" %}</a>
+            <a href="{{ portal.get_absolute_url }}" class="btn cancel">{% trans "Cancel" %}</a>
         </div>
     </form>
 {% endblock main %}

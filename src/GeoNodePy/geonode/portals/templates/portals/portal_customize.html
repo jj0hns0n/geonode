@@ -1,37 +1,17 @@
-{% extends "portals/base.html" %}
-
 {% load i18n %}
-
-{% block title %}
-    {% blocktrans %}Customize Portal: {{ portal }}{% endblocktrans %}
-{% endblock title %}
-
-{% block main %}
 <div id="customize">
-<h1>{% blocktrans %}Customize Portal: {{ portal }}{% endblocktrans %}</h1>
+<h1>{% blocktrans %}Change Theme{% endblocktrans %}</h1>
 
 <p>{% blocktrans %}Customize the appearance of the portal using the available style properties.{% endblocktrans %}</p>
 
-<form action="" method="post" class="form" id="customize_form" enctype="multipart/form-data">
+<form action="{% url portals_customize portal.slug %}" method="post" class="form" id="customize_form" enctype="multipart/form-data">
     {{ formset.management_form }}
     {% csrf_token %}
     {% for form in formset.forms %}
     <fieldset>{{ form.as_p }}</fieldset>
     {% endfor %}
-    <div class="submit-row">
+    <div class="controls">
         <button type="submit">{% trans "Save" %}</button>
     </div>
 </form>
 </div>
-{% endblock main %}
-
-{% block head %}
-    {{ block.super }}
-    <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}static/externals/jqueryminicolors/jquery.miniColors.css" />
-{% endblock head %}
-
-{% block extra_script %}
-    {{ block.super }}
-    <script src="{{ STATIC_URL }}static/externals/jqueryminicolors/jquery.miniColors.min.js"></script>
-    <script src="{{ STATIC_URL }}static/script/portal_customize.js"></script>
-{% endblock %}

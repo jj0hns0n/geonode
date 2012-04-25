@@ -9,7 +9,7 @@
         <p>{% blocktrans with dataset.title as dataset_title %}Are you sure you want to remove the dataset "{{ dataset_title }}" from this portal?{% endblocktrans %}</p>
         <div class="actions">
             <button type="submit" class="btn btn-primary">{% trans "Remove" %}</button>
-            <a href="{{ portal.get_absolute_url }}" class="btn">{% trans "Cancel" %}</a>
+            <a href="{{ portal.get_absolute_url }}" class="btn cancel">{% trans "Cancel" %}</a>
         </div>
     </form>
 {% endblock main %}

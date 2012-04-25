@@ -56,7 +56,6 @@ class Portal(models.Model):
         if not os.path.exists(os.path.join(settings.MEDIA_ROOT, "portals/css")):
             os.makedirs(os.path.join(settings.MEDIA_ROOT, "portals/css"))
 
-        print css
         css_file = open(os.path.join(settings.MEDIA_ROOT, "portals/css/{0}.css".format(self.slug)), "w")
         css_file.write(css)
         css_file.close()

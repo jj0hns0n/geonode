@@ -3,11 +3,11 @@
 
 {% block head %}
 {{ block.super }}
-<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}static/theme/app/portals.css" />
+<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}portals/portals.css" />
 {% if user.is_staff %}
-<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}static/externals/jqueryminicolors/jquery.miniColors.css" />
-<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}static/externals/jqueryfontselector/jquery.fontSelector.css" />
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.css">
+<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}portals/jqueryminicolors/jquery.miniColors.css" />
+<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}portals/jqueryfontselector/jquery.fontSelector.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.css">
 {% endif %}    
 {% endblock head %}
 {% block main %}
@@ -69,7 +69,7 @@
                 <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
                 {% if user.is_staff %}
                 <span class="actions">
-                    <a href="{% url portals_toggle_map portal.slug m.map.pk %}" title="{% trans "Feature" %}"><i class="icon-arrow-up"></i>
+                    <a href="{% url portals_toggle_map portal.slug m.map.pk %}" title="{% trans "Feature" %}"><i class="icon-arrow-up"></i></a>
                     <a href="{% url portals_remove_map portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
                 </span>
                 {% endif %}
@@ -135,11 +135,11 @@
 {% endblock main %}
 {% block extra_script %}
     {% if user.is_staff %}
-<script src="{{ STATIC_URL }}static/externals/jqueryminicolors/jquery.miniColors.min.js"></script>
-<script src="{{ STATIC_URL }}static/externals/jqueryfontselector/jquery.fontSelector.js"></script>
-<script src="{{ STATIC_URL }}static/externals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
-<script src="{{ STATIC_URL }}static/externals/wysihtml5/bootstrap-wysihtml5.js"></script>
+<script src="{{ STATIC_URL }}portals/jqueryminicolors/jquery.miniColors.min.js"></script>
+<script src="{{ STATIC_URL }}portals/jqueryfontselector/jquery.fontSelector.js"></script>
+<script src="{{ STATIC_URL }}portals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
+<script src="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.js"></script>
 
-<script src="{{ STATIC_URL }}static/script/portal_customize.js"></script>
+<script src="{{ STATIC_URL }}portals/portal_customize.js"></script>
     {% endif %}
 {% endblock %}

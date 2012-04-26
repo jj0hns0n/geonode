@@ -2,21 +2,22 @@ import re
 
 from django import template
 
-from django.contrib.sites.models import Site
-
-from ..models import PortalContextItem
+from ..models import Portal, PortalContextItem
 
 register = template.Library()
 
 
 @register.inclusion_tag("portals/portal_stylesheet.html", takes_context=True)
 def portal_stylesheet(context):
-    site = Site.objects.get_current()
     try:
-        return {"portal": site.portal}
+        portal = context["request"].site.portal
     except:
-        if context["request"].session.get("active_portal"):
-            return {"portal": context["request"].session["active_portal"]}
+        pass
+    else:
+        return {"portal": portal}
+    try:
+        return {"portal": Portal.objects.get(slug=context["request"].portal_slug)}
+    except:
         return {"portal": None}
 
 

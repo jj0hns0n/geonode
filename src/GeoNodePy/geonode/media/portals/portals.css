@@ -1,0 +1,33 @@
+div.portal_summary div.image {
+    float: left;
+    width: 125px;
+    margin-right: 10px;
+}
+div.portal_summary div.image img {
+    display: block;
+    margin: 0 auto;
+    max-width: 125px;
+    max-height: 125px;
+}
+ul.stats {
+    font-size: 0.9em;
+}
+ul.stats li {
+    float: left;
+    margin-right: 15px;
+}
+ul.stats .badge {
+    font-size: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+span.actions {
+    float: right;
+}
+span.actions a {
+    opacity: 0.6;
+}
+span.actions a:hover {
+    opacity: 1;
+}

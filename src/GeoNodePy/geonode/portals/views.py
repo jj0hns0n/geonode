@@ -18,6 +18,10 @@ from .models import Portal, PortalMap, PortalContextItem
 
 def hosts_callback(request, portal_slug):
     request.portal_slug = portal_slug
+    try:
+        request.site = Site.objects.get(domain="%s.geonode.org" % portal_slug)
+    except:
+        pass
 
 
 def portals(request):
@@ -81,6 +85,8 @@ def portal_create(request):
         form = PortalForm(request.POST, request.FILES)
         if form.is_valid():
             portal = form.save()
+            # generate css
+            portal.save_css()
             return redirect(portal)
 
     else:
@@ -110,6 +116,8 @@ def portal_edit(request, pk):
         form = PortalForm(request.POST, request.FILES, instance=portal)
         if form.is_valid():
             form.save()
+            # in case the logo changes, save css
+            portal.save_css()
             return redirect("portals_list")
 
     else:
@@ -185,6 +193,18 @@ def portal_add_map(request, slug):
         },
         context_instance=RequestContext(request)
     )
+
+
+@staff_member_required
+def portal_toggle_map(request, slug, map_pk):
+
+    portal = get_object_or_404(Portal, slug=slug)
+    map = get_object_or_404(PortalMap.objects.filter(portal=portal), map__pk=map_pk)
+
+    map.featured = not map.featured
+    map.save()
+
+    return redirect(portal.get_absolute_url())
 
 
 @staff_member_required

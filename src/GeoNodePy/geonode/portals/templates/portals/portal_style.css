@@ -8,5 +8,6 @@
 {% for item in portal.context_items.all %}
 {{ item.selector }} {
     {{ item.css_property}}: {{ item.value }};
+    {% if item.selector == ".navbar-inner" %}background-image: none;{% endif %}
 }
 {% endfor %}

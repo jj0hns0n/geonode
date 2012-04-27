@@ -4,6 +4,6 @@ from django.conf import settings
 
 host_patterns = patterns('',
     host(r'www', settings.ROOT_URLCONF, name='www'),
-    host(r'(?P<portal_slug>\w+)', 'geonode.portals.urls_host',
+    host(r'(?P<portal_slug>[-\w]+)', 'geonode.portals.urls_host',
         callback='geonode.portals.views.hosts_callback', name='portal'),
 )

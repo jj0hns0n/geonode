@@ -1,3 +1,7 @@
+div.portal_summary {
+    clear: both;
+    margin-bottom: 20px;
+}
 div.portal_summary div.image {
     float: left;
     width: 125px;

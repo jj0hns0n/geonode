@@ -31,7 +31,7 @@ class LinkForm(forms.ModelForm):
 
 class PortalForm(forms.ModelForm):
 
-    RESERVED_SLUGS = ("www", )
+    RESERVED_SLUGS = ("www", "opendri")
 
     class Meta:
         model = Portal

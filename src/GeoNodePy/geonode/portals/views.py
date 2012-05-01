@@ -47,10 +47,10 @@ def index(request, **kwargs):
     - Edit additional info (see portal_edit view)
 
     """
-    if hasattr(request, "portal_slug"):
+    if kwargs.get("slug"):
+        portal = get_object_or_404(Portal, slug=kwargs.get("slug"))
+    elif hasattr(request, "portal_slug"):
         portal = get_object_or_404(Portal, slug=request.portal_slug)
-    elif kwargs.get("portal_slug"):
-        portal = get_object_or_404(Portal, slug=kwargs.get("portal_slug"))
     else:
         site = Site.objects.get_current()
         portal = get_object_or_404(Portal, site__pk=site.pk)

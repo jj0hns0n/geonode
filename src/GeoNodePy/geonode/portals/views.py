@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.sites.models import Site
 
 from geonode.maps.models import Layer
 from .forms import (DocumentForm, LinkForm,
@@ -18,10 +17,6 @@ from .models import Portal, PortalMap, PortalContextItem
 
 def hosts_callback(request, portal_slug):
     request.portal_slug = portal_slug
-    try:
-        request.site = Site.objects.get(domain="%s.geonode.org" % portal_slug)
-    except:
-        pass
 
 
 def portals(request):
@@ -51,9 +46,6 @@ def index(request, **kwargs):
         portal = get_object_or_404(Portal, slug=kwargs.get("slug"))
     elif hasattr(request, "portal_slug"):
         portal = get_object_or_404(Portal, slug=request.portal_slug)
-    else:
-        site = Site.objects.get_current()
-        portal = get_object_or_404(Portal, site__pk=site.pk)
 
     featured_maps = PortalMap.objects.filter(portal=portal, featured=True)
     maps = PortalMap.objects.filter(portal=portal, featured=False)

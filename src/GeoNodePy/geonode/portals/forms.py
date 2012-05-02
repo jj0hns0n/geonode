@@ -38,7 +38,6 @@ class PortalForm(forms.ModelForm):
         exclude = (
             "maps",
             "datasets",
-            "site",
             "custom_css"  # @@ this could allow for greater control
         )
 

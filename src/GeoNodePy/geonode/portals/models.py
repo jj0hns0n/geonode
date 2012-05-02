@@ -4,8 +4,6 @@ from django.conf import settings
 from django.db import models
 from django.template.loader import render_to_string
 
-from django.contrib.sites.models import Site
-
 from geonode.maps.models import Map, Layer
 
 
@@ -14,8 +12,6 @@ class Portal(models.Model):
     slug = models.SlugField(max_length=25, unique=True, null=True)
     summary = models.TextField(blank=True, null=True)
     teaser = models.TextField(blank=True, null=True)
-
-    site = models.ForeignKey(Site, blank=True, null=True)
 
     logo = models.FileField(upload_to="portals/logo/", blank=True, null=True)
     custom_css = models.FileField(upload_to="portals/css/", blank=True, null=True)
@@ -28,12 +24,7 @@ class Portal(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        site = Site.objects.get_current()
-        try:
-            if site.portal:
-                return ("geonode.portals.views.index")
-        except:
-            pass
+        # @@ in what context (if any) should this return its subdomain?
         return ("portals_detail", [self.slug])
 
     def get_context_value(self, name):
@@ -41,15 +32,6 @@ class Portal(models.Model):
             return self.context_items.get(name=name).value
         except:
             return ""
-
-    def save(self, *args, **kwargs):
-        if not self.site:
-            site = Site.objects.create(
-                domain="{0}.geonode.org".format(self.slug),
-                name=self.name
-            )
-            self.site = site
-        super(Portal, self).save(*args, **kwargs)
 
     def save_css(self):
         css = render_to_string("portals/portal_style.css", {"portal": self})

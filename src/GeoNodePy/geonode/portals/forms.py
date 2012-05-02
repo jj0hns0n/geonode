@@ -19,6 +19,12 @@ class DocumentForm(forms.ModelForm):
 
 class LinkForm(forms.ModelForm):
 
+    parent = forms.ModelChoiceField(
+        label=_("Category"),
+        queryset=Link.objects.categories(),
+        required=False
+        )
+
     class Meta:
         model = Link
 

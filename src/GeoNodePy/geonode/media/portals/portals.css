@@ -29,6 +29,12 @@ ul.stats .badge {
     padding-right: 4px;
 }
 
+.btn-toolbar {
+    text-align: right;
+}
+.btn-toolbar .btn-group {
+    text-align: left;
+}
 span.actions {
     float: right;
 }

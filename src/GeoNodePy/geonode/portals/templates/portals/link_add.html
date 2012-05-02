@@ -4,7 +4,7 @@
 {% block main %}
     <h1>{% trans "Add Link" %}</h1>
 
-    <form action="{% url portals_add_link portal.slug %}" method="post">
+    <form action="{% url portals_add_link portal.slug %}" method="post" id="form-link-add">
         {% csrf_token %}
         {{ form.as_p }}
         <div class="actions">

@@ -5,6 +5,7 @@ from django.db import models
 from django.template.loader import render_to_string
 
 from geonode.maps.models import Map, Layer
+from .managers import DocumentManager, LinkManager
 
 
 class Portal(models.Model):
@@ -84,8 +85,11 @@ class PortalContextItem(models.Model):
 
 class Document(models.Model):
     portal = models.ForeignKey(Portal, related_name="documents")
-    file = models.FileField(upload_to="portals/document/")
+    parent = models.ForeignKey('self', blank=True, null=True)
+    file = models.FileField(upload_to="portals/document/", blank=True, null=True)
     label = models.CharField(max_length=255)
+
+    objects = DocumentManager()
 
     def __unicode__(self):
         return u"%s" % self.label
@@ -93,8 +97,11 @@ class Document(models.Model):
 
 class Link(models.Model):
     portal = models.ForeignKey(Portal, related_name="links")
+    parent = models.ForeignKey('self', blank=True, null=True, related_name="children")
     label = models.CharField(max_length=255)
-    link = models.URLField()
+    link = models.URLField(blank=True, null=True)
+
+    objects = LinkManager()
 
     def __unicode__(self):
         return u"%s" % self.label

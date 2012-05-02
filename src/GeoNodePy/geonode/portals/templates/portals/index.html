@@ -14,26 +14,21 @@
     <div class="page-header">
         <h1>{{ portal.name }}</h1>
         {% if user.is_staff %}
-        {% url portals_edit portal.pk as edit_portal %}
+        
         <div class="btn-toolbar">
-        {% blocktrans %}
         <div class="btn-group">
-            <a href="{{ edit_portal }}" class="btn edit">Edit Info</a>
-        </div>
-        {% endblocktrans %}
-        <div class="btn-group">
-            <a href="#" class="btn customize">{% trans "Change Theme" %}</a>
-        </div>
-        <div class="btn-group">
-          <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-            {% trans "Add" %}
+          <a class="btn btn-info dropdown-toggle" data-toggle="dropdown" href="#">
+            {% trans "Manage" %}
             <span class="caret"></span>
           </a>
           <ul class="dropdown-menu">
-            <li><a href="{% url portals_add_map portal.slug %}" class="add"><i class="icon-map-marker"></i> {% trans "Map" %}</a></li>
-            <li><a href="{% url portals_add_dataset portal.slug %}" class="add"><i class="icon-list-alt"></i> {% trans "Dataset" %}</a></li>
-            <li><a href="{% url portals_add_link portal.slug %}" class="add"><i class="icon-share-alt"></i> {% trans "Link" %}</a></li>
-            <li><a href="{% url portals_add_document portal.slug %}" class="add"><i class="icon-file"></i> {% trans "Document" %}</a></li>
+            <li><a href="{% url portals_edit portal.pk %}" class="edit">{% trans "Edit Info" %}</a></li>
+            <li><a href="#" class="customize">{% trans "Change Theme" %}</a></li>
+            <li class="divider"></li>
+            <li><a href="{% url portals_add_map portal.slug %}" class="add"><i class="icon-map-marker"></i> {% trans "Add Map" %}</a></li>
+            <li><a href="{% url portals_add_dataset portal.slug %}" class="add"><i class="icon-list-alt"></i> {% trans "Add Dataset" %}</a></li>
+            <li><a href="{% url portals_add_link portal.slug %}" class="add"><i class="icon-share-alt"></i> {% trans "Add Link" %}</a></li>
+            <li><a href="{% url portals_add_document portal.slug %}" class="add"><i class="icon-file"></i> {% trans "Add Document" %}</a></li>
           </ul>
         </div>
      </div>
@@ -96,14 +91,27 @@
     {% if portal.links.count %}
     <h2>{% trans "Links" %}</h2>
     <ul class="unstyled">
-        {% for link in portal.links.all %}
+        {% for link in portal.links.categories %}
             <li>
-                <a href="{{ link.link }}">{{ link.label }}</a>
+                <b>{{ link.label }}</b>
+
                 {% if user.is_staff %}
-                <span class="actions">
-                    <a href="{% url portals_delete_link portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-                </span>
+                    <span class="actions">
+                        <a href="{% url portals_delete_link portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    </span>
                 {% endif %}
+                
+                <ul class="unstyled sub">
+                {% for child in link.children.all %}
+                    <li><a href="{{ child.link }}">{{ child.label }}</a>
+                    {% if user.is_staff %}
+                    <span class="actions">
+                        <a href="{% url portals_delete_link portal.slug child.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    </span>
+                    {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
             </li>
         {% endfor %}
     </ul>
@@ -140,6 +148,6 @@
 <script src="{{ STATIC_URL }}portals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
 <script src="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.js"></script>
 
-<script src="{{ STATIC_URL }}portals/portal_customize.js"></script>
+<script src="{{ STATIC_URL }}portals/portal.js"></script>
     {% endif %}
 {% endblock %}

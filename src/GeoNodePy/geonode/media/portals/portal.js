@@ -14,6 +14,7 @@ $(function() {
                 e.preventDefault();
                 $("#form-modal").modal("hide");
             });
+            if ($("#form-modal form#form-link-add").size()) prepLinkForm();
           });
       });
       $("#id_summary").wysihtml5();
@@ -35,4 +36,26 @@ function prepCustomizeForm() {
             keyboard:true
         });
     });
+}
+
+function prepLinkForm() {
+  if ($("#id_parent option").size() > 1) {
+      $("#id_parent").after(
+          $("<a/>", {
+              href: "#",
+              html: "Create New Category",
+              onclick: function(e) {
+                  e.preventDefault();
+                  morphForm();
+              }
+          })
+      );
+  } else {
+      morphForm();
+  }
+}
+function morphForm() {
+    $("#id_parent,#id_link").parents("p").hide();
+    $("label[for=id_label]").html("Description");
+    $(".modal-body #main h1").html("Add Link Category");
 }

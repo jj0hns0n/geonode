@@ -30,5 +30,14 @@
             <div class="clearfix"></div>
         </div>
     {% endfor %}
+    {% if user.is_staff and portal_archive_list %}
+        <h2>Archived Portals</h2>
+        <ul class="archive">
+        {% for portal in portal_archive_list %}
+            <li>{{ portal }}
+                <span class="action"><a href="{% url portals_archive portal.pk %}">Reactivate</a></span>
+            </li>
+        {% endfor %}
+    {% endif %}
 
 {% endblock %}

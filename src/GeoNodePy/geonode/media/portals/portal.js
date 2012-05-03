@@ -14,7 +14,8 @@ $(function() {
                 e.preventDefault();
                 $("#form-modal").modal("hide");
             });
-            if ($("#form-modal form#form-link-add").size()) prepLinkForm();
+            if ($("#form-modal form#form-link-add").size() || 
+              $("#form-modal form#form-document-add").size()) prepCategoryForm();
           });
       });
       $("#id_summary").wysihtml5();
@@ -38,13 +39,14 @@ function prepCustomizeForm() {
     });
 }
 
-function prepLinkForm() {
+function prepCategoryForm() {
   if ($("#id_parent option").size() > 1) {
       $("#id_parent").after(
           $("<a/>", {
               href: "#",
+              "class": "category",
               html: "Create New Category",
-              onclick: function(e) {
+              "click": function(e) {
                   e.preventDefault();
                   morphForm();
               }
@@ -55,7 +57,9 @@ function prepLinkForm() {
   }
 }
 function morphForm() {
-    $("#id_parent,#id_link").parents("p").hide();
+    $("#id_parent,#id_link,#id_file").parents("p").hide();
     $("label[for=id_label]").html("Description");
-    $(".modal-body #main h1").html("Add Link Category");
+    $(".modal-body #main h1").each(function() {
+      $(this).html($(this).html() + " Category");
+    });
 }

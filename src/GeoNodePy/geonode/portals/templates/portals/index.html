@@ -29,6 +29,8 @@
             <li><a href="{% url portals_add_dataset portal.slug %}" class="add"><i class="icon-list-alt"></i> {% trans "Add Dataset" %}</a></li>
             <li><a href="{% url portals_add_link portal.slug %}" class="add"><i class="icon-share-alt"></i> {% trans "Add Link" %}</a></li>
             <li><a href="{% url portals_add_document portal.slug %}" class="add"><i class="icon-file"></i> {% trans "Add Document" %}</a></li>
+            <li class="divider"></li>
+            <li><a href="{% url portals_archive portal.pk %}" class="archive">{% trans "Archive Portal" %}</a></li>
           </ul>
         </div>
      </div>
@@ -91,22 +93,22 @@
     {% if portal.links.count %}
     <h2>{% trans "Links" %}</h2>
     <ul class="unstyled">
-        {% for link in portal.links.categories %}
+        {% for category in portal.links.categories %}
             <li>
-                <b>{{ link.label }}</b>
+                <b>{{ category.label }}</b>
 
                 {% if user.is_staff %}
                     <span class="actions">
-                        <a href="{% url portals_delete_link portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                        <a href="{% url portals_delete_link portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
                     </span>
                 {% endif %}
-                
+
                 <ul class="unstyled sub">
-                {% for child in link.children.all %}
-                    <li><a href="{{ child.link }}">{{ child.label }}</a>
+                {% for link in category.children.all %}
+                    <li><a href="{{ link.link }}">{{ link.label }}</a>
                     {% if user.is_staff %}
                     <span class="actions">
-                        <a href="{% url portals_delete_link portal.slug child.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                        <a href="{% url portals_delete_link portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
                     </span>
                     {% endif %}
                     </li>
@@ -119,14 +121,25 @@
     {% if portal.documents.count %}
     <h2>{% trans "Documents" %}</h2>
     <ul class="unstyled">
-        {% for document in portal.documents.all %}
+        {% for category in portal.documents.categories %}
             <li>
-                <a href="{{ document.file.url }}">{{ document.label }}</a>
+                <b>{{ category.label }}</b>
                 {% if user.is_staff %}
                 <span class="actions">
-                    <a href="{% url portals_delete_document portal.slug document.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    <a href="{% url portals_delete_document portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
                 </span>
                 {% endif %}
+                <ul class="unstyled sub">
+                {% for document in category.children.all %}
+                    <li><a href="{{ document.file.url }}">{{ document.label }}</a>
+                    {% if user.is_staff %}
+                    <span class="actions">
+                        <a href="{% url portals_delete_document portal.slug document.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    </span>
+                    {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
             </li>
         {% endfor %}
     </ul>

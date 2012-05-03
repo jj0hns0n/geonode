@@ -4,7 +4,7 @@
 {% block main %}
     <h1>{% trans "Add Document" %}</h1>
 
-    <form action="{% url portals_add_document portal.slug %}" method="post" enctype="multipart/form-data">
+    <form action="{% url portals_add_document portal.slug %}" method="post" enctype="multipart/form-data" id="form-document-add">
         {% csrf_token %}
         {{ form.as_p }}
         <div class="actions">

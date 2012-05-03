@@ -8,5 +8,15 @@ class DocumentManager(models.Manager):
 
 
 class LinkManager(models.Manager):
+
     def categories(self):
         return self.filter(link__in=("", None))
+
+
+class PortalManager(models.Manager):
+
+    def active(self):
+        return self.filter(active=True)
+
+    def archived(self):
+        return self.filter(active=False)

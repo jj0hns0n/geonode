@@ -8,13 +8,12 @@
         {% csrf_token %}
         {{ form.portal }}
         <div class="form-row">
-            <select name="dataset">
-                <option value="">-----</option>
-                {% for ds in datasets %}
-                 <option value="{{ ds.pk }}">{{ ds.title }}</option>   
-                {% endfor %}
-            </select>
+            <label for="id_dataset">Dataset</label>
+            {% if form.dataset.errors %}{% for error in form.dataset.errors %}<div class="alert alert-error">{{ error }}</div>{% endfor %}{% endif %}
+            {{ form.dataset }}
         </div>
+        <div class="form-row"><label for="id_summary">Description (optional)</label>{{ form.summary }}</div>
+
         <div class="actions">
             <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
             <a href="{{ portal.get_absolute_url }}" class="btn cancel">{% trans "Cancel" %}</a>

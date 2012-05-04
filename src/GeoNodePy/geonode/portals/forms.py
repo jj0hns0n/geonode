@@ -1,8 +1,8 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from geonode.maps.models import Map
-from .models import Document, Link, Portal, PortalContextItem, PortalMap
+from geonode.maps.models import Layer, Map
+from .models import Document, Link, Portal, PortalContextItem, PortalDataset, PortalMap
 
 
 class DocumentForm(forms.ModelForm):
@@ -44,6 +44,7 @@ class PortalForm(forms.ModelForm):
         exclude = (
             "maps",
             "datasets",
+            "active",
             "custom_css"  # @@ this could allow for greater control
         )
 
@@ -91,6 +92,19 @@ class PortalMapForm(forms.ModelForm):
         self.fields["portal"].widget = forms.HiddenInput()
         self.fields["portal"].initial = portal.pk
         self.fields["map"].queryset = Map.objects.exclude(pk__in=[m.pk for m in portal.maps.all()])
+
+
+class PortalDatasetForm(forms.ModelForm):
+
+    class Meta:
+        model = PortalDataset
+
+    def __init__(self, *args, **kwargs):
+        portal = kwargs.pop("portal")
+        super(PortalDatasetForm, self).__init__(*args, **kwargs)
+        self.fields["portal"].widget = forms.HiddenInput()
+        self.fields["portal"].initial = portal.pk
+        self.fields["dataset"].queryset = Layer.objects.exclude(pk__in=[l.pk for l in portal.datasets.all()])
 
 
 class PortalLinkForm(forms.ModelForm):

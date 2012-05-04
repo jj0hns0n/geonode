@@ -18,7 +18,7 @@ class Portal(models.Model):
     custom_css = models.FileField(upload_to="portals/css/", blank=True, null=True)
 
     maps = models.ManyToManyField(Map, through="PortalMap")
-    datasets = models.ManyToManyField(Layer)
+    datasets = models.ManyToManyField(Layer, through="PortalDataset")
 
     active = models.BooleanField(default=True)
 
@@ -56,6 +56,13 @@ class PortalMap(models.Model):
     portal = models.ForeignKey(Portal)
     map = models.ForeignKey(Map)
     featured = models.BooleanField(default=False)
+    summary = models.TextField(blank=True, null=True)
+
+
+class PortalDataset(models.Model):
+    portal = models.ForeignKey(Portal)
+    dataset = models.ForeignKey(Layer)
+    summary = models.TextField(blank=True, null=True)
 
 
 class PortalContextItem(models.Model):
@@ -104,6 +111,7 @@ class Link(models.Model):
     parent = models.ForeignKey('self', blank=True, null=True, related_name="children")
     label = models.CharField(max_length=255)
     link = models.URLField(blank=True, null=True)
+    summary = models.TextField(blank=True, null=True)
 
     objects = LinkManager()
 

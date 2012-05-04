@@ -9,9 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 
-from geonode.maps.models import Layer
 from .forms import (DocumentForm, LinkForm,
-    PortalForm, PortalContextItemForm, PortalMapForm)
+    PortalForm, PortalContextItemForm, PortalDatasetForm, PortalMapForm)
 from .models import Portal, PortalMap, PortalContextItem
 
 
@@ -236,27 +235,26 @@ def portal_remove_map(request, slug, map_pk):
 def portal_add_dataset(request, slug):
 
     portal = get_object_or_404(Portal, slug=slug)
-    datasets = Layer.objects.exclude(pk__in=[d.pk for d in portal.datasets.all()])
 
     if request.method == "POST":
-        dataset = get_object_or_404(
-            datasets,
-            pk=request.POST.get("dataset")
-        )
-        portal.datasets.add(dataset)
-        d = {
-            "title": dataset.title,
-            "url": dataset.get_absolute_url()
-        }
-        if request.is_ajax():
-            return HttpResponse(json.dumps({"dataset": d}), mimetype="application/javascript")
-        else:
-            return redirect(portal.get_absolute_url())
+        form = PortalDatasetForm(request.POST, portal=portal)
+        if form.is_valid():
+            dataset = form.save()
+            d = {
+                "title": dataset.title,
+                "url": dataset.get_absolute_url()
+            }
+            if request.is_ajax():
+                return HttpResponse(json.dumps({"dataset": d}), mimetype="application/javascript")
+            else:
+                return redirect(portal.get_absolute_url())
+    else:
+        form = PortalDatasetForm(portal=portal)
 
     return render_to_response("portals/dataset_add.html",
         {
             "portal": portal,
-            "datasets": datasets
+            "form": form
         },
         context_instance=RequestContext(request)
     )
@@ -266,16 +264,16 @@ def portal_add_dataset(request, slug):
 def portal_remove_dataset(request, slug, dataset_pk):
 
     portal = get_object_or_404(Portal, slug=slug)
-    dataset = get_object_or_404(portal.datasets, pk=dataset_pk)
+    dataset = get_object_or_404(portal.datasets, dataset__pk=dataset_pk)
 
     if request.method == "POST":
-        portal.datasets.remove(dataset)
+        dataset.delete()
         return redirect(portal.get_absolute_url())
 
     return render_to_response("portals/dataset_remove.html",
         {
             "portal": portal,
-            "dataset": dataset
+            "dataset": dataset.dataset
         },
         context_instance=RequestContext(request)
     )

@@ -7,7 +7,10 @@
     <form action="{% url portals_add_map portal.slug %}" method="post">
         {% csrf_token %}
         {{ form.portal }}
-        <div class="form-row">{{ form.map }}</div>
+        <div class="form-row"><label for="id_map">Map</label>
+            {% if form.map.errors %}{% for error in form.map.errors %}<div class="alert alert-error">{{ error }}</div>{% endfor %}{% endif %}
+            {{ form.map }}</div>
+        <div class="form-row"><label for="id_summary">Description (optional)</label>{{ form.summary }}</div>
         <div class="actions">
             <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
             <button type="submit" class="btn btn-primary" name="featured" value="true">{% trans "Add as Featured" %}</button>

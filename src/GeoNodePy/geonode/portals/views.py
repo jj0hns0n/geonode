@@ -11,7 +11,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 from .forms import (DocumentForm, LinkForm,
     PortalForm, PortalContextItemForm, PortalDatasetForm, PortalMapForm)
-from .models import Portal, PortalMap, PortalContextItem
+from .models import Portal, PortalMap, PortalDataset, PortalContextItem
 
 
 def hosts_callback(request, portal_slug):
@@ -48,6 +48,7 @@ def index(request, **kwargs):
 
     featured_maps = PortalMap.objects.filter(portal=portal, featured=True)
     maps = PortalMap.objects.filter(portal=portal, featured=False)
+    datasets = PortalDataset.objects.filter(portal=portal)
 
     extra_context = {}
 
@@ -58,7 +59,8 @@ def index(request, **kwargs):
         {
             "portal": portal,
             "featured_maps": featured_maps,
-            "maps": maps
+            "maps": maps,
+            "datasets": datasets,
         },
         context_instance=RequestContext(request, extra_context)
     )

@@ -81,10 +81,10 @@
     </ul>
 </div>
 <div class="span6">
-    {% if portal.datasets.count %}
+    {% if datasets %}
     <h2>{% trans "Datasets" %}</h2>
     <ul class="unstyled">
-        {% for d in portal.datasets.all %}
+        {% for d in datasets %}
             <li>
                 <a href="{{ d.dataset.get_absolute_url }}">{{ d.dataset.title }}</a>
                 {% if user.is_staff %}

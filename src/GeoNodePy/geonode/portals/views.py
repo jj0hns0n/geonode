@@ -1,17 +1,23 @@
 import json
 
+from django.core.xheaders import populate_xheaders
+
+from django.conf import settings
 from django.forms.formsets import formset_factory
-from django.http import HttpResponse
-from django.template import RequestContext
+from django.http import HttpResponse, HttpResponseRedirect
+from django.template import loader, RequestContext
 from django.shortcuts import render_to_response, redirect, get_object_or_404
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.csrf import csrf_protect
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 
-from .forms import (DocumentForm, LinkForm,
-    PortalForm, PortalContextItemForm, PortalDatasetForm, PortalMapForm)
-from .models import Portal, PortalMap, PortalDataset, PortalContextItem
+from .forms import (DocumentForm, FlatpageForm, LinkForm,
+    PortalForm, PortalContextItemForm, PortalDatasetForm, PortalMapForm,
+    PortalSummaryForm)
+from .models import Flatpage, Portal, PortalMap, PortalDataset, PortalContextItem
 
 
 def hosts_callback(request, portal_slug):
@@ -66,6 +72,40 @@ def index(request, **kwargs):
     )
 
 
+# This view is called from FlatpageFallbackMiddleware.process_response
+# when a 404 is raised, which often means CsrfViewMiddleware.process_view
+# has not been called even if CsrfViewMiddleware is installed. So we need
+# to use @csrf_protect, in case the template needs {% csrf_token %}.
+@csrf_protect
+def flatpage(request, url):
+    if not url.endswith('/') and settings.APPEND_SLASH:
+        return HttpResponseRedirect("%s/" % request.path)
+    if not url.startswith('/'):
+        url = "/" + url
+    f = get_object_or_404(Flatpage, url__exact=url, portal__slug=request.portal_slug, portal__active=True)
+    t = loader.get_template("portals/flatpage.html")
+
+    # To avoid having to always use the "|safe" filter in flatpage templates,
+    # mark the title and content as already safe (since they are raw HTML
+    # content in the first place).
+    f.title = mark_safe(f.title)
+    f.content = mark_safe(f.content)
+
+    c = RequestContext(request, {
+        'flatpage': f,
+    })
+    response = HttpResponse(t.render(c))
+    populate_xheaders(request, response, Flatpage, f.id)
+    return response
+
+
+def flatpage_preview(request, slug, flatpage_pk):
+    portal = get_object_or_404(Portal, slug=slug)
+    flatpage = get_object_or_404(portal.flatpages, pk=flatpage_pk)
+
+    return render_to_response("portals/flatpage.html", {"flatpage": flatpage}, context_instance=RequestContext(request))
+
+
 @staff_member_required
 def portal_create(request):
     if request.method == "POST":
@@ -81,6 +121,32 @@ def portal_create(request):
 
     return render_to_response("portals/portal_form.html",
         {"form": form},
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
+def portal_manage(request, pk):
+    portal = get_object_or_404(Portal.objects.active(), pk=pk)
+    featured_maps = PortalMap.objects.filter(portal=portal, featured=True)
+    maps = PortalMap.objects.filter(portal=portal, featured=False)
+    datasets = PortalDataset.objects.filter(portal=portal)
+
+    if request.method == "POST":
+        summary_form = PortalSummaryForm(request.POST, instance=portal)
+        if summary_form.is_valid():
+            summary_form.save()
+    else:
+        summary_form = PortalSummaryForm(instance=portal)
+
+    return render_to_response("portals/manage.html",
+        {
+            "portal": portal,
+            "featured_maps": featured_maps,
+            "maps": maps,
+            "datasets": datasets,
+            "form": summary_form
+        },
         context_instance=RequestContext(request)
     )
 
@@ -194,6 +260,29 @@ def portal_add_map(request, slug):
         form = PortalMapForm(portal=portal)
 
     return render_to_response("portals/map_add.html",
+        {
+            "portal": portal,
+            "form": form
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
+def portal_edit_map(request, slug, map_pk):
+    portal = get_object_or_404(Portal, slug=slug)
+    map = get_object_or_404(PortalMap.objects.filter(portal=portal), map__pk=map_pk)
+
+    if request.method == "POST":
+        form = PortalMapForm(request.POST)
+        if form.is_valid():
+            form.save()
+
+            return redirect("portals_manage", portal.pk)
+    else:
+        form = PortalMapForm(instance=map)
+
+    return render_to_response("portals/map_form.html",
         {
             "portal": portal,
             "form": form
@@ -319,6 +408,29 @@ def portal_add_link(request, slug):
 
 
 @staff_member_required
+def portal_edit_link(request, slug, link_pk):
+
+    portal = get_object_or_404(Portal, slug=slug)
+    link = get_object_or_404(portal.links, pk=link_pk)
+
+    if request.method == "POST":
+        form = LinkForm(request.POST)
+        if form.is_valid:
+            form.save()
+            return redirect("portals_manage", portal.pk)
+    else:
+        form = LinkForm(instance=link)
+
+    return render_to_response("portals/link_form.html",
+        {
+            "portal": portal,
+            "form": form
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
 def portal_delete_link(request, slug, link_pk):
 
     portal = get_object_or_404(Portal, slug=slug)
@@ -367,6 +479,29 @@ def portal_add_document(request, slug):
 
 
 @staff_member_required
+def portal_edit_document(request, slug, document_pk):
+
+    portal = get_object_or_404(Portal, slug=slug)
+    document = get_object_or_404(portal.documents, pk=document_pk)
+
+    if request.method == "POST":
+        form = DocumentForm(request.POST)
+        if form.is_valid:
+            form.save()
+            return redirect("portals_manage", portal.pk)
+    else:
+        form = DocumentForm(instance=document)
+
+    return render_to_response("portals/document_form.html",
+        {
+            "portal": portal,
+            "document": document
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
 def portal_delete_document(request, slug, document_pk):
 
     portal = get_object_or_404(Portal, slug=slug)
@@ -380,6 +515,78 @@ def portal_delete_document(request, slug, document_pk):
         {
             "portal": portal,
             "document": document
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
+def portal_add_flatpage(request, slug):
+
+    portal = get_object_or_404(Portal, slug=slug)
+
+    if request.method == "POST":
+        form = FlatpageForm(request.POST, portal=portal)
+        if form.is_valid():
+            flatpage = form.save()
+            if request.is_ajax():
+                f = {
+                    "title": flatpage.title,
+                    "url": flatpage.url
+                    }
+                return HttpResponse(json.dumps({"flatpage": f}), mimetype="application/javascript")
+            else:
+                return redirect("portals_manage", portal.pk)
+    else:
+        form = FlatpageForm(portal=portal)
+
+    return render_to_response("portals/flatpage_form.html",
+        {
+            "portal": portal,
+            "form": form
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
+def portal_edit_flatpage(request, slug, flatpage_pk):
+
+    portal = get_object_or_404(Portal, slug=slug)
+    flatpage = get_object_or_404(portal.flatpages, pk=flatpage_pk)
+
+    if request.method == "POST":
+        form = FlatpageForm(request.POST, instance=flatpage, portal=portal)
+        if form.is_valid():
+            form.save()
+            return redirect("portals_manage", portal.pk)
+    else:
+        form = FlatpageForm(instance=flatpage, portal=portal)
+
+    return render_to_response("portals/flatpage_form.html",
+        {
+            "portal": portal,
+            "form": form,
+            "flatpage": flatpage
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
+def portal_delete_flatpage(request, slug, flatpage_pk):
+
+    portal = get_object_or_404(Portal, slug=slug)
+    flatpage = get_object_or_404(portal.flatpages, pk=flatpage_pk)
+
+    if request.method == "POST":
+        flatpage.delete()
+        return redirect("portals_manage", portal.pk)
+
+    return render_to_response("portals/flatpage_delete.html",
+        {
+            "portal": portal,
+            "flatpage": flatpage
         },
         context_instance=RequestContext(request)
     )

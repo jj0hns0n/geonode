@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 from geonode.maps.models import Layer, Map
-from .models import Document, Link, Portal, PortalContextItem, PortalDataset, PortalMap
+from .models import Document, Flatpage, Link, Portal, PortalContextItem, PortalDataset, PortalMap
 
 
 class DocumentForm(forms.ModelForm):
@@ -13,6 +13,18 @@ class DocumentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         portal = kwargs.pop("portal")
         super(DocumentForm, self).__init__(*args, **kwargs)
+        self.fields["portal"].widget = forms.HiddenInput()
+        self.fields["portal"].initial = portal.pk
+
+
+class FlatpageForm(forms.ModelForm):
+
+    class Meta:
+        model = Flatpage
+
+    def __init__(self, *args, **kwargs):
+        portal = kwargs.pop("portal")
+        super(FlatpageForm, self).__init__(*args, **kwargs)
         self.fields["portal"].widget = forms.HiddenInput()
         self.fields["portal"].initial = portal.pk
 
@@ -45,6 +57,7 @@ class PortalForm(forms.ModelForm):
             "maps",
             "datasets",
             "active",
+            "summary",
             "custom_css"  # @@ this could allow for greater control
         )
 
@@ -53,6 +66,21 @@ class PortalForm(forms.ModelForm):
         if slug in self.RESERVED_SLUGS:
             raise forms.ValidationError(_("This is a reserved word. Please choose another."))
         return slug
+
+
+class PortalSummaryForm(forms.ModelForm):
+
+    class Meta:
+        model = Portal
+        exclude = (
+            "slug",
+            "maps",
+            "datasets",
+            "active",
+            "custom_css",
+            "teaser",
+            "logo"
+        )
 
 
 class PortalContextItemForm(forms.Form):

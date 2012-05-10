@@ -22,13 +22,9 @@
             <span class="caret"></span>
           </a>
           <ul class="dropdown-menu">
-            <li><a href="{% url portals_edit portal.pk %}" class="edit">{% trans "Edit Info" %}</a></li>
+            <li><a href="{% url portals_edit portal.pk %}" class="edit">{% trans "Edit Settings" %}</a></li>
             <li><a href="#" class="customize">{% trans "Change Theme" %}</a></li>
-            <li class="divider"></li>
-            <li><a href="{% url portals_add_map portal.slug %}" class="add"><i class="icon-map-marker"></i> {% trans "Add Map" %}</a></li>
-            <li><a href="{% url portals_add_dataset portal.slug %}" class="add"><i class="icon-list-alt"></i> {% trans "Add Dataset" %}</a></li>
-            <li><a href="{% url portals_add_link portal.slug %}" class="add"><i class="icon-share-alt"></i> {% trans "Add Link" %}</a></li>
-            <li><a href="{% url portals_add_document portal.slug %}" class="add"><i class="icon-file"></i> {% trans "Add Document" %}</a></li>
+            <li><a href="{% url portals_manage portal.pk %}">{% trans "Manage Content" %}</a></li>
             <li class="divider"></li>
             <li><a href="{% url portals_archive portal.pk %}" class="archive">{% trans "Archive Portal" %}</a></li>
           </ul>

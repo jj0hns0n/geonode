@@ -1,0 +1,9 @@
+{% extends "portals/base.html" %}
+{% load markup %}
+
+{% block title %}{{ flatpage.title }}{% endblock title %}
+
+{% block body_outer %}
+    <h1>{{ flatpage.title }}</h1>
+    {{ flatpage.content|safe|markdown }}
+{% endblock %}

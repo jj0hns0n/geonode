@@ -51,6 +51,10 @@ span.actions a {
 span.actions a:hover {
     opacity: 1;
 }
+.edit-inline {
+    position: absolute;
+    margin-left: -15px;
+}
 #customize_form fieldset {
     float: left;
     margin-right: 20px;
@@ -63,3 +67,8 @@ span.actions a:hover {
 }
 #customize p { color: #000; }
 #id_summary { width: 400px; }
+#form-modal #id_summary { height: 40px; }
+#id_content {
+    height: 150px;
+    width: 500px;
+}

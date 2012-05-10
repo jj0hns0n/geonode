@@ -117,3 +117,13 @@ class Link(models.Model):
 
     def __unicode__(self):
         return u"%s" % self.label
+
+
+class Flatpage(models.Model):
+    portal = models.ForeignKey(Portal, related_name="flatpages")
+    title = models.CharField(max_length=255)
+    url = models.CharField(max_length=255, unique=True)
+    content = models.TextField()
+
+    def __unicode__(self):
+        return u"%s" % self.title

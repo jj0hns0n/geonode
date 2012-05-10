@@ -136,6 +136,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_hosts.middleware.HostsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'geonode.portals.middleware.FlatpageFallbackMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
@@ -234,6 +235,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.sitemaps',
+    'django.contrib.markup',
     'staticfiles',
     'django_hosts',
     'django_extensions',

@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 
+from geonode.maps.models import Map
 from .forms import (DocumentForm, FlatpageForm, LinkForm,
     PortalForm, PortalContextItemForm, PortalDatasetForm, PortalMapForm,
     PortalSummaryForm)
@@ -82,7 +83,7 @@ def flatpage(request, url):
         return HttpResponseRedirect("%s/" % request.path)
     if not url.startswith('/'):
         url = "/" + url
-    f = get_object_or_404(Flatpage, url__exact=url, portal__slug=request.portal_slug, portal__active=True)
+    f = get_object_or_404(Flatpage, url__exact=url, portal__slug=getattr(request, "portal_slug", ""), portal__active=True)
     t = loader.get_template("portals/flatpage.html")
 
     # To avoid having to always use the "|safe" filter in flatpage templates,
@@ -254,12 +255,14 @@ def portal_add_map(request, slug):
             if request.is_ajax():
                 return HttpResponse(json.dumps({"map": m}), mimetype="application/javascript")
             else:
-                return redirect(portal.get_absolute_url())
+                return redirect("portals_manage", portal.pk)
 
     else:
         form = PortalMapForm(portal=portal)
 
-    return render_to_response("portals/map_add.html",
+    form.fields["map"].queryset = Map.objects.exclude(pk__in=[m.pk for m in portal.maps.all()])
+
+    return render_to_response("portals/map_form.html",
         {
             "portal": portal,
             "form": form
@@ -274,18 +277,19 @@ def portal_edit_map(request, slug, map_pk):
     map = get_object_or_404(PortalMap.objects.filter(portal=portal), map__pk=map_pk)
 
     if request.method == "POST":
-        form = PortalMapForm(request.POST)
+        form = PortalMapForm(request.POST, instance=map, portal=portal)
         if form.is_valid():
             form.save()
 
             return redirect("portals_manage", portal.pk)
     else:
-        form = PortalMapForm(instance=map)
+        form = PortalMapForm(instance=map, portal=portal)
 
     return render_to_response("portals/map_form.html",
         {
             "portal": portal,
-            "form": form
+            "form": form,
+            "map": map
         },
         context_instance=RequestContext(request)
     )
@@ -300,7 +304,7 @@ def portal_toggle_map(request, slug, map_pk):
     map.featured = not map.featured
     map.save()
 
-    return redirect(portal.get_absolute_url())
+    return redirect("portals_manage", portal.pk)
 
 
 @staff_member_required
@@ -311,7 +315,7 @@ def portal_remove_map(request, slug, map_pk):
 
     if request.method == "POST":
         map.delete()
-        return redirect(portal.get_absolute_url())
+        return redirect("portals_manage", portal.pk)
 
     return render_to_response("portals/map_remove.html",
         {
@@ -338,7 +342,7 @@ def portal_add_dataset(request, slug):
             if request.is_ajax():
                 return HttpResponse(json.dumps({"dataset": d}), mimetype="application/javascript")
             else:
-                return redirect(portal.get_absolute_url())
+                return redirect("portals_manage", portal.pk)
     else:
         form = PortalDatasetForm(portal=portal)
 
@@ -359,7 +363,7 @@ def portal_remove_dataset(request, slug, dataset_pk):
 
     if request.method == "POST":
         dataset.delete()
-        return redirect(portal.get_absolute_url())
+        return redirect("portals_manage", portal.pk)
 
     return render_to_response("portals/dataset_remove.html",
         {
@@ -389,7 +393,7 @@ def portal_add_link(request, slug):
                     mimetype="application/javascript"
                 )
             else:
-                return redirect(portal.get_absolute_url())
+                return redirect("portals_manage", portal.pk)
         elif request.is_ajax():
             return HttpResponse(
                 json.dumps({"success": False, "error": form.errors}),
@@ -398,7 +402,7 @@ def portal_add_link(request, slug):
     else:
         form = LinkForm(portal=portal)
 
-    return render_to_response("portals/link_add.html",
+    return render_to_response("portals/link_form.html",
         {
             "portal": portal,
             "form": form
@@ -414,17 +418,18 @@ def portal_edit_link(request, slug, link_pk):
     link = get_object_or_404(portal.links, pk=link_pk)
 
     if request.method == "POST":
-        form = LinkForm(request.POST)
+        form = LinkForm(request.POST, instance=link, portal=portal)
         if form.is_valid:
             form.save()
             return redirect("portals_manage", portal.pk)
     else:
-        form = LinkForm(instance=link)
+        form = LinkForm(instance=link, portal=portal)
 
     return render_to_response("portals/link_form.html",
         {
             "portal": portal,
-            "form": form
+            "form": form,
+            "link": link
         },
         context_instance=RequestContext(request)
     )
@@ -438,7 +443,7 @@ def portal_delete_link(request, slug, link_pk):
 
     if request.method == "POST":
         link.delete()
-        return redirect(portal.get_absolute_url())
+        return redirect("portals_manage", portal.pk)
 
     return render_to_response("portals/link_delete.html",
         {
@@ -465,11 +470,11 @@ def portal_add_document(request, slug):
                     }
                 return HttpResponse(json.dumps({"document": l}), mimetype="application/javascript")
             else:
-                return redirect(portal.get_absolute_url())
+                return redirect("portals_manage", portal.pk)
     else:
         form = DocumentForm(portal=portal)
 
-    return render_to_response("portals/document_add.html",
+    return render_to_response("portals/document_form.html",
         {
             "portal": portal,
             "form": form
@@ -485,16 +490,17 @@ def portal_edit_document(request, slug, document_pk):
     document = get_object_or_404(portal.documents, pk=document_pk)
 
     if request.method == "POST":
-        form = DocumentForm(request.POST)
+        form = DocumentForm(request.POST, instance=document, portal=portal)
         if form.is_valid:
             form.save()
             return redirect("portals_manage", portal.pk)
     else:
-        form = DocumentForm(instance=document)
+        form = DocumentForm(instance=document, portal=portal)
 
     return render_to_response("portals/document_form.html",
         {
             "portal": portal,
+            "form": form,
             "document": document
         },
         context_instance=RequestContext(request)
@@ -509,7 +515,7 @@ def portal_delete_document(request, slug, document_pk):
 
     if request.method == "POST":
         document.delete()
-        return redirect(portal.get_absolute_url())
+        return redirect("portals_manage", portal.pk)
 
     return render_to_response("portals/document_delete.html",
         {

@@ -1,5 +1,6 @@
 {% extends "portals/base.html" %}
 {% load i18n %}
+{% load url from future %}
 
 {% block head %}
 {{ block.super }}
@@ -9,9 +10,9 @@
 {% block main %}
     <header>
         <h1>Manage Portal</h1>
-        <a href="{% url portals_detail portal.slug %}" class="pull-right btn">Return to Portal Page</a>
+        <a href="{% url "portals_detail" portal.slug %}" class="pull-right btn">Return to Portal Page</a>
     </header>
-    <form action="{% url portals_manage portal.pk %}" method="post">
+    <form action="{% url "portals_manage" portal.pk %}" method="post">
     {% csrf_token %}
     <div class="page-header">
         <h1><a href="#" class="edit-inline"><i class="icon-pencil"></i></a>{{ portal.name }}</h1>
@@ -27,8 +28,8 @@
     <div class="row">
     <div class="span6">
     <h2>{% trans "Featured Maps" %}
-        <a href="{% url portals_add_map portal.slug %}" class="add btn" title="{% trans "Add" %}"><i class="icon-plus"></i></a>
     </h2>
+    <a href="{% url "portals_add_map" portal.slug %}" class="add btn btn-small" title="{% trans "Add" %}">Add Map</a>
     <table class="table table-striped" id="featured_maps">
         {% for m in featured_maps %}
             <tr>
@@ -38,20 +39,21 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                    <a href="{% url "portals_edit_map" portal.slug m.map.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
                 </td>
                 <td>
-                    <a href="{% url portals_toggle_map portal.slug m.map.pk %}" title="{% trans "Unfeature" %}"><i class="icon-chevron-down"></i></a>
+                    <a href="{% url "portals_toggle_map" portal.slug m.map.pk %}" title="{% trans "Unfeature" %}"><i class="icon-chevron-down"></i></a>
                 </td>
                 <td>
-                    <a href="{% url portals_remove_map portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-delete"></i></a>
+                    <a href="{% url "portals_remove_map" portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-delete"></i></a>
                 </td>
             </li>
         {% endfor %}
     </table>
     <h2>{% trans "Maps" %}
-        <a href="{% url portals_add_map portal.slug %}" class="add btn" title="{% trans "Add" %}"><i class="icon-plus"></i></a>
     </h2>
+    <a href="{% url "portals_add_map" portal.slug %}" class="add btn btn-small" title="{% trans "Add" %}">Add Map</a>
+
     <table class="table table-striped" id="maps">
         {% for m in maps %}
             <tr>
@@ -62,25 +64,33 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                    <a href="{% url "portals_edit_map" portal.slug m.map.pk %}" title="{% trans "Edit" %}" class="edit"><i class="icon-pencil"></i></a>
                 </td>
                 <td>
-                    <a href="{% url portals_toggle_map portal.slug m.map.pk %}" title="{% trans "Feature" %}"><i class="icon-chevron-up"></i></a>
+                    <a href="{% url "portals_toggle_map" portal.slug m.map.pk %}" title="{% trans "Feature" %}"><i class="icon-chevron-up"></i></a>
                 </td>
                 <td>
-                    <a href="{% url portals_remove_map portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
+                    <a href="{% url "portals_remove_map" portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
                 </td>
             </tr>
         {% endfor %}
     </table>
     <h2>{% trans "Documents" %}
-        <a href="{% url portals_add_document portal.slug %}" class="add btn" title="{% trans "Add" %}"><i class="icon-plus"></i></a>
     </h2>
+    {% if not portal.documents.categories.count %}<a href="{% url "portals_add_document" portal.slug %}" class="add">Add a Document Category</a> to get started
+    {% else %}
+    <a href="{% url "portals_add_document" portal.slug %}" class="add btn btn-small">
+        Add Document
+    </a>
+    {% endif %}
+
     <div id="categories">
         {% for category in portal.documents.categories %}
         <h3>{{ category.label }}
-            <a href="{% url portals_edit_document portal.slug category.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
-            <a href="{% url portals_delete_document portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+            <span class="actions">
+            <a href="{% url "portals_edit_document" portal.slug category.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+            <a href="{% url "portals_delete_document" portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+            </span>
         </h3>
         <table class="table table-striped">
             {% for document in category.children.all %}
@@ -89,10 +99,10 @@
                     <a href="{{ document.file.url }}">{{ document.label }}</a>{% if document.summary %} &mdash; {{ document.summary }}{% endif %}
                 </td>
                 <td>
-                    <a href="{% url portals_edit_document portal.slug document.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                    <a href="{% url "portals_edit_document" portal.slug document.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
                 </td>
                 <td>
-                    <a href="{% url portals_delete_document portal.slug document.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    <a href="{% url "portals_delete_document" portal.slug document.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
                 </td>
             </tr>
             {% endfor %}
@@ -102,8 +112,9 @@
 </div>
 <div class="span6">
     <h2>{% trans "Datasets" %}
-        <a href="{% url portals_add_dataset portal.slug %}" class="add btn" title="{% trans "Add" %}"><i class="icon-plus"></i></a>
     </h2>
+    <a href="{% url "portals_add_dataset" portal.slug %}" class="add btn btn-small">Add Dataset</a>
+
     <table class="table table-striped" id="datasets">
         {% for d in datasets %}
             <tr>
@@ -113,23 +124,28 @@
                     <p>{{ d.summary }}</p>
                     {% endif %}
                 </td>
+                {% comment %}
                 <td>
                     <a href="" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
                 </td>
+                {% endcomment %}
                 <td>
-                    <a href="{% url portals_remove_dataset portal.slug d.dataset.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
+                    <a href="{% url "portals_remove_dataset" portal.slug d.dataset.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
                 </td>
             </tr>
         {% endfor %}
     </table>
     <h2>{% trans "Links" %}
-        <a href="{% url portals_add_link portal.slug %}" class="add btn" title="{% trans "Add" %}"><i class="icon-plus"></i></a>
     </h2>
+    {% if not portal.links.categories.count %}<a href="{% url "portals_add_link" portal.slug %}" class="add">Add a Link Category</a> to get started{% else %}<a href="{% url "portals_add_link" portal.slug %}" class="add btn btn-small">Add Link</a>{% endif %}
+
     <div id="links">
         {% for category in portal.links.categories %}
         <h3>{{ category.label }}
-            <a href="{% url portals_edit_link portal.slug category.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
-            <a href="{% url portals_delete_link portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+            <span class="actions">
+            <a href="{% url "portals_edit_link" portal.slug category.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
+            <a href="{% url "portals_delete_link" portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+        </span>
         </h3>
         <table class="table table-striped">
             {% for link in category.children.all %}
@@ -138,10 +154,10 @@
                     <a href="{{ link.link }}">{{ link.label }}</a>{% if link.summary %} &mdash; {{ link.summary }}{% endif %}
                 </td>
                 <td>
-                    <a href="{% url portals_edit_link portal.slug link.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                    <a href="{% url "portals_edit_link" portal.slug link.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
                 </td>
                 <td>
-                    <a href="{% url portals_delete_link portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    <a href="{% url "portals_delete_link" portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
                 </td>
             </tr>
             {% endfor %}
@@ -152,20 +168,20 @@
 </div>
 <div class="row">
     <div class="span12">
-        <h2>{% trans "Flatpages" %}
-        <a href="{% url portals_add_flatpage portal.slug %}" class="btn" title="{% trans "Add" %}"><i class="icon-plus"></i></a></h2>
+        <h2>{% trans "Flatpages" %}</h2>
+        <a href="{% url "portals_add_flatpage" portal.slug %}" class="btn btn-small">Add Flatpage</a>
         <table class="table table-striped">
         {% for flatpage in portal.flatpages.all %}
             <tr>
                 <td>
                     {{ flatpage.title }}
                 </td>
-                <td><a href="{% url portals_preview_flatpage portal.slug flatpage.pk %}">preview</a></td>
+                <td><a href="{% url "portals_preview_flatpage" portal.slug flatpage.pk %}">preview</a></td>
                 <td>
-                    <a href="{% url portals_edit_flatpage portal.slug flatpage.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                    <a href="{% url "portals_edit_flatpage" portal.slug flatpage.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
                 </td>
                 <td>
-                    <a href="{% url portals_delete_flatpage portal.slug flatpage.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    <a href="{% url "portals_delete_flatpage" portal.slug flatpage.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
                 </td>
             </tr>
         {% endfor %}

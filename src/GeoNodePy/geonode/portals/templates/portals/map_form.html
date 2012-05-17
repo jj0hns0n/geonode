@@ -2,9 +2,9 @@
 {% load i18n %}
 
 {% block main %}
-    <h1>{% trans "Add Map" %}</h1>
+    <h1>{% if map %}{% trans "Edit Map" %}{% else %}{% trans "Add Map" %}{% endif %}</h1>
 
-    <form action="{% url portals_add_map portal.slug %}" method="post">
+    <form action="{% if map %}{% url portals_edit_map portal.slug map.pk %}{% else %}{% url portals_add_map portal.slug %}{% endif %}" method="post">
         {% csrf_token %}
         {{ form.portal }}
         <div class="form-row"><label for="id_map">Map</label>
@@ -12,8 +12,12 @@
             {{ form.map }}</div>
         <div class="form-row"><label for="id_summary">Description (optional)</label>{{ form.summary }}</div>
         <div class="actions">
+            {% if map %}
+            <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
+            {% else %}
             <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
             <button type="submit" class="btn btn-primary" name="featured" value="true">{% trans "Add as Featured" %}</button>
+            {% endif %}
             <a href="{{ portal.get_absolute_url }}" class="btn cancel">{% trans "Cancel" %}</a>
         </div>
     </form>

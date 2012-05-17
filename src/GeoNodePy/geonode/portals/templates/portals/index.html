@@ -45,12 +45,6 @@
         {% for m in featured_maps %}
             <li>
                 <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
-                {% if user.is_staff %}
-                <span class="actions">
-                    <a href="{% url portals_toggle_map portal.slug m.map.pk %}" title="{% trans "Unfeature" %}"><i class="icon-arrow-down"></i></a>
-                    <a href="{% url portals_remove_map portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-delete"></i></a>
-                </span>
-                {% endif %}
                 {% if m.summary %}
                 <p>{{ m.summary }}</p>
                 {% endif %}
@@ -63,12 +57,6 @@
         {% for m in maps %}
             <li>
                 <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
-                {% if user.is_staff %}
-                <span class="actions">
-                    <a href="{% url portals_toggle_map portal.slug m.map.pk %}" title="{% trans "Feature" %}"><i class="icon-arrow-up"></i></a>
-                    <a href="{% url portals_remove_map portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
-                </span>
-                {% endif %}
                 {% if m.summary %}
                 <p>{{ m.summary }}</p>
                 {% endif %}
@@ -83,11 +71,6 @@
         {% for d in datasets %}
             <li>
                 <a href="{{ d.dataset.get_absolute_url }}">{{ d.dataset.title }}</a>
-                {% if user.is_staff %}
-                <span class="actions">
-                    <a href="{% url portals_remove_dataset portal.slug d.dataset.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
-                </span>
-                {% endif %}
                 {% if d.summary %}
                 <p>{{ d.summary }}</p>
                 {% endif %}
@@ -102,20 +85,9 @@
             <li>
                 <b>{{ category.label }}</b>
 
-                {% if user.is_staff %}
-                    <span class="actions">
-                        <a href="{% url portals_delete_link portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-                    </span>
-                {% endif %}
-
                 <ul class="unstyled sub">
                 {% for link in category.children.all %}
                     <li><a href="{{ link.link }}">{{ link.label }}</a>{% if link.summary %} &mdash; {{ link.summary }}{% endif %}
-                    {% if user.is_staff %}
-                    <span class="actions">
-                        <a href="{% url portals_delete_link portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-                    </span>
-                    {% endif %}
                     </li>
                 {% endfor %}
                 </ul>
@@ -129,20 +101,9 @@
         {% for category in portal.documents.categories %}
             <li>
                 <b>{{ category.label }}</b>
-                {% if user.is_staff %}
-                <span class="actions">
-                    <a href="{% url portals_delete_document portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-                </span>
-                {% endif %}
                 <ul class="unstyled sub">
                 {% for document in category.children.all %}
-                    <li><a href="{{ document.file.url }}">{{ document.label }}</a>
-                    {% if user.is_staff %}
-                    <span class="actions">
-                        <a href="{% url portals_delete_document portal.slug document.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-                    </span>
-                    {% endif %}
-                    </li>
+                    <li><a href="{{ document.file.url }}">{{ document.label }}</a></li>
                 {% endfor %}
                 </ul>
             </li>
@@ -163,8 +124,6 @@
     {% if user.is_staff %}
 <script src="{{ STATIC_URL }}portals/jqueryminicolors/jquery.miniColors.min.js"></script>
 <script src="{{ STATIC_URL }}portals/jqueryfontselector/jquery.fontSelector.js"></script>
-<script src="{{ STATIC_URL }}portals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
-<script src="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.js"></script>
 
 <script src="{{ STATIC_URL }}portals/portal.js"></script>
     {% endif %}

@@ -1,6 +1,6 @@
 $(function() {
     $("body").append("<div id=\"form-modal\" class=\"modal fade\"><div class=\"modal-body\"></div></div>");
-      $("a.add").click(function (e) {
+      $(".add,.edit").click(function (e) {
           e.preventDefault();
           $("#form-modal .modal-body").html("");
           var t = $(this).attr("href") + " #main";
@@ -13,8 +13,8 @@ $(function() {
                 e.preventDefault();
                 $("#form-modal").modal("hide");
             });
-            if ($("#form-modal form#form-link-add").size() ||
-              $("#form-modal form#form-document-add").size()) prepCategoryForm();
+            if ($("#form-modal form#form-link-form").size() ||
+              $("#form-modal form#form-document-form").size()) prepCategoryForm();
           });
       });
       $("form").delegate(".edit-inline", "click", function(e) {

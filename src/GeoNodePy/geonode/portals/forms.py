@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from geonode.maps.models import Layer, Map
+from geonode.maps.models import Layer
 from .models import Document, Flatpage, Link, Portal, PortalContextItem, PortalDataset, PortalMap
 
 
@@ -119,7 +119,6 @@ class PortalMapForm(forms.ModelForm):
         super(PortalMapForm, self).__init__(*args, **kwargs)
         self.fields["portal"].widget = forms.HiddenInput()
         self.fields["portal"].initial = portal.pk
-        self.fields["map"].queryset = Map.objects.exclude(pk__in=[m.pk for m in portal.maps.all()])
 
 
 class PortalDatasetForm(forms.ModelForm):

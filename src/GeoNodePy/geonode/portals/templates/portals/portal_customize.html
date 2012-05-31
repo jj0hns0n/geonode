@@ -1,17 +1,28 @@
 {% load i18n %}
-<div id="customize">
-<h1>{% blocktrans %}Change Theme{% endblocktrans %}</h1>
+<div id="customize" class="modal">
+    <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h3>{% blocktrans %}Change Theme{% endblocktrans %}</h3>
+  </div>
+  <form action="{% url portals_customize portal.slug %}" method="post" class="form" id="customize_form" enctype="multipart/form-data">
+  <div class="modal-body">
 
-<p>{% blocktrans %}Customize the appearance of the portal using the available style properties.{% endblocktrans %}</p>
+    <p>{% blocktrans %}Customize the appearance of the portal using the available style properties.{% endblocktrans %}</p>
 
-<form action="{% url portals_customize portal.slug %}" method="post" class="form" id="customize_form" enctype="multipart/form-data">
-    {{ formset.management_form }}
-    {% csrf_token %}
-    {% for form in formset.forms %}
-    <fieldset>{{ form.as_p }}</fieldset>
-    {% endfor %}
-    <div class="controls">
-        <button type="submit">{% trans "Save" %}</button>
+    
+        {{ formset.management_form }}
+        {% csrf_token %}
+        {% for form in formset.forms %}
+        <fieldset>{{ form.as_p }}</fieldset>
+        {% endfor %}
+        
     </div>
-</form>
+    <div class="modal-footer">
+        <div class="controls" style="clear:both">
+            <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+            <button class="btn" data-dismiss="modal">{% trans "Cancel" %}</button>
+        </div>
+    </div>
+    </form>
+
 </div>

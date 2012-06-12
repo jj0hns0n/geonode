@@ -62,6 +62,7 @@ class PortalMap(models.Model):
 class PortalDataset(models.Model):
     portal = models.ForeignKey(Portal)
     dataset = models.ForeignKey(Layer)
+    featured = models.BooleanField(default=False)
     summary = models.TextField(blank=True, null=True)
 
 

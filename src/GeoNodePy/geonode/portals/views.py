@@ -55,7 +55,8 @@ def index(request, **kwargs):
 
     featured_maps = PortalMap.objects.filter(portal=portal, featured=True)
     maps = PortalMap.objects.filter(portal=portal, featured=False)
-    datasets = PortalDataset.objects.filter(portal=portal)
+    featured_datasets = PortalDataset.objects.filter(portal=portal, featured=True)
+    datasets = PortalDataset.objects.filter(portal=portal, featured=False)
 
     extra_context = {}
 
@@ -67,6 +68,7 @@ def index(request, **kwargs):
             "portal": portal,
             "featured_maps": featured_maps,
             "maps": maps,
+            "featured_datasets": featured_datasets,
             "datasets": datasets,
         },
         context_instance=RequestContext(request, extra_context)
@@ -131,7 +133,8 @@ def portal_manage(request, pk):
     portal = get_object_or_404(Portal.objects.active(), pk=pk)
     featured_maps = PortalMap.objects.filter(portal=portal, featured=True)
     maps = PortalMap.objects.filter(portal=portal, featured=False)
-    datasets = PortalDataset.objects.filter(portal=portal)
+    featured_datasets = PortalDataset.objects.filter(portal=portal, featured=True)
+    datasets = PortalDataset.objects.filter(portal=portal, featured=False)
 
     if request.method == "POST":
         summary_form = PortalSummaryForm(request.POST, instance=portal)
@@ -145,6 +148,7 @@ def portal_manage(request, pk):
             "portal": portal,
             "featured_maps": featured_maps,
             "maps": maps,
+            "featured_datasets": featured_datasets,
             "datasets": datasets,
             "form": summary_form
         },
@@ -335,9 +339,12 @@ def portal_add_dataset(request, slug):
         form = PortalDatasetForm(request.POST, portal=portal)
         if form.is_valid():
             dataset = form.save()
+            if request.POST.get("featured"):
+                dataset.featured = True
+                dataset.save()
             d = {
-                "title": dataset.title,
-                "url": dataset.get_absolute_url()
+                "title": dataset.dataset.title,
+                "url": dataset.dataset.get_absolute_url()
             }
             if request.is_ajax():
                 return HttpResponse(json.dumps({"dataset": d}), mimetype="application/javascript")
@@ -346,7 +353,7 @@ def portal_add_dataset(request, slug):
     else:
         form = PortalDatasetForm(portal=portal)
 
-    return render_to_response("portals/dataset_add.html",
+    return render_to_response("portals/dataset_form.html",
         {
             "portal": portal,
             "form": form
@@ -356,10 +363,46 @@ def portal_add_dataset(request, slug):
 
 
 @staff_member_required
+def portal_edit_dataset(request, slug, dataset_pk):
+    portal = get_object_or_404(Portal, slug=slug)
+    dataset = get_object_or_404(PortalDataset.objects.filter(portal=portal), dataset__pk=dataset_pk)
+
+    if request.method == "POST":
+        form = PortalDatasetForm(request.POST, instance=dataset, portal=portal)
+        if form.is_valid():
+            form.save()
+
+            return redirect("portals_manage", portal.pk)
+    else:
+        form = PortalDatasetForm(instance=dataset, portal=portal)
+
+    return render_to_response("portals/dataset_form.html",
+        {
+            "portal": portal,
+            "form": form,
+            "dataset": dataset
+        },
+        context_instance=RequestContext(request)
+    )
+
+
+@staff_member_required
+def portal_toggle_dataset(request, slug, dataset_pk):
+
+    portal = get_object_or_404(Portal, slug=slug)
+    dataset = get_object_or_404(PortalDataset.objects.filter(portal=portal), dataset__pk=dataset_pk)
+
+    dataset.featured = not dataset.featured
+    dataset.save()
+
+    return redirect("portals_manage", portal.pk)
+
+
+@staff_member_required
 def portal_remove_dataset(request, slug, dataset_pk):
 
     portal = get_object_or_404(Portal, slug=slug)
-    dataset = get_object_or_404(portal.datasets, dataset__pk=dataset_pk)
+    dataset = get_object_or_404(PortalDataset.objects.filter(portal=portal), dataset__pk=dataset_pk)
 
     if request.method == "POST":
         dataset.delete()

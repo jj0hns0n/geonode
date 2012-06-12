@@ -64,7 +64,20 @@
         {% endfor %}
     </ul>
 </div>
-<div class="span6">
+<div class="span6">    
+    {% if featured_datasets %}
+    <h2>{% trans "Featured Datasets" %}</h2>
+    <ul class="unstyled">
+        {% for d in featured_datasets %}
+            <li>
+                <a href="{{ d.dataset.get_absolute_url }}">{{ m.map.title }}</a>
+                {% if d.summary %}
+                <p>{{ d.summary }}</p>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     {% if datasets %}
     <h2>{% trans "Datasets" %}</h2>
     <ul class="unstyled">

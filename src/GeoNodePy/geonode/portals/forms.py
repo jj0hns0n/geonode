@@ -131,7 +131,16 @@ class PortalDatasetForm(forms.ModelForm):
         super(PortalDatasetForm, self).__init__(*args, **kwargs)
         self.fields["portal"].widget = forms.HiddenInput()
         self.fields["portal"].initial = portal.pk
-        self.fields["dataset"].queryset = Layer.objects.exclude(pk__in=[l.pk for l in portal.datasets.all()])
+        global_excluded = [d.dataset.pk for d in PortalDataset.objects.exclude(portal=portal)]
+        if kwargs.get("instance"):
+            excluded = [l.pk for l in portal.datasets.all() if l.pk != kwargs["instance"].pk]
+        else:
+            excluded = [l.pk for l in portal.datasets.all()]
+        self.fields["dataset"].queryset = Layer.objects.exclude(
+            pk__in=excluded
+        ).exclude(
+            pk__in=global_excluded
+        )
 
 
 class PortalLinkForm(forms.ModelForm):

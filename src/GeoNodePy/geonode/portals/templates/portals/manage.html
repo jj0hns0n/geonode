@@ -110,7 +110,32 @@
         {% endfor %}
     </div>
 </div>
-<div class="span6">
+<div class="span6">    
+    <h2>{% trans "Featured Datasets" %}
+    </h2>
+    <a href="{% url "portals_add_dataset" portal.slug %}" class="add btn btn-small">Add Dataset</a>
+
+    <table class="table table-striped" id="datasets">
+        {% for d in featured_datasets %}
+            <tr>
+                <td>
+                <a href="{{ d.dataset.get_absolute_url }}">{{ d.dataset.title }}</a>
+                    {% if d.summary %}
+                    <p>{{ d.summary }}</p>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url "portals_edit_dataset" portal.slug d.dataset.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                </td>
+                <td>
+                    <a href="{% url "portals_toggle_dataset" portal.slug d.dataset.pk %}" title="{% trans "Unfeature" %}"><i class="icon-chevron-down"></i></a>
+                </td>
+                <td>
+                    <a href="{% url "portals_remove_dataset" portal.slug d.dataset.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
     <h2>{% trans "Datasets" %}
     </h2>
     <a href="{% url "portals_add_dataset" portal.slug %}" class="add btn btn-small">Add Dataset</a>
@@ -124,11 +149,12 @@
                     <p>{{ d.summary }}</p>
                     {% endif %}
                 </td>
-                {% comment %}
                 <td>
-                    <a href="" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                    <a href="{% url "portals_edit_dataset" portal.slug d.dataset.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                </td>                
+                <td>
+                    <a href="{% url "portals_toggle_dataset" portal.slug d.dataset.pk %}" title="{% trans "Feature" %}"><i class="icon-chevron-up"></i></a>
                 </td>
-                {% endcomment %}
                 <td>
                     <a href="{% url "portals_remove_dataset" portal.slug d.dataset.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
                 </td>

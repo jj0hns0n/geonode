@@ -7,55 +7,57 @@
 {% endblock %}
 
 {% block body_outer %}
-<div class="span12">
-  <div class="hero-unit">
-    <h1>{% trans "Portals" %}</h1>
-    <p>
-      {% blocktrans %}
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-      {% endblocktrans %}
-    </p>
-    <p class="btns">
-      <a class="btn btn-large" href="{% url portals_add %}">
-        {% trans "Create New Portal" %}
-      </a>
-    </p>
-  </div>
-</div>
-{% endblock %}
-
-{% block main %}
-    <div class="page-header">
-        <h1>{% trans "Portals" %}</h1>
-        {% if user.is_staff %}
-        <div class="edit btn-group pull-right"><a href="{% url portals_add %}" class="btn">{% trans "Create New Portal" %}</a></div>
+    <div class="span12">
+        <div class="hero-unit">
+            <h1>{% trans "Portals" %}</h1>
+            <p>{% blocktrans %}Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.{% endblocktrans %}</p>
+            {% if user.is_staff %}
+                <p class="btns">
+                    <a class="btn btn-large" href="{% url portals_add %}">
+                        {% trans "Create New Portal" %}
+                    </a>
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="span12">
+        {% if portal_list %}
+            <section class="widget list">
+                <h2>{% trans "Portal List" %}</h2>
+                {% for portal in portal_list %}
+                    <article>
+                        {% url portals_detail portal.slug as portal_url %}
+                        {% if portal.logo %}
+                            <a href="{{ portal_url }}">
+                                <img src="{{ portal.logo.url }}" width="153" alt="placeholder" />
+                            </a>
+                        {% endif %}
+                        <div class="details">
+                            <h3><a href="{{ portal_url }}">{{ portal }}</a></h3>
+                            {% if portal.teaser %}<p>{{ portal.teaser }}</p>{% endif %}
+                            <ul class="stats unstyled">
+                                <li><span class="badge">{{ portal.maps.count }}</span> map{{ portal.maps.count|pluralize }}</li>
+                                {% if portal.datasets.count %}<li><span class="badge">{{ portal.datasets.count }}</span> dataset{{ portal.datasets.count|pluralize }}</li>{% endif %}
+                            </ul>
+                        </div>
+                    </article>
+                {% endfor %}
+            </section>
+        {% endif %}
+        {% if user.is_staff and portal_archive_list %}
+            <section class="widget list">
+                <h2>{% trans "Archived Portals" %}</h2>
+                <table class="table table-striped">
+                    <tbody>
+                        {% for portal in portal_archive_list %}
+                            <tr>
+                                <td>{{ portal }}</td>
+                                <td><a href="{% url portals_archive portal.pk %}" class="btn action">Reactivate</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
         {% endif %}
     </div>
-    {% for portal in portal_list %}
-        <div class="portal_summary">
-            {% url portals_detail portal.slug as portal_url %}
-            {% if portal.logo %}
-            <div class="image"><a href="{{ portal_url }}"><img src="{{ portal.logo.url }}" alt=""></a></div>
-            {% endif %}
-            <h2><a href="{{ portal_url }}">{{ portal }}</a></h2>
-
-            {% if portal.teaser %}<p>{{ portal.teaser }}</p>{% endif %}
-
-            <ul class="stats unstyled">
-                <li><span class="badge">{{ portal.maps.count }}</span> map{{ portal.maps.count|pluralize }}</li>
-                {% if portal.datasets.count %}<li><span class="badge">{{ portal.datasets.count }}</span> dataset{{ portal.datasets.count|pluralize }}</li>{% endif %}
-            </ul>
-            <div class="clearfix"></div>
-        </div>
-    {% endfor %}
-    {% if user.is_staff and portal_archive_list %}
-        <h2>Archived Portals</h2>
-        <ul class="archive">
-        {% for portal in portal_archive_list %}
-            <li>{{ portal }}
-                <span class="action"><a href="{% url portals_archive portal.pk %}">Reactivate</a></span>
-            </li>
-        {% endfor %}
-    {% endif %}
-
 {% endblock %}

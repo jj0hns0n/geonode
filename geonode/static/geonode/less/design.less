@@ -1,0 +1,177 @@
+@import "base";
+
+@brown: #464646;
+@blueBright: #4bcfe3;
+@blueLight: #3cb3c5;
+@blueDark: #379ea9;
+@orange: #f05a24;
+@orangeLight: #f6921e;
+
+@textColor: @black;
+@linkColor: #41aaba;
+@navBkgd:#a7e4ee;
+
+#title {
+  text-transform:uppercase;
+  font-weight:normal;
+}
+
+body {
+  background:@white;
+}
+
+h2 {
+  color:@gray;
+  font-size:@baseFontSize + 8;
+}
+
+.navbar {
+  .navbar-inner {
+    background:@brown;
+    .box-shadow(none);
+  }
+
+  .well.search-box {
+    background:@blueBright;
+    border:0;
+
+    .btn {
+      background:@white;
+      color:@grayLight;
+      font-size:@baseFontSize;
+
+      &:hover {
+        background:@grayLighter;
+        color:@grayDark;
+      }
+    }
+
+    a {
+      color:@white;
+      text-decoration:underline;
+
+      &:hover {
+        text-decoration:none;
+      }
+    }
+  }
+}
+
+section.nav-block {
+  background:@navBkgd;
+  margin-top:-8px;
+
+  .nav-box {
+    border-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  nav.main-nav ul li a {
+    border:0;
+    color:#353535;
+
+    &.current {
+      font-weight:bold;
+    }
+  }
+}
+
+.btn {
+  border:0;
+  background:@blueLight;
+  .box-shadow(none);
+  color:@white;
+  text-shadow:none;
+
+  &:hover {
+    background:@blueDark;
+    color:@white;
+  }
+}
+
+.widget {
+  h2 {
+    background:@brown;
+    padding:10px 15px;
+    .border-radius(6px);
+    color:@white;
+    #title;
+  }
+}
+
+.well {
+  background-color: @white;
+  border: 1px solid #ccc;
+  .box-shadow(none);
+
+  &.side-widget {
+    section {
+      padding-bottom:0;
+      margin-bottom:0;
+      border:0;
+
+      &.article-list article h6 a {
+        color:@linkColor;
+      }
+    }
+
+    h2 {
+      border-bottom: 1px solid #ccc;
+      margin:-10px -19px 0;
+      padding: 5px 19px;
+      #title;
+    }
+  }
+}
+
+footer.footer {
+  color:@white;
+
+  a {
+    color:@white;
+    text-decoration:none;
+
+    &:hover {
+     text-decoration:underline;
+    }
+  }
+}
+
+.views { font-weight:normal; }
+
+.rating i {
+  color:@orange;
+  font-size:@baseFontSize - 1;
+}
+
+// homepage
+.hero-unit {
+  background:none;
+  padding-left:0;
+  padding-right:20px;
+
+  h1 {
+    #title;
+  }
+
+  .btn {
+    background:@orange;
+
+    &:hover {
+      background:@orangeLight;
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

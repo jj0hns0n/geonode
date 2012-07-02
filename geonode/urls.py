@@ -46,6 +46,10 @@ urlpatterns = patterns('',
     url(r'^upload-permissions/$', 'django.views.generic.simple.direct_to_template',
                 {'template': 'upload/upload_permissions.html'}, name='upload_permissions'),
 
+    # Temp static: portals
+    url(r'^portal/$', 'django.views.generic.simple.direct_to_template',
+                {'template': 'static/portal.html'}, name='portal'),
+
     # Data views
     (r'^data/', include('geonode.layers.urls')),
 

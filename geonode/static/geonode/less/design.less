@@ -103,23 +103,29 @@ section.nav-block {
   background-color: @white;
   border: 1px solid #ccc;
   .box-shadow(none);
+}
 
-  &.side-widget {
-    section {
-      padding-bottom:0;
-      margin-bottom:0;
-      border:0;
+aside .well {
+  h2 {
+    border-bottom: 1px solid #ccc;
+    margin:-10px -19px 0;
+    padding: 5px 19px;
+    #title;
+  }
 
-      &.article-list article h6 a {
+  ul.sidenav {
+    margin:13px 0 0;
+
+    a {
+      font-size:@baseFontSize + 4;
+      font-weight:bold;
+      color:@black;
+      line-height:33px;
+
+      &:hover {
         color:@linkColor;
+        text-decoration:none;
       }
-    }
-
-    h2 {
-      border-bottom: 1px solid #ccc;
-      margin:-10px -19px 0;
-      padding: 5px 19px;
-      #title;
     }
   }
 }
@@ -144,10 +150,9 @@ footer.footer {
   font-size:@baseFontSize - 1;
 }
 
-// homepage
 .hero-unit {
   background:none;
-  padding:30px 20px 30px 0;
+  padding:30px 20px 20px 0;
 
   h1 {
     #title;
@@ -162,6 +167,66 @@ footer.footer {
   }
 }
 
+.content-wrap form {
+  legend {
+    #title;
+    border-bottom:0;
+  }
+
+  label {
+    font-weight:bold;
+    font-size:@baseFontSize + 2;
+
+    span.note {
+      font-weight:normal;
+      font-size:@baseFontSize - 1;
+      float:right;
+    }
+  }
+
+  input[type="text"] {
+    padding-top:10px;
+    padding-bottom:11px;
+    font-size:@baseFontSize + 2;
+    color:@black;
+  }
+
+  textarea {
+    font-size:@baseFontSize + 2;
+    color:@black;
+  }
+
+  .form-actions {
+    background:none;
+    border:0;
+    text-align:right;
+    padding:0;
+
+    button[type="submit"] {
+      font-size:@baseFontSize + 6;
+      font-weight:bold;
+      margin-left:30px;
+      padding-left:25px;
+      padding-right:25px;
+    }
+  }
+}
+
+// homepage
+body.home {
+  aside .well {
+    section {
+      padding-bottom:0;
+      margin-bottom:0;
+      border:0;
+
+      &.article-list article h6 a {
+        color:@linkColor;
+      }
+    }
+  }
+}
+
 // portals
 body.portals {
   p.btns {
@@ -172,5 +237,3 @@ body.portals {
     }
   }
 }
-
-

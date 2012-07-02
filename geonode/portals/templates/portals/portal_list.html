@@ -6,6 +6,24 @@
 <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}portals/portals.css" />
 {% endblock %}
 
+{% block body_outer %}
+<div class="span12">
+  <div class="hero-unit">
+    <h1>{% trans "Portals" %}</h1>
+    <p>
+      {% blocktrans %}
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+      {% endblocktrans %}
+    </p>
+    <p class="btns">
+      <a class="btn btn-large" href="{% url portals_add %}">
+        {% trans "Create New Portal" %}
+      </a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
 {% block main %}
     <div class="page-header">
         <h1>{% trans "Portals" %}</h1>

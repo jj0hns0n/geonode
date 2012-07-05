@@ -27,93 +27,100 @@
     </form>
     <div class="row">
     <div class="span6">
-    <h2>{% trans "Featured Maps" %}
-    </h2>
-    <a href="{% url "portals_add_map" portal.slug %}" class="add btn btn-small" title="{% trans "Add" %}">Add Map</a>
-    <table class="table table-striped" id="featured_maps">
-        {% for m in featured_maps %}
-            <tr>
-                <td><a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
-                    {% if m.summary %}
-                    <p>{{ m.summary }}</p>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url "portals_edit_map" portal.slug m.map.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
-                </td>
-                <td>
-                    <a href="{% url "portals_toggle_map" portal.slug m.map.pk %}" title="{% trans "Unfeature" %}"><i class="icon-chevron-down"></i></a>
-                </td>
-                <td>
-                    <a href="{% url "portals_remove_map" portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-delete"></i></a>
-                </td>
-            </li>
-        {% endfor %}
-    </table>
-    <h2>{% trans "Maps" %}
-    </h2>
-    <a href="{% url "portals_add_map" portal.slug %}" class="add btn btn-small" title="{% trans "Add" %}">Add Map</a>
+        <section class="widget widget-mini">
+            <h2>{% trans "Featured Maps" %}
+                <a href="{% url "portals_add_map" portal.slug %}" class="add btn btn-small" title="{% trans "Add" %}">Add Map</a>
+            </h2>
+            <table class="table table-striped" id="featured_maps">
+                {% for m in featured_maps %}
+                    <tr>
+                        <td><a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
+                            {% if m.summary %}
+                            <p>{{ m.summary }}</p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url "portals_edit_map" portal.slug m.map.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
+                        </td>
+                        <td>
+                            <a href="{% url "portals_toggle_map" portal.slug m.map.pk %}" title="{% trans "Unfeature" %}"><i class="icon-chevron-down"></i></a>
+                        </td>
+                        <td>
+                            <a href="{% url "portals_remove_map" portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-delete"></i></a>
+                        </td>
+                    </li>
+                {% endfor %}
+            </table>
+        </section>
+        <section class="widget widget-mini">
+            <h2>{% trans "Maps" %}
+                <a href="{% url "portals_add_map" portal.slug %}" class="add btn btn-small" title="{% trans "Add" %}">Add Map</a>
+            </h2>
+            <table class="table table-striped" id="maps">
+                {% for m in maps %}
+                    <tr>
+                        <td>
+                        <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
+                            {% if m.summary %}
+                            <p>{{ m.summary }}</p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url "portals_edit_map" portal.slug m.map.pk %}" title="{% trans "Edit" %}" class="edit"><i class="icon-pencil"></i></a>
+                        </td>
+                        <td>
+                            <a href="{% url "portals_toggle_map" portal.slug m.map.pk %}" title="{% trans "Feature" %}"><i class="icon-chevron-up"></i></a>
+                        </td>
+                        <td>
+                            <a href="{% url "portals_remove_map" portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </section>
+        <section class="widget widget-mini">
+            <h2>{% trans "Documents" %}
+                {% if portal.documents.categories.count %}
+                    <a href="{% url "portals_add_document" portal.slug %}" class="add btn btn-small">
+                        Add Document
+                    </a>
+                {% endif %}
+            </h2>
+            {% if not portal.documents.categories.count %}<a href="{% url "portals_add_document" portal.slug %}" class="add">Add a Document Category</a> to get started
+            {% endif %}
 
-    <table class="table table-striped" id="maps">
-        {% for m in maps %}
-            <tr>
-                <td>
-                <a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a>
-                    {% if m.summary %}
-                    <p>{{ m.summary }}</p>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url "portals_edit_map" portal.slug m.map.pk %}" title="{% trans "Edit" %}" class="edit"><i class="icon-pencil"></i></a>
-                </td>
-                <td>
-                    <a href="{% url "portals_toggle_map" portal.slug m.map.pk %}" title="{% trans "Feature" %}"><i class="icon-chevron-up"></i></a>
-                </td>
-                <td>
-                    <a href="{% url "portals_remove_map" portal.slug m.map.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-    <h2>{% trans "Documents" %}
-    </h2>
-    {% if not portal.documents.categories.count %}<a href="{% url "portals_add_document" portal.slug %}" class="add">Add a Document Category</a> to get started
-    {% else %}
-    <a href="{% url "portals_add_document" portal.slug %}" class="add btn btn-small">
-        Add Document
-    </a>
-    {% endif %}
-
-    <div id="categories">
-        {% for category in portal.documents.categories %}
-        <h3>{{ category.label }}
-            <span class="actions">
-            <a href="{% url "portals_edit_document" portal.slug category.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
-            <a href="{% url "portals_delete_document" portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-            </span>
-        </h3>
-        <table class="table table-striped">
-            {% for document in category.children.all %}
-            <tr>
-                <td>
-                    <a href="{{ document.file.url }}">{{ document.label }}</a>{% if document.summary %} &mdash; {{ document.summary }}{% endif %}
-                </td>
-                <td>
-                    <a href="{% url "portals_edit_document" portal.slug document.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
-                </td>
-                <td>
-                    <a href="{% url "portals_delete_document" portal.slug document.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-        {% endfor %}
-    </div>
+            <div id="categories">
+                {% for category in portal.documents.categories %}
+                <h3>{{ category.label }}
+                    <span class="actions">
+                    <a href="{% url "portals_edit_document" portal.slug category.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                    <a href="{% url "portals_delete_document" portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    </span>
+                </h3>
+                <table class="table table-striped">
+                    {% for document in category.children.all %}
+                    <tr>
+                        <td>
+                            <a href="{{ document.file.url }}">{{ document.label }}</a>{% if document.summary %} &mdash; {{ document.summary }}{% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url "portals_edit_document" portal.slug document.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
+                        </td>
+                        <td>
+                            <a href="{% url "portals_delete_document" portal.slug document.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% endfor %}
+            </div>
+        </section>
 </div>
-<div class="span6">    
+<div class="span6">
+    <section class="widget widget-mini">
     <h2>{% trans "Featured Datasets" %}
+        <a href="{% url "portals_add_dataset" portal.slug %}" class="add btn btn-small">Add Dataset</a>
     </h2>
-    <a href="{% url "portals_add_dataset" portal.slug %}" class="add btn btn-small">Add Dataset</a>
 
     <table class="table table-striped" id="datasets">
         {% for d in featured_datasets %}
@@ -136,82 +143,95 @@
             </tr>
         {% endfor %}
     </table>
-    <h2>{% trans "Datasets" %}
-    </h2>
-    <a href="{% url "portals_add_dataset" portal.slug %}" class="add btn btn-small">Add Dataset</a>
+    </section>
 
-    <table class="table table-striped" id="datasets">
-        {% for d in datasets %}
-            <tr>
-                <td>
-                <a href="{{ d.dataset.get_absolute_url }}">{{ d.dataset.title }}</a>
-                    {% if d.summary %}
-                    <p>{{ d.summary }}</p>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url "portals_edit_dataset" portal.slug d.dataset.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
-                </td>                
-                <td>
-                    <a href="{% url "portals_toggle_dataset" portal.slug d.dataset.pk %}" title="{% trans "Feature" %}"><i class="icon-chevron-up"></i></a>
-                </td>
-                <td>
-                    <a href="{% url "portals_remove_dataset" portal.slug d.dataset.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-    <h2>{% trans "Links" %}
-    </h2>
-    {% if not portal.links.categories.count %}<a href="{% url "portals_add_link" portal.slug %}" class="add">Add a Link Category</a> to get started{% else %}<a href="{% url "portals_add_link" portal.slug %}" class="add btn btn-small">Add Link</a>{% endif %}
+    <section class="widget widget-mini">
+        <h2>{% trans "Datasets" %}
+            <a href="{% url "portals_add_dataset" portal.slug %}" class="add btn btn-small">Add Dataset</a>
+        </h2>
 
-    <div id="links">
-        {% for category in portal.links.categories %}
-        <h3>{{ category.label }}
-            <span class="actions">
-            <a href="{% url "portals_edit_link" portal.slug category.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
-            <a href="{% url "portals_delete_link" portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-        </span>
-        </h3>
-        <table class="table table-striped">
-            {% for link in category.children.all %}
-            <tr>
-                <td>
-                    <a href="{{ link.link }}">{{ link.label }}</a>{% if link.summary %} &mdash; {{ link.summary }}{% endif %}
-                </td>
-                <td>
-                    <a href="{% url "portals_edit_link" portal.slug link.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
-                </td>
-                <td>
-                    <a href="{% url "portals_delete_link" portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-                </td>
-            </tr>
+        <table class="table table-striped" id="datasets">
+            {% for d in datasets %}
+                <tr>
+                    <td>
+                    <a href="{{ d.dataset.get_absolute_url }}">{{ d.dataset.title }}</a>
+                        {% if d.summary %}
+                        <p>{{ d.summary }}</p>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url "portals_edit_dataset" portal.slug d.dataset.pk %}" title="{% trans "Edit" %}"><i class="icon-pencil"></i></a>
+                    </td>
+                    <td>
+                        <a href="{% url "portals_toggle_dataset" portal.slug d.dataset.pk %}" title="{% trans "Feature" %}"><i class="icon-chevron-up"></i></a>
+                    </td>
+                    <td>
+                        <a href="{% url "portals_remove_dataset" portal.slug d.dataset.pk %}" title="{% trans "Remove" %}"><i class="icon-trash"></i></a>
+                    </td>
+                </tr>
             {% endfor %}
         </table>
-        {% endfor %}
-    </div>
+    </section>
+
+    <section class="widget widget-mini">
+        <h2>{% trans "Links" %}
+            {% if portal.links.categories.count %}
+                <a href="{% url "portals_add_link" portal.slug %}" class="add btn btn-small">Add Link</a>
+            {% endif %}
+        </h2>
+        {% if not portal.links.categories.count %}<a href="{% url "portals_add_link" portal.slug %}" class="add">Add a Link Category</a> to get started{% endif %}
+
+        <div id="links">
+            {% for category in portal.links.categories %}
+            <h3>{{ category.label }}
+                <span class="actions">
+                <a href="{% url "portals_edit_link" portal.slug category.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
+                <a href="{% url "portals_delete_link" portal.slug category.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+            </span>
+            </h3>
+            <table class="table table-striped">
+                {% for link in category.children.all %}
+                <tr>
+                    <td>
+                        <a href="{{ link.link }}">{{ link.label }}</a>{% if link.summary %} &mdash; {{ link.summary }}{% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url "portals_edit_link" portal.slug link.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
+                    </td>
+                    <td>
+                        <a href="{% url "portals_delete_link" portal.slug link.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% endfor %}
+        </div>
+    </section>
 </div>
 </div>
 <div class="row">
     <div class="span12">
-        <h2>{% trans "Flatpages" %}</h2>
-        <a href="{% url "portals_add_flatpage" portal.slug %}" class="btn btn-small">Add Flatpage</a>
-        <table class="table table-striped">
-        {% for flatpage in portal.flatpages.all %}
-            <tr>
-                <td>
-                    {{ flatpage.title }}
-                </td>
-                <td><a href="{% url "portals_preview_flatpage" portal.slug flatpage.pk %}">preview</a></td>
-                <td>
-                    <a href="{% url "portals_edit_flatpage" portal.slug flatpage.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
-                </td>
-                <td>
-                    <a href="{% url "portals_delete_flatpage" portal.slug flatpage.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
-                </td>
-            </tr>
-        {% endfor %}
-        </table>
+        <section class="widget widget-mini">
+            <h2>{% trans "Flatpages" %}
+                <a href="{% url "portals_add_flatpage" portal.slug %}" class="btn btn-small">Add Flatpage</a>
+            </h2>
+            <table class="table table-striped">
+            {% for flatpage in portal.flatpages.all %}
+                <tr>
+                    <td>
+                        {{ flatpage.title }}
+                    </td>
+                    <td><a href="{% url "portals_preview_flatpage" portal.slug flatpage.pk %}">preview</a></td>
+                    <td>
+                        <a href="{% url "portals_edit_flatpage" portal.slug flatpage.pk %}" title="{% trans "Edit" %}"class="edit"><i class="icon-pencil"></i></a>
+                    </td>
+                    <td>
+                        <a href="{% url "portals_delete_flatpage" portal.slug flatpage.pk %}" title="{% trans "Delete" %}"><i class="icon-trash"></i></a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </table>
+        </section>
     </div>
 </div>
 {% endblock main %}

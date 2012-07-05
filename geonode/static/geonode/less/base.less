@@ -314,15 +314,32 @@ footer.footer {
   }
 }
 
+#widget-title {
+  background:@brown;
+  padding:10px 15px;
+  .border-radius(6px);
+  color:@white;
+  #title;
+}
+
 section.widget {
   margin-bottom:20px;
 
   h2 {
-    background:@brown;
-    padding:10px 15px;
-    .border-radius(6px);
-    color:@white;
-    #title;
+    #widget-title;
+  }
+}
+
+section.widget-mini {
+  h2 {
+    #widget-title;
+    padding:5px 10px;
+    font-size:16px;
+
+    a.btn {
+      float:right;
+      margin-top:5px;
+    }
   }
 }
 

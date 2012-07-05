@@ -51,6 +51,19 @@ class PortalForm(forms.ModelForm):
 
     RESERVED_SLUGS = ("www", "opendri")
 
+    name = forms.CharField(
+        required = True,
+        widget = forms.TextInput(attrs={"class": "span5"}),
+    )
+    slug = forms.CharField(
+        required = True,
+        widget = forms.TextInput(attrs={"class": "span5"}),
+    )
+    teaser = forms.CharField(
+        required = True,
+        widget = forms.Textarea(attrs={"class": "span5"}),
+    )
+
     class Meta:
         model = Portal
         exclude = (

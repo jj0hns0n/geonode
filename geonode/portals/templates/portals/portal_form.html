@@ -1,5 +1,6 @@
 {% extends "portals/base.html" %}
 {% load i18n %}
+{% load bootstrap_tags %}
 
 {% block title %}
     {% if portal %}
@@ -19,12 +20,12 @@
 {% endif %}
 </h1>
 
-<form action="" method="post" class="form" enctype="multipart/form-data">
+<form action="" method="post" class="form span5" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
-    <div class="submit-row">
-        <button type="submit">{% trans "Save" %}</button>
-        <button class="cancel">{% trans "Cancel" %}</button>
+    {{ form|as_bootstrap }}
+    <div class="form-actions">
+        <a href="{% url portals_list %}">Cancel</a>
+        <button type="submit" class="btn btn-large">{% trans "Save"%}</button>
     </div>
 </form>
 

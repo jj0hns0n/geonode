@@ -14,6 +14,14 @@
 @navBkgd:#a7e4ee;
 @bdrColor: #ccc;
 
+.lines (@p: 10px, @m: 10px, @bdr-width: 1px, @bdr-style: solid, @bdr-color: @grayNeutral) {
+  padding-bottom:@p;
+  margin-bottom:@m;
+  border-bottom-width:@bdr-width;
+  border-bottom-style: @bdr-style;
+  border-bottom-color:@bdr-color;
+}
+
 @font-face {
   font-family: 'FontAwesome';
   src: url('../font/fontawesome-webfont.eot');
@@ -237,7 +245,7 @@ footer.footer {
 
 .content-wrap {
   background:#fff;
-  padding:0 0 0 20px;
+  padding:30px 0 0 20px;
   width:980px;
   margin:0 auto;
 
@@ -306,7 +314,9 @@ footer.footer {
   }
 }
 
-.widget {
+section.widget {
+  margin-bottom:20px;
+
   h2 {
     background:@brown;
     padding:10px 15px;
@@ -374,6 +384,7 @@ aside .well {
       &:hover {
         color:@linkColor;
         text-decoration:none;
+        background:none;
       }
     }
   }
@@ -669,7 +680,7 @@ body.home {
 
 .hero-unit {
   background:none;
-  padding:30px 20px 20px 0;
+  padding:0 20px 20px 0;
 
   h1 {
     #title;
@@ -953,6 +964,23 @@ body.portals {
 
     a.btn {
       margin-left:0;
+    }
+  }
+}
+
+#main {
+  h1 {
+    #title;
+    margin-bottom:15px;
+  }
+}
+
+ul.list {
+  li {
+    .lines;
+
+    &:last-child {
+      .lines(0, 0, 0);
     }
   }
 }

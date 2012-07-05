@@ -27,14 +27,16 @@
             <section class="widget list">
                 <h2>{% trans "Portal List" %}</h2>
                 {% for portal in portal_list %}
-                    <article>
+                    <article class="row">
                         {% url portals_detail portal.slug as portal_url %}
                         {% if portal.logo %}
-                            <a href="{{ portal_url }}">
-                                <img src="{{ portal.logo.url }}" width="153" alt="placeholder" />
-                            </a>
+                            <div class="span2">
+                                <a href="{{ portal_url }}">
+                                    <img src="{{ portal.logo.url }}" width="153" alt="placeholder" />
+                                </a>
+                            </div>
                         {% endif %}
-                        <div class="details">
+                        <div class="span10">
                             <h3><a href="{{ portal_url }}">{{ portal }}</a></h3>
                             {% if portal.teaser %}<p>{{ portal.teaser }}</p>{% endif %}
                             <ul class="stats unstyled">

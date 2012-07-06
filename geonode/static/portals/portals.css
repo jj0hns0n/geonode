@@ -51,10 +51,6 @@ span.actions a {
 span.actions a:hover {
     opacity: 1;
 }
-.edit-inline {
-    position: absolute;
-    margin-left: -15px;
-}
 #customize_form fieldset {
     float: left;
     margin-right: 20px;

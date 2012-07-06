@@ -14,7 +14,7 @@
         {{ form.as_p }}
         <div class="actions">
             <button type="submit" class="btn btn-primary">{% if flatpage %}{% trans "Save" %}{% else %}{% trans "Add" %}{% endif %}</button>
-            <a href="{% url portals_manage portal.pk %}" class="btn cancel">{% trans "Cancel" %}</a>
+            <a href="{% url portals_manage portal.pk %}" class="cancel">{% trans "Cancel" %}</a>
         </div>
     </form>
 {% endblock main %}

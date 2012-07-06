@@ -19,6 +19,19 @@ class DocumentForm(forms.ModelForm):
 
 class FlatpageForm(forms.ModelForm):
 
+    title = forms.CharField(
+        required = True,
+        widget = forms.TextInput(attrs={"class": "span5"}),
+    )
+    url = forms.CharField(
+        required = True,
+        widget = forms.TextInput(attrs={"class": "span5"}),
+    )
+    content = forms.CharField(
+        required = True,
+        widget = forms.Textarea(attrs={"class": "span5"}),
+    )
+
     class Meta:
         model = Flatpage
 

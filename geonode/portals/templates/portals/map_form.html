@@ -1,6 +1,8 @@
 {% extends "portals/base.html" %}
 {% load i18n %}
 
+{% block width %}{% endblock %}
+
 {% block main %}
     <h1>{% if map %}{% trans "Edit Map" %}{% else %}{% trans "Add Map" %}{% endif %}</h1>
 
@@ -18,7 +20,7 @@
             <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
             <button type="submit" class="btn btn-primary" name="featured" value="true">{% trans "Add as Featured" %}</button>
             {% endif %}
-            <a href="{{ portal.get_absolute_url }}" class="btn cancel">{% trans "Cancel" %}</a>
+            <a href="{{ portal.get_absolute_url }}" class="cancel">{% trans "Cancel" %}</a>
         </div>
     </form>
-{% endblock main %}
+{% endblock %}

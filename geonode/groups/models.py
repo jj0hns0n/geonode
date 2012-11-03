@@ -149,7 +149,8 @@ class GroupInvitation(models.Model):
         }
         subject = render_to_string("groups/email/invite_user_subject.txt", ctx)
         message = render_to_string("groups/email/invite_user.txt", ctx)
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [self.email])
+        # TODO Send a notification rather than a mail
+        #send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [self.email])
     
     def accept(self, user):
         if not user.is_authenticated():

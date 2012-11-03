@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load maps_tags %}
+{% load layers_tags %}
+{% load pagination_tags %}
+{% load staticfiles %}
+{% load url from future %}
 
 {% block title %} {% trans "Welcome!" %} - {{ block.super }} {% endblock %}
 
@@ -15,202 +20,84 @@
       {% endblocktrans %}
     </p>
     <p class="btns">
-      <span>Need help <a href="#">Getting Started?</a></span>
-      <a class="btn btn-large" href="{% url layer_browse %}">
-        {% trans "Explore Data" %}
+      <span>{% trans 'Need help' %} <a href="#">{% trans 'Getting Started?' %}</a></span>
+      <a class="btn btn-large" href="{% url "layer_browse" %}">
+        {% trans "Explore Layers" %}
       </a>
-      <a class="btn btn-large" href="{% url maps_browse %}">
+      <a class="btn btn-large" href="{% url "maps_browse" %}">
         {% trans "Explore Maps" %}
       </a>
     </p>
   </div>
   <div class="row">
-    <div class="span8">
-      <section class="widget list">
-        <h2>{% trans "Featured Maps" %}</h2>
-        <article>
-          <a href="{% url mapinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder.png" width="153" height="113" alt="placeholder" border=0/></a>
-          <div class="details">
-            <a href="{% url mapinfo %}"><h3>Title of the Map goes right here</h3></a>
-            <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-            ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-            <p class="rating"><a href="#">564 likes</a></p>
-          </div>
-        </article>
-        <article>
-          <a href="{% url mapinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder.png" width="153" height="113" alt="placeholder" border=0/></a>
-          <div class="details">
-            <a href="{% url mapinfo %}"><h3>Title of the Map goes right here</h3></a>
-            <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-            ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-            <p class="rating"><a href="#">564 likes</a></p>
-          </div>
-        </article>
-        <article>
-          <a href="{% url mapinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder.png" width="153" height="113" alt="placeholder" border=0/></a>
-          <div class="details">
-            <a href="{% url mapinfo %}"><h3>Title of the Map goes right here</h3></a>
-            <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-            ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-            <p class="rating"><a href="#">564 likes</a></p>
-          </div>
-        </article>
-        <article>
-          <a href="{% url mapinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder.png" width="153" height="113" alt="placeholder" border=0/></a>
-          <div class="details">
-            <a href="{% url mapinfo %}"><h3>Title of the Map goes right here</h3></a>
-            <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-            ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-            <p class="rating"><a href="#">564 likes</a></p>
-          </div>
-        </article>
-        <article>
-          <a href="{% url mapinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder.png" width="153" height="113" alt="placeholder" border=0/></a>
-          <div class="details">
-            <a href="{% url mapinfo %}"><h3>Title of the Map goes right here</h3></a>
-            <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-            ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-            <p class="rating"><a href="#">564 likes</a></p>
-          </div>
-        </article>
-        <article>
-          <a href="{% url mapinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder.png" width="153" height="113" alt="placeholder" border=0/></a>
-          <div class="details">
-            <a href="{% url mapinfo %}"><h3>Title of the Map goes right here</h3></a>
-            <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-            ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-            <p class="rating"><a href="#">564 likes</a></p>
-          </div>
-        </article>
-        <article>
-          <a href="{% url mapinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder.png" width="153" height="113" alt="placeholder" border=0/></a>
-          <div class="details">
-            <a href="{% url mapinfo %}"><h3>Title of the Map goes right here</h3></a>
-            <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-            ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-            <p class="rating"><a href="#">564 likes</a></p>
-          </div>
-        </article>
+    <div class="span8 paginate paginate-auto">
+      <section class="widget list paginate-contents">
+        <h2>{% trans "Latest Layers" %}</h2>
+        {% featured_layers 100 as featured_layers %}
+        {% if featured_layers.count %}
+        {% autopaginate featured_layers 4 %}
+        {% for layer in featured_layers %}
+          {% include "layers/_layer_list_item.html" %}
+        {% endfor %}
+        {% paginate %}
+        {% endif %}
       </section>
     </div>
     <aside class="span4">
+      {% if request.user.is_authenticated %}
+        <div class="well">
+          <section>
+            <h2>{% trans "Contribute" %}</h2>
+            <p class="main-actions">
+            {% blocktrans %}
+              GeoNode enables you to upload, manage, and browse data layers. Search for data that is valuable to you, or upload your own data. 
+            {% endblocktrans %}
+              <a href="{% url "layer_upload" %}" class="btn btn-large">{% trans 'Upload Layers' %}</a>
+            {% blocktrans %}
+              GeoNode enables you to compose and share maps. Create a map with our cartography tool, or explore maps shared by others. 
+            {% endblocktrans %}
+              <a href="{% url "new_map" %}" class="btn btn-large">{% trans 'Create a Map' %}</a>
+            </p>
+          </section>
+        </div>
+      {% endif %}
       <div class="well">
-        <section>
-          <h2>{% trans "Lorem ipsum" %}</h2>
-          <p>
-          {% blocktrans %}
-            Lorem ipsum dolor sit amet, consectetur adipi sicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-          {% endblocktrans %}
-          </p>
-          <p class="main-actions">
-            <a href="{% url layer_upload %}" class="btn btn-large">Upload Data</a>
-            <a href="{% url new_map %}" class="btn btn-large">Create a Map</a>
-          </p>
-        </section>
-      </div>
-      <div class="well">
-          <h2>{% trans "Featured Data" %}</h2>
-          <section class="article-list">
-          <article>
-            <a href="{% url layerinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder1.png" width="97" height="91" alt="Placeholder1" class="thumb" border=0/></a>
-            <div class="details">
-                <h6><a href="{% url layerinfo %}">Af/Pak Tribal Dynamics, 1805-2010</a></h6>
-                <a href="{% url profile_detail "admin" %}" rel="author">Prof. Susan Smith</a>
-                <time pubdate datetime="2011-09-27">on Sep 27, 2011</time>
-                <footer>
-                    <span class="views"><a href="#">1,205 Views</a></span>
-                    <span class="rating">
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star-empty"></i>
-                        <i class="icon-star-empty"></i>
-                    </span>
-                </footer>
-            </div>
-          </article>
-          <article>
-            <a href="{% url layerinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder1.png" width="97" height="91" alt="Placeholder1" class="thumb" border=0/></a>
-            <div class="details">
-                <h6><a href="{% url layerinfo %}">Af/Pak Tribal Dynamics, 1805-2010</a></h6>
-                <a href="{% url profile_detail "admin" %}" rel="author">Prof. Susan Smith</a>
-                <time pubdate datetime="2011-09-27">on Sep 27, 2011</time>
-                <footer>
-                    <span class="views"><a href="#">1,205 Views</a></span>
-                    <span class="rating">
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star-empty"></i>
-                        <i class="icon-star-empty"></i>
-                    </span>
-                </footer>
-            </div>
-          </article>
-          <article>
-            <a href="{% url layerinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder1.png" width="97" height="91" alt="Placeholder1" class="thumb" border=0/></a>
-            <div class="details">
-                <h6><a href="{% url layerinfo %}">Af/Pak Tribal Dynamics, 1805-2010</a></h6>
-                <a href="{% url profile_detail "admin" %}" rel="author">Prof. Susan Smith</a>
-                <time pubdate datetime="2011-09-27">on Sep 27, 2011</time>
-                <footer>
-                    <span class="views"><a href="#">1,205 Views</a></span>
-                    <span class="rating">
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star-empty"></i>
-                        <i class="icon-star-empty"></i>
-                    </span>
-                </footer>
-            </div>
-          </article>
-          <article>
-            <a href="{% url layerinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder1.png" width="97" height="91" alt="Placeholder1" class="thumb" border=0/></a>
-            <div class="details">
-                <h6><a href="{% url layerinfo %}">Af/Pak Tribal Dynamics, 1805-2010</a></h6>
-                <a href="{% url profile_detail "admin" %}" rel="author">Prof. Susan Smith</a>
-                <time pubdate datetime="2011-09-27">on Sep 27, 2011</time>
-                <footer>
-                    <span class="views"><a href="#">1,205 Views</a></span>
-                    <span class="rating">
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star-empty"></i>
-                        <i class="icon-star-empty"></i>
-                    </span>
-                </footer>
-            </div>
-          </article>
-          <article>
-            <a href="{% url layerinfo %}"><img src="{{ STATIC_URL }}theme/img/placeholder1.png" width="97" height="91" alt="Placeholder1" class="thumb" border=0/></a>
-            <div class="details">
-                <h6><a href="{% url layerinfo %}">Af/Pak Tribal Dynamics, 1805-2010</a></h6>
-                <a href="{% url profile_detail "admin" %}" rel="author">Prof. Susan Smith</a>
-                <time pubdate datetime="2011-09-27">on Sep 27, 2011</time>
-                <footer>
-                    <span class="views"><a href="#">1,205 Views</a></span>
-                    <span class="rating">
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star"></i>
-                        <i class="icon-star-empty"></i>
-                        <i class="icon-star-empty"></i>
-                    </span>
-                </footer>
-            </div>
-          </article>
-        </section>
+        <h2>{% trans "Latest Maps" %}</h2>
+        <section class="article-list">
+          {% featured_maps as featured_maps %}
+          {% for map in featured_maps %}
+            {% include "maps/_map_list_item.html" %}
+          {% endfor %}
       </div>
     </aside>
   </div>
 </div>
 {% endblock %}
+
+{% block extra_script %}  
+  <script src="{% static "geonode/js/waypoints.js" %}"></script>
+  <script src="{% static "geonode/js/paginate.js" %}"></script>
+  <script src="{% static "agon_ratings/js/jquery.raty.js" %}"></script>
+  <script type="text/javascript">
+     $(function() {
+       $('.overall_rating').each(function() {
+        var rating = $(this).parents(".avg_rating").data('rating');
+        star(this, rating);
+      });
+       $(".loadmore").on("load.loadmore", function(e, o) {          
+        o.find(".overall_rating").each(function() {
+          var rating = $(this).parents(".avg_rating").data('rating');
+          star(this, rating);
+        });
+       });
+     });
+      function star(elem, rating) {
+          $(elem).raty({
+            half: true,
+           readOnly: true,
+           score: rating,
+           path: "{% static "agon_ratings/img/" %}"
+          });        
+      }
+  </script>
+{% endblock extra_script %}

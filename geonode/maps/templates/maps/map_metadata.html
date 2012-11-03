@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "maps/map_base.html" %}
 
 {% load i18n %}
 {% load bootstrap_tags %}
@@ -9,7 +9,9 @@
     {{ block.super }}
 {% endblock %}
 
-{% block main %}
+{% block body_class %}maps{% endblock %}
+
+{% block body %}
   <form action="{{ map.get_absolute_url }}/metadata" method="POST">
     <legend>
         {% blocktrans with map.title as map_title %}

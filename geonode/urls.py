@@ -23,7 +23,6 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf.urls.static import static
 from geonode.sitemap import LayerSitemap, MapSitemap
 import geonode.proxy.urls
-import geonode.maps.urls
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -49,31 +48,19 @@ urlpatterns = patterns('',
     url(r'^developer/$', 'django.views.generic.simple.direct_to_template',
                 {'template': 'developer.html'}, name='dev'),
 
-    # Temp static pages
-    url(r'^mapinfo/$', 'django.views.generic.simple.direct_to_template',
-                {'template': 'maps/map_detail_static.html'}, name='mapinfo'),
-    url(r'^layerinfo/$', 'django.views.generic.simple.direct_to_template',
-                {'template': 'layers/layer_detail_static.html'}, name='layerinfo'),
-    url(r'^search/$', 'django.views.generic.simple.direct_to_template',
-                {'template': 'search.html'}, name='search'),
-    url(r'^advanced-search/$', 'django.views.generic.simple.direct_to_template',
-                {'template': 'advanced_search_static.html'}, name='advanced_search'),
-    url(r'^upload/$', 'django.views.generic.simple.direct_to_template',
-                {'template': 'upload/upload.html'}, name='upload'),
-    url(r'^upload-info/$', 'django.views.generic.simple.direct_to_template',
-                {'template': 'upload/upload_info.html'}, name='upload_info'),
-    url(r'^upload-permissions/$', 'django.views.generic.simple.direct_to_template',
-                {'template': 'upload/upload_permissions.html'}, name='upload_permissions'),
-
     # Data views
-    (r'^data/', include('geonode.layers.urls')),
+    (r'^layers/', include('geonode.layers.urls')),
 
     # Map views
     (r'^maps/', include('geonode.maps.urls')),
 
+    # Search
+    (r'^search/', include('geonode.search.urls')),
+
     # Social
     (r'^comments/', include('dialogos.urls')),
     (r'^ratings/', include('agon_ratings.urls')),
+    (r'^relationships/', include('relationships.urls')),
 
     # Accounts
     url(r'^accounts/ajax_login$', 'geonode.views.ajax_login',
@@ -88,6 +75,9 @@ urlpatterns = patterns('',
     # Portals
     (r'^portals/', include('geonode.portals.urls')),
 
+    # Utility
+    (r'^announcements/', include('announcements.urls')),
+
     # Meta
     url(r'^lang\.js$', 'django.views.generic.simple.direct_to_template',
          {'template': 'lang.js', 'mimetype': 'text/javascript'}, name='lang'),
@@ -97,6 +87,9 @@ urlpatterns = patterns('',
                                   {'sitemaps': sitemaps}, name='sitemap'),
     (r'^i18n/', include('django.conf.urls.i18n')),
     (r'^admin/', include(admin.site.urls)),
+
+    # Catalogue
+    (r'^catalogue/', include('geonode.catalogue.urls')),
     )
 
 urlpatterns += geonode.proxy.urls.urlpatterns

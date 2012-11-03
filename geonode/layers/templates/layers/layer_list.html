@@ -1,100 +1,97 @@
 {% extends "layers/layer_base.html" %}
 {% load i18n %}
+{% load layers_tags %}
+{% load pagination_tags %}
+{% load taggit_extras %}
+{% load staticfiles %}
+{% load url from future %}
 
-{% block title %} {% trans "Explore Data" %} - {{ block.super }} {% endblock %}
+{% block title %} {% trans "Explore Layers" %} - {{ block.super }} {% endblock %}
 
-{% block body_class %}explore-data{% endblock %}
+{% block body_class %}data data-list explore{% endblock %}
 
-{% block body_outer %}
-    <div class="span8">
-      <h2 class="page-title">{% trans "Explore Data" %}</h2>
+{% block body %}
+    <div class="span12">
+      <h2 class="page-title">{% trans "Explore Layers" %}</h2>
+    </div>
+    <div class="span8">      
       {% include "layers/_layer_filters.html" %}
     </div>
     <div class="span4">
-      <p><a href="{% url layer_upload %}" class="btn btn-large pull-right strong">{% trans "Upload Data" %}</a></p>
-      <div class="pull-right">
-        {% include "_pagination.html" %}
+      <div class="pull-right" data-viewby="list">
+        {% include "_viewby.html" %}
       </div>
     </div>
     <div class="span12">
-      <div class="row">
-        <div class="tabs-left span4">
-          <ul class="nav nav-tabs">
-            <li class="active"><a href="#all" data-toggle="tab">All Categories <i class="icon-chevron-right pull-right"></i></a></li>
-            <li><a href="#cat1" data-toggle="tab">Category 1 <i class="icon-chevron-right pull-right"></i></a></li>
-            <li><a href="#cat2" data-toggle="tab">Category 2 <i class="icon-chevron-right pull-right"></i></a></li>
-            <li><a href="#cat3" data-toggle="tab">Category 3 <i class="icon-chevron-right pull-right"></i></a></li>
-            <li><a href="#cat4" data-toggle="tab">Category 4 <i class="icon-chevron-right pull-right"></i></a></li>
-            <li><a href="#cat5" data-toggle="tab">Category 5 <i class="icon-chevron-right pull-right"></i></a></li>
-            <li><a href="#cat6" data-toggle="tab">Category 6 <i class="icon-chevron-right pull-right"></i></a></li>
-            <li><a href="#cat7" data-toggle="tab">Category 7 <i class="icon-chevron-right pull-right"></i></a></li>
-            <li><a href="#cat8" data-toggle="tab">Category 8 <i class="icon-chevron-right pull-right"></i></a></li>
-          </ul>
-        </div>
-        <div class="tab-content">
-          <div class="tab-pane active span8" id="all">
-            <article>
-              <div class="details">
-                <a href='{% url layerinfo %}'<h3>Title of the Layer goes right here</h3></a>
-                <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-                <p class="rating">564 likes</p>
-              </div>
-            </article>
-            <article>
-              <div class="details">
-                <a href='{% url layerinfo %}'<h3>Title of the Layer goes right here</h3></a>
-                <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-                <p class="rating">564 likes</p>
-              </div>
-            </article>
-            <article>
-              <div class="details">
-                <a href='{% url layerinfo %}'<h3>Title of the Layer goes right here</h3></a>
-                <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-                <p class="rating">564 likes</p>
-              </div>
-            </article>
-            <article>
-              <div class="details">
-                <a href='{% url layerinfo %}'<h3>Title of the Layer goes right here</h3></a>
-                <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-                <p class="rating">564 likes</p>
-              </div>
-            </article>
-            <article>
-              <div class="details">
-                <a href='{% url layerinfo %}'<h3>Title of the Layer goes right here</h3></a>
-                <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-                <p class="rating">564 likes</p>
-              </div>
-            </article>
-            <article>
-              <div class="details">
-                <a href='{% url layerinfo %}'<h3>Title of the Layer goes right here</h3></a>
-                <div class="meta">by <a href="{% url profile_detail "admin" %}">John Smith</a>, 1 month ago</div>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incid
-                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatioe.</p>
-                <p class="rating">564 likes</p>
-              </div>
-            </article>
-          </div>
-
-        </div>
-        <div class="span12">
-          <div class="pull-right mrg-btm">
-            {% include "_pagination.html" %}
+      <div class="row" id="contain-slider">
+        <div class="span4">
+          <div id="slide-pane">
+            <a href="#" class="toggle toggle-pane"><i class="icon-chevron-left"></i></a>
+            <nav class="tabs-left" id="nav-categories">
+              <h2><a href="#" class="toggle toggle-nav"><i class="icon-chevron-down"></i>{% trans "Categories" %}</a></h2>
+              <ul class="nav">
+                {% layer_categories as category_list %}
+                <li><a href="{% url "layer_browse" %}"{% if not layer_category %} class="active"{% endif %}>{% trans "All Categories" %}</a></li>
+                {% for category in category_list %}
+                <li><a href="{% url "layer_browse_category" category.slug %}"{% ifequal layer_category category %} class="active"{% endifequal %}>{{ category }}</a></li>
+                {% endfor %}
+              </ul>
+            </nav>
+            <nav class="" id="nav-keywords">
+              <h2><a href="#" class="toggle toggle-nav"><i class="icon-chevron-down"></i> {% trans "Keywords" %}</a></h2>
+              <ul class="nav">
+                {% get_taglist as tags for 'layers.Layer' %}
+                {% for tag in tags %}
+                  <li><a href="{% url "layer_browse_tag" tag.slug %}"{% if tag.slug == layer_tag %} class="active"{% endif %}>{{ tag }}</a> <span class="count">({{ tag.num_times }})</span></li>
+                {% endfor %}
+              </ul>
+            </nav>
           </div>
         </div>
+        <div class="tab-content span8 paginate paginate-auto">
+          <div class="tab-pane active list paginate-contents" id="all">
+            {% if object_list.count %}
+            {% autopaginate object_list 2 %}
+            {% for layer in object_list %}
+              {% include "layers/_layer_list_item.html" %}
+            {% endfor %}
+            {% else %}
+              <p>{% trans "No data found" %}</p>
+            {% endif %}
+          </div>
+          {% if object_list.count %}
+            {% paginate %}
+          {% endif %}
+          </div>
       </div>
     </div>
 {% endblock %}
+
+{% block extra_script %}
+  <script src="{% static "geonode/js/layers.js" %}"></script>
+  <script src="{% static "geonode/js/waypoints.js" %}"></script>
+  <script src="{% static "geonode/js/paginate.js" %}"></script>
+  <script src="{% static "agon_ratings/js/jquery.raty.js" %}"></script>
+  <script type="text/javascript">
+     $(function() {
+       $('.overall_rating').each(function() {
+        var rating = $(this).parents(".avg_rating").data('rating');
+        star(this, rating);
+      });
+       $(".loadmore").on("load.loadmore", function(e, o) {          
+        o.find(".overall_rating").each(function() {
+          var rating = $(this).parents(".avg_rating").data('rating');
+          star(this, rating);
+        });
+       });
+     });
+      function star(elem, rating) {
+          $(elem).raty({
+            half: true,
+           readOnly: true,
+           score: rating,
+           path: "{% static "agon_ratings/img/" %}"
+          });        
+      }
+  </script>
+{% endblock extra_script %}

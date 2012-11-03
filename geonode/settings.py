@@ -139,6 +139,8 @@ INSTALLED_APPS = (
     'taggit_templatetags',
     'south',
     'haystack',
+    'announcements',
+    'relationships',
 
     # GeoNode internal apps
     'geonode.maps',
@@ -211,6 +213,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.i18n',
     'django.core.context_processors.media',
     'django.core.context_processors.request',
+    'announcements.context_processors.site_wide_announcements',
     # The context processor belows add things like SITEURL
     # and GEOSERVER_BASE_URL to all pages that use a RequestContext
     'geonode.context_processors.resource_urls',

@@ -43,6 +43,7 @@ from geonode import GeoNodeException
 from geonode.utils import _wms, _user, _password, get_wms, bbox_to_wkt
 from geonode.gs_helpers import cascading_delete
 from geonode.people.models import Contact, Role
+from geonode.services.models import Service
 from geonode.security.models import PermissionLevelMixin
 from geonode.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.layers.ows import wcs_links, wfs_links, wms_links
@@ -309,6 +310,7 @@ class Layer(ResourceBase):
 
     # internal fields
     objects = LayerManager()
+    #service = models.ForeignKey(Service, null=True, blank=True)
     workspace = models.CharField(max_length=128)
     store = models.CharField(max_length=128)
     storeType = models.CharField(max_length=128)

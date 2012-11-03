@@ -144,6 +144,7 @@ INSTALLED_APPS = (
     # GeoNode internal apps
     'geonode.maps',
     'geonode.layers',
+    'geonode.services',
     'geonode.people',
     'geonode.proxy',
     'geonode.security',

@@ -62,6 +62,9 @@ urlpatterns = patterns('',
     (r'^ratings/', include('agon_ratings.urls')),
     (r'^relationships/', include('relationships.urls')),
 
+    # Groups views
+    (r'^groups/', include('geonode.groups.urls')),
+
     # Accounts
     url(r'^accounts/ajax_login$', 'geonode.views.ajax_login',
                                        name='auth_ajax_login'),

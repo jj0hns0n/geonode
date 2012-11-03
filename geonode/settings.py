@@ -129,6 +129,7 @@ INSTALLED_APPS = (
 
     # Third party apps
     'django_forms_bootstrap',
+    'crispy_forms',
     'registration',
     'profiles',
     'avatar',

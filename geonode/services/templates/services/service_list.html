@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %} Services -- {{ block.super }} {% endblock %}
+
+{% block main %}
+<div class="twocol">
+{% if services %}
+<ul>
+{% for service in services %}
+<li><a href='{% url service_detail service.id %}'>{{ service.name }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+<h3>No services registered</h3>
+{% endif %}
+</div>
+{% endblock %}

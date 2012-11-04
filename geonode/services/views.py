@@ -34,7 +34,6 @@ from django.shortcuts import get_object_or_404
 
 from geonode.security.views import _perms_info
 from geonode.services.models import Service
-from geonode.services.enumerations import SERVICE_LEV_NAMES
 from geonode.layers.models import Layer
 from geonode.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.layers.utils import layer_set_permissions
@@ -45,6 +44,13 @@ logger = logging.getLogger("geonode.layers.views")
 
 _user, _password = settings.GEOSERVER_CREDENTIALS
 
+SERVICE_LEV_NAMES = {
+    Service.LEVEL_NONE  : _('No Service Permissions'),
+    Service.LEVEL_READ  : _('Read Only'),
+    Service.LEVEL_WRITE : _('Read/Write'),
+    Service.LEVEL_ADMIN : _('Administrative')
+}
+
 @login_required
 def services(request):
     """
@@ -52,14 +58,14 @@ def services(request):
     TODO: Show all that they have permissions for
     """
     services = Service.objects.filter(owner=request.user)
-    return render_to_response("maps/services.html", RequestContext(request, {
+    return render_to_response("services/service_list.html", RequestContext(request, {
         'services': services,
     }))
 
 @login_required
 def register_service(request):
     if request.method == "GET":
-        return render_to_response('maps/register_service.html',
+        return render_to_response('services/service_register.html',
                                   RequestContext(request, {}))
 
     elif request.method == 'POST':
@@ -383,7 +389,7 @@ def service_detail(request, service_id):
                 _("You are not allowed to view this Service.")})), status=401)
     """
     layers = Layer.objects.filter(service=service) 
-    return render_to_response("maps/service_detail.html", RequestContext(request, {
+    return render_to_response("services/service_detail.html", RequestContext(request, {
         'service': service,
         'layers': layers,
         'permissions_json': json.dumps(_perms_info(service, SERVICE_LEV_NAMES))
@@ -412,7 +418,7 @@ def remove_service(request, service_id):
                 _("You are not permitted to remove this service.")})), status=401)
 
     if request.method == 'GET':
-        return render_to_response("maps/service_remove.html", RequestContext(request, {
+        return render_to_response("services/service_remove.html", RequestContext(request, {
             "service": service
         }))
     elif request.method == 'POST':

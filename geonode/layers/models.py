@@ -310,7 +310,7 @@ class Layer(ResourceBase):
 
     # internal fields
     objects = LayerManager()
-    #service = models.ForeignKey(Service, null=True, blank=True)
+    service = models.ForeignKey(Service, null=True, blank=True)
     workspace = models.CharField(max_length=128)
     store = models.CharField(max_length=128)
     storeType = models.CharField(max_length=128)

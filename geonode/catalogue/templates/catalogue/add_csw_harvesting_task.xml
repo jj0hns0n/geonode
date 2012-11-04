@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node type="csw">
+    <site>
+        <name>{{ name }}</name>
+        <capabilitiesUrl>{{ url }}</capabilitiesUrl>
+        <icon>default.gif</icon>
+    </site>
+    <options>
+        <every>90</every>
+        <oneRunOnly>false</oneRunOnly>
+        <recurse>false</recurse>
+        <validate>false</validate>
+    </options>
+    {% if groups %}
+    <privileges>
+    {% for name, id in groups.items %}
+        <group id="{{ id }}">
+            <operation name="view" />
+        </group>    
+    {% endfor %}
+    </privileges>
+    {% endif %}
+</node>

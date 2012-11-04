@@ -347,6 +347,7 @@ def register_layers(request):
                                 typename=wms_layer.name,
                                 workspace="remoteWorkspace",
                                 title=wms_layer.title,
+                                abstract=wms_layer.abstract,
                                 uuid=layer_uuid,
                                 #keywords=keywords,
                                 owner=request.user,

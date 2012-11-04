@@ -291,3 +291,65 @@ def gs_slurp(self, ignore_errors=True, verbosity=1, console=None, owner=None, wo
         if verbosity > 0:
             print >> console, msg
     return output
+
+    def save_layer_from_geoserver(self, workspace, store, resource):
+        """Method ported in from old remote-services branch
+           Needs refactoring to work with latest slurp.
+        """
+        cat = self.gs_catalog
+        gn = self.gn_catalog
+        if store.resource_type == "wmsStore":
+            type = "WMS"
+            method = "C"
+            base_url = store.capabilitiesURL
+            name = store.name
+        elif store.type == "Web Feature Server":
+            type = "WFS"
+            method = "C"
+            base_url = store.connection_parameters['WFSDataStoreFactory:GET_CAPABILITIES_URL'] 
+            name = store.name
+        else:
+            type = "OWS"
+            method = "L"
+            base_url = settings.GEOSERVER_BASE_URL + "ows" 
+            name = settings.SITENAME
+        
+        service, created = Service.objects.get_or_create(type = type, method=method,
+                                                base_url = base_url,
+                                                name = name)
+        try:
+            layer, created = self.get_or_create(name=resource.name, defaults = {
+                "service": service,
+                "workspace": workspace.name,
+                "store": store.name,
+                "storeType": store.resource_type,
+                "typename": "%s:%s" % (workspace.name, resource.name),
+                "title": resource.title or 'No title provided',
+                "abstract": resource.abstract or 'No abstract provided',
+                "uuid": str(uuid.uuid4())
+            })
+
+            ## Due to a bug in GeoNode versions prior to 1.0RC2, the data
+            ## in the database may not have a valid date_type set.  The
+            ## invalid values are expected to differ from the acceptable
+            ## values only by case, so try to convert, then fallback to a
+            ## default.
+            ##
+            ## We should probably drop this adjustment in 1.1. --David Winslow
+            if layer.date_type not in Layer.VALID_DATE_TYPES:
+                candidate = lower(layer.date_type)
+                if candidate in Layer.VALID_DATE_TYPES:
+                    layer.date_type = candidate
+                else:
+                    layer.date_type = Layer.VALID_DATE_TYPES[0]
+
+            layer.save()
+
+            if created: 
+                layer.set_default_permissions()
+                status = 'created'
+            else:
+                status = 'updated'
+            return layer, status
+        finally:
+            pass

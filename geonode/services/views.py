@@ -509,4 +509,4 @@ def ajax_service_permissions(request, service_id):
     return HttpResponse(
         "Permissions updated",
         status=200,
-        mimetype='text/plain'
+        mimetype='text/plain')

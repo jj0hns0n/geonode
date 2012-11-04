@@ -1,3 +1,4 @@
+Owner not set on Services when run from management command
 WMS Refelctor doesnt work for thumbnails for remote layers
 Make sure layer abstract etc are parsed and stored properly
 Parse Styles into DB Model

@@ -430,7 +430,7 @@ def remove_service(request, service_id):
             layer.delete()
         service.delete()
 
-        return HttpResponseRedirect(reverse("geonode.maps.views.services"))
+        return HttpResponseRedirect(reverse("services"))
 
 @login_required
 def service_layers(request, service_id):

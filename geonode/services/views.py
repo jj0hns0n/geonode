@@ -211,9 +211,47 @@ def _register_cascaded_service(type, url, name, user, password):
             mimetype="text/plain",
             status=400)
 
+def _register_cascaded_layers(user, service, layers, perm_spec):
+    if service.type == 'WMS' or service.type == "WFS":
+        cat = Catalog(settings.GEOSERVER_BASE_URL + "rest", 
+                        _user , _password)
+        # Can we always assume that it is geonode? 
+        geonode_ws = cat.get_workspace("geonode") 
+        store = cat.get_store(service.name,geonode_ws)
+        count = 0
+        for layer in layers: 
+            lyr = cat.get_resource(layer)
+            if(lyr == None):
+                if service.type == "WMS":
+                    resource = cat.create_wmslayer(geonode_ws, store, layer) 
+                elif service.type == "WFS":
+                    resource = cat.create_wfslayer(geonode_ws, store, layer) 
+                new_layer, status = Layer.objects.save_layer_from_geoserver(geonode_ws, 
+                                                        store, resource)
+                new_layer.owner = user
+                new_layer.save()
+                if perm_spec:
+                    layer_set_permissions(new_layer, perm_spec)
+                else:
+                    pass # Will be assigned default perms
+                count += 1
+        message = "%d Layers Registered" % count
+        return_dict = {'status': 'ok', 'msg': message }
+        return HttpResponse(json.dumps(return_dict),
+                            mimetype='application/json',
+                            status=200)
+    elif service.type == 'WCS':
+        return HttpResponse('Not Implemented (Yet)', status=501)
+    else:
+        return HttpResponse('Invalid Service Type', status=400)
+
+
 def _register_indexed_service(type, url, name, user, password):
     if type == 'WMS':
+        # TODO: Handle for errors from owslib
         wms = WebMapService(url)
+        # TODO: Make sure we are parsing all service level metadata
+        # TODO: Handle for setting ServiceContactRole
         service = Service(type = type,
                           method='I',
                           base_url = url,
@@ -245,6 +283,46 @@ def _register_indexed_service(type, url, name, user, password):
             'Only Indexed WMS, WFS and WCS supported',
             mimetype="text/plain",
             status=400)
+
+def _register_indexed_layers(user, service, layers, perm_spec):
+    if service.type == 'WMS':
+        wms = WebMapService(service.base_url)
+        count = 0
+        for layer in layers:
+            wms_layer = wms[layer]
+            layer_uuid = str(uuid.uuid1())
+            if wms_layer.keywords:
+                keywords = ""
+            else:
+                keywords=' '.join(wms_layer.keywords)
+            # Need to check if layer already exists??
+            saved_layer, created = Layer.objects.get_or_create(name=wms_layer.name,
+                defaults=dict(
+                    service = service,
+                    store=service.name, #??
+                    storeType="remoteStore",
+                    typename=wms_layer.name,
+                    workspace="remoteWorkspace",
+                    title=wms_layer.title,
+                    abstract=wms_layer.abstract,
+                    uuid=layer_uuid,
+                    #keywords=keywords,
+                    owner=user,
+                    geographic_bounding_box = wms_layer.boundingBoxWGS84,
+                )
+            )
+            count += 1
+        message = "%d Layers Registered" % count
+        return_dict = {'status': 'ok', 'msg': message }
+        return HttpResponse(json.dumps(return_dict),
+                            mimetype='application/json',
+                            status=200)
+    elif service.type == 'WFS':
+        return HttpResponse('Not Implemented (Yet)', status=501)
+    elif service.type == 'WCS':
+        return HttpResponse('Not Implemented (Yet)', status=501)
+    else:
+        return HttpResponse('Invalid Service Type', status=400)
 
 def _register_harvested_service(type, url, name, user, password):
     if type == 'CSW':
@@ -295,77 +373,9 @@ def register_layers(request):
                     status=404
                 )
             if service.method == 'C':
-                if service.type == 'WMS' or service.type == "WFS":
-                    cat = Catalog(settings.GEOSERVER_BASE_URL + "rest", 
-                                    _user , _password)
-                    # Can we always assume that it is geonode? 
-                    geonode_ws = cat.get_workspace("geonode") 
-                    store = cat.get_store(service.name,geonode_ws)
-                    count = 0
-                    for layer in layers: 
-                        lyr = cat.get_resource(layer)
-                        if(lyr == None):
-                            if service.type == "WMS":
-                                resource = cat.create_wmslayer(geonode_ws, store, layer) 
-                            elif service.type == "WFS":
-                                resource = cat.create_wfslayer(geonode_ws, store, layer) 
-                            new_layer, status = Layer.objects.save_layer_from_geoserver(geonode_ws, 
-                                                                    store, resource)
-                            new_layer.owner = request.user
-                            new_layer.save()
-                            if perm_spec:
-                                layer_set_permissions(new_layer, perm_spec)
-                            else:
-                                pass # Will be assigned default perms
-                            count += 1
-                    message = "%d Layers Registered" % count
-                    return_dict = {'status': 'ok', 'msg': message }
-                    return HttpResponse(json.dumps(return_dict),
-                                        mimetype='application/json',
-                                        status=200)
-                elif service.type == 'WCS':
-                    return HttpResponse('Not Implemented (Yet)', status=501)
-                else:
-                    return HttpResponse('Invalid Service Type', status=400)
+                return _register_cascaded_layers(request.user, service, layers, perm_spec)
             elif service.method == 'I':
-                if service.type == 'WMS':
-                    wms = WebMapService(service.base_url)
-                    count = 0
-                    for layer in layers:
-                        wms_layer = wms[layer]
-                        layer_uuid = str(uuid.uuid1())
-                        if wms_layer.keywords:
-                            keywords = ""
-                        else:
-                            keywords=' '.join(wms_layer.keywords)
-                        # Need to check if layer already exists??
-                        saved_layer, created = Layer.objects.get_or_create(name=wms_layer.name,
-                            defaults=dict(
-                                service = service,
-                                store=service.name, #??
-                                storeType="remoteStore",
-                                typename=wms_layer.name,
-                                workspace="remoteWorkspace",
-                                title=wms_layer.title,
-                                abstract=wms_layer.abstract,
-                                uuid=layer_uuid,
-                                #keywords=keywords,
-                                owner=request.user,
-                                geographic_bounding_box = wms_layer.boundingBoxWGS84,
-                            )
-                        )
-                        count += 1
-                    message = "%d Layers Registered" % count
-                    return_dict = {'status': 'ok', 'msg': message }
-                    return HttpResponse(json.dumps(return_dict),
-                                        mimetype='application/json',
-                                        status=200)
-                elif service.type == 'WFS':
-                    return HttpResponse('Not Implemented (Yet)', status=501)
-                elif service.type == 'WCS':
-                    return HttpResponse('Not Implemented (Yet)', status=501)
-                else:
-                    return HttpResponse('Invalid Service Type', status=400)
+                return _register_indexed_layers(request.user, service, layers, perm_spec)
             elif service.method == 'X':
                 return HttpResponse('Not Implemented (Yet)', status=501)
             elif service.method == 'L':

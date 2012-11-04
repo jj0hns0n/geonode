@@ -199,6 +199,10 @@ LOGGING = {
             "handlers": ["console"],
             "level": "ERROR",
         },
+        'south': {
+            "handlers": ["console"],
+            "level": "ERROR",
+        },
     },
 }
 
@@ -272,6 +276,7 @@ SOUTH_MIGRATION_MODULES = {
     'registration': 'geonode.migrations.registration',
     'avatar': 'geonode.migrations.avatar',
 }
+SOUTH_TESTS_MIGRATE=False
 
 # For django-profiles
 AUTH_PROFILE_MODULE = 'people.Contact'

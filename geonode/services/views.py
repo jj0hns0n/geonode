@@ -111,144 +111,12 @@ def register_service(request):
                 return HttpResponse(json.dumps(return_dict), 
                                     mimetype='application/json',
                                     status=400)
-
             if method == 'C':
-                if type == 'WMS':
-                    # Register the Service with GeoServer to be cascaded
-                    cat = Catalog(settings.GEOSERVER_BASE_URL + "rest", 
-                                    _user , _password)
-                    # Can we always assume that it is geonode?
-                    geonode_ws = cat.get_workspace("geonode")
-                    ws = cat.create_wmsstore(name,geonode_ws, user, password)
-                    ws.capabilitiesURL = base_url
-                    ws.type = "WMS"
-                    cat.save(ws)
-                    available_resources = ws.get_resources(available=True)
-                    
-                    # Save the Service record
-                    service = Service(type = type,
-                                        method=method,
-                                        base_url = base_url,
-                                        name = name,
-                                        owner = request.user)
-                    service.save()
-                    message = "Service %s registered" % service.name
-                    return_dict = {'status': 'ok', 'msg': message, 
-                                    'id': service.pk,
-                                    'available_layers': available_resources}
-                    return HttpResponse(json.dumps(return_dict), 
-                                        mimetype='application/json',
-                                        status=200)        
-                elif type == 'WFS':
-                    # Register the Service with GeoServer to be cascaded
-                    cat = Catalog(settings.GEOSERVER_BASE_URL + "rest", 
-                                    _user , _password)
-                    # Can we always assume that it is geonode?
-                    geonode_ws = cat.get_workspace("geonode")
-                    wfs_ds = cat.create_datastore(name)
-                    connection_params = {
-                        "WFSDataStoreFactory:MAXFEATURES": "0",
-                        "WFSDataStoreFactory:TRY_GZIP": "true",
-                        "WFSDataStoreFactory:PROTOCOL": "false",
-                        "WFSDataStoreFactory:LENIENT": "true",
-                        "WFSDataStoreFactory:TIMEOUT": "3000",
-                        "WFSDataStoreFactory:BUFFER_SIZE": "10",
-                        "WFSDataStoreFactory:ENCODING": "UTF-8",
-                        "WFSDataStoreFactory:WFS_STRATEGY": "nonstrict",
-                        "WFSDataStoreFactory:GET_CAPABILITIES_URL": base_url,
-                    }
-                    if user and password:
-                        connection_params["WFSDataStoreFactory:USERNAME"] = user
-                        connection_params["WFSDataStoreFactory:PASSWORD"] = password
-
-                    wfs_ds.connection_parameters = connection_params
-                    cat.save(wfs_ds)
-                    available_resources = wfs_ds.get_resources(available=True)
-                    
-                    # Save the Service record
-                    service = Service(type = type,
-                                        method=method,
-                                        base_url = base_url,
-                                        name = name,
-                                        owner = request.user)
-                    service.save()
-                    message = "Service %s registered" % service.name
-                    return_dict = {'status': 'ok', 'msg': message, 
-                                    'id': service.pk,
-                                    'available_layers': available_resources}
-                    return HttpResponse(json.dumps(return_dict), 
-                                        mimetype='application/json',
-                                        status=200)        
-                elif type == 'WCS':
-                    return HttpResponse('Not Implemented (Yet)', status=501)
-                else:
-                    return HttpResponse(
-                        'Invalid Method / Type combo: ' + 
-                        'Only Cascaded WMS, WFS and WCS supported',
-                        mimetype="text/plain",
-                        status=400
-                    )
+                return _register_cascaded_service(type, url, name, user, password) 
             elif method == 'I':
-                if type == 'WMS':
-                    wms = WebMapService(base_url)
-                    service = Service(type = type,
-                                        method=method,
-                                        base_url = base_url,
-                                        name = name,
-                                        version = wms.identification.version,
-                                        title = wms.identification.title,
-                                        abstract = wms.identification.abstract,
-                                        keywords = ','.join(wms.identification.keywords),
-                                        online_resource = wms.provider.url,
-                                        owner=request.user)
-                    service.save()
-                    available_resources = []
-                    for layer in list(wms.contents):
-                        available_resources.append(wms[layer].name)
-                    message = "Service %s registered" % service.name
-                    return_dict = {'status': 'ok', 'msg': message,
-                                    'id': service.pk,
-                                    'available_layers': available_resources}
-                    return HttpResponse(json.dumps(return_dict),
-                                        mimetype='application/json',
-                                        status=200)
-                elif type == 'WFS':
-                    return HttpResponse('Not Implemented (Yet)', status=501)
-                elif type == 'WCS':
-                    return HttpResponse('Not Implemented (Yet)', status=501)
-                else:
-                    return HttpResponse(
-                        'Invalid Method / Type combo: ' + 
-                        'Only Indexed WMS, WFS and WCS supported',
-                        mimetype="text/plain",
-                        status=400
-                    )
+                return _register_indexed_service(type, url, name, user, password)
             elif method == 'H':
-                if type == 'CSW':
-                    gn = Layer.objects.gn_catalog
-                    id, layer_uuid = gn.add_harvesting_task('CSW', name, base_url) 
-                    service = Service(type = type,
-                                        method=method,
-                                        base_url = base_url,
-                                        name = name,
-                                        owner=request.user,
-                                        uuid = layer_uuid,
-                                        external_id = id)
-                    service.save()
-                    message = "Service %s registered" % service.name
-                    return_dict = {'status': 'ok', 'msg': message,
-                                    'id': service.pk,
-                                    'available_layers': []}
-                    return HttpResponse(json.dumps(return_dict),
-                                        mimetype='application/json',
-                                        status=200)
-                else:
-                    return HttpResponse(
-                        'Invalid Method / Type combo: ' + 
-                        'Only Harvested CSW supported',
-                        mimetype="text/plain",
-                        status=400
-                    )
+                return _register_harvested_service(type, url, name, user, password)
             elif method == 'X':
                 return HttpResponse('Not Implemented (Yet)', status=501)
             elif method == 'L':
@@ -258,7 +126,6 @@ def register_service(request):
         except:
             logger.error("Unexpected Error", exc_info=1) 
             return HttpResponse('Unexpected Error', status=500)
-
     elif request.method == 'PUT':
         # Update a previously registered Service
         return HttpResponse('Not Implemented (Yet)', status=501)
@@ -267,6 +134,144 @@ def register_service(request):
         return HttpResponse('Not Implemented (Yet)', status=501)
     else:
         return HttpResponse('Invalid Request', status = 400)
+
+def _register_cascaded_service(type, url, name, user, password):
+    if type == 'WMS':
+        # Register the Service with GeoServer to be cascaded
+        cat = Catalog(settings.GEOSERVER_BASE_URL + "rest", 
+                        _user , _password)
+        # Can we always assume that it is geonode?
+        geonode_ws = cat.get_workspace("geonode")
+        ws = cat.create_wmsstore(name,geonode_ws, user, password)
+        ws.capabilitiesURL = url
+        ws.type = "WMS"
+        cat.save(ws)
+        available_resources = ws.get_resources(available=True)
+        
+        # Save the Service record
+        service = Service(type = type,
+                            method='C',
+                            base_url = url,
+                            name = name,
+                            owner = user)
+        service.save()
+        message = "Service %s registered" % service.name
+        return_dict = {'status': 'ok', 'msg': message, 
+                        'id': service.pk,
+                        'available_layers': available_resources}
+        return HttpResponse(json.dumps(return_dict), 
+                            mimetype='application/json',
+                            status=200)        
+    elif type == 'WFS':
+        # Register the Service with GeoServer to be cascaded
+        cat = Catalog(settings.GEOSERVER_BASE_URL + "rest", 
+                        _user , _password)
+        # Can we always assume that it is geonode?
+        geonode_ws = cat.get_workspace("geonode")
+        wfs_ds = cat.create_datastore(name)
+        connection_params = {
+            "WFSDataStoreFactory:MAXFEATURES": "0",
+            "WFSDataStoreFactory:TRY_GZIP": "true",
+            "WFSDataStoreFactory:PROTOCOL": "false",
+            "WFSDataStoreFactory:LENIENT": "true",
+            "WFSDataStoreFactory:TIMEOUT": "3000",
+            "WFSDataStoreFactory:BUFFER_SIZE": "10",
+            "WFSDataStoreFactory:ENCODING": "UTF-8",
+            "WFSDataStoreFactory:WFS_STRATEGY": "nonstrict",
+            "WFSDataStoreFactory:GET_CAPABILITIES_URL": url,
+        }
+        if user and password:
+            connection_params["WFSDataStoreFactory:USERNAME"] = user
+            connection_params["WFSDataStoreFactory:PASSWORD"] = password
+
+        wfs_ds.connection_parameters = connection_params
+        cat.save(wfs_ds)
+        available_resources = wfs_ds.get_resources(available=True)
+        
+        # Save the Service record
+        service = Service(type = type,
+                            method='C',
+                            base_url = url,
+                            name = name,
+                            owner = user)
+        service.save()
+        message = "Service %s registered" % service.name
+        return_dict = {'status': 'ok', 'msg': message, 
+                        'id': service.pk,
+                        'available_layers': available_resources}
+        return HttpResponse(json.dumps(return_dict), 
+                            mimetype='application/json',
+                            status=200)        
+    elif type == 'WCS':
+        return HttpResponse('Not Implemented (Yet)', status=501)
+    else:
+        return HttpResponse(
+            'Invalid Method / Type combo: ' + 
+            'Only Cascaded WMS, WFS and WCS supported',
+            mimetype="text/plain",
+            status=400)
+
+def _register_indexed_service(type, url, name, user, password):
+    if type == 'WMS':
+        wms = WebMapService(url)
+        service = Service(type = type,
+                          method='I',
+                          base_url = url,
+                          name = name,
+                          version = wms.identification.version,
+                          title = wms.identification.title,
+                          abstract = wms.identification.abstract,
+                          keywords = ','.join(wms.identification.keywords),
+                          online_resource = wms.provider.url,
+                          owner=user)
+        service.save()
+        available_resources = []
+        for layer in list(wms.contents):
+            available_resources.append(wms[layer].name)
+        message = "Service %s registered" % service.name
+        return_dict = {'status': 'ok', 'msg': message,
+                        'id': service.pk,
+                        'available_layers': available_resources}
+        return HttpResponse(json.dumps(return_dict),
+                            mimetype='application/json',
+                            status=200)
+    elif type == 'WFS':
+        return HttpResponse('Not Implemented (Yet)', status=501)
+    elif type == 'WCS':
+        return HttpResponse('Not Implemented (Yet)', status=501)
+    else:
+        return HttpResponse(
+            'Invalid Method / Type combo: ' + 
+            'Only Indexed WMS, WFS and WCS supported',
+            mimetype="text/plain",
+            status=400)
+
+def _register_harvested_service(type, url, name, user, password):
+    if type == 'CSW':
+        gn = Layer.objects.gn_catalog
+        id, layer_uuid = gn.add_harvesting_task('CSW', name, url) 
+        service = Service(type = type,
+                            method='H',
+                            base_url = url,
+                            name = name,
+                            owner=user,
+                            uuid = layer_uuid,
+                            external_id = id)
+        service.save()
+        message = "Service %s registered" % service.name
+        return_dict = {'status': 'ok', 'msg': message,
+                        'id': service.pk,
+                        'available_layers': []}
+        return HttpResponse(json.dumps(return_dict),
+                            mimetype='application/json',
+                            status=200)
+    else:
+        return HttpResponse(
+            'Invalid Method / Type combo: ' + 
+            'Only Harvested CSW supported',
+            mimetype="text/plain",
+            status=400
+        )
 
 @login_required
 def register_layers(request):
@@ -343,7 +348,7 @@ def register_layers(request):
                                 workspace="remoteWorkspace",
                                 title=wms_layer.title,
                                 uuid=layer_uuid,
-                                keywords=keywords,
+                                #keywords=keywords,
                                 owner=request.user,
                                 geographic_bounding_box = wms_layer.boundingBoxWGS84,
                             )
@@ -376,7 +381,6 @@ def register_layers(request):
     else:
         return HttpResponse('Invalid Request', status = 400)
 
-
 def service_detail(request, service_id):
     '''
     This view shows the details of a service 
@@ -395,7 +399,6 @@ def service_detail(request, service_id):
         'permissions_json': json.dumps(_perms_info(service, SERVICE_LEV_NAMES))
     }))
 
-
 @login_required
 def edit_service(request, service_id):
     """
@@ -403,7 +406,6 @@ def edit_service(request, service_id):
     Redirects to Service Detail temporarily
     """
     return HttpResponseRedirect(reverse("service_detail", args=[service_id]))
-
 
 @login_required
 def remove_service(request, service_id):
@@ -429,7 +431,6 @@ def remove_service(request, service_id):
 
         return HttpResponseRedirect(reverse("geonode.maps.views.services"))
 
-    
 @login_required
 def service_layers(request, service_id):
     """
@@ -461,7 +462,6 @@ def service_layers(request, service_id):
             return HttpResponse(json.dumps({'msg': 'Method not valid for this service type'}), 
                                  mimetype='application/json',
                                  status=400)
-
 
 def set_service_permissions(service, perm_spec):
     if "authenticated" in perm_spec:

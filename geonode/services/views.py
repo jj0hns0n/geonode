@@ -326,14 +326,15 @@ def _register_indexed_layers(user, service, layers, perm_spec):
 
 def _register_harvested_service(type, url, name, user, password):
     if type == 'CSW':
+        # Make this CSW Agnostic (i.e. Not GeoNetwork specific)
         gn = Layer.objects.gn_catalog
-        id, layer_uuid = gn.add_harvesting_task('CSW', name, url) 
+        id, service_uuid = gn.add_harvesting_task('CSW', name, url) 
         service = Service(type = type,
                             method='H',
                             base_url = url,
                             name = name,
                             owner=user,
-                            uuid = layer_uuid,
+                            uuid = service_uuid,
                             external_id = id)
         service.save()
         message = "Service %s registered" % service.name
@@ -509,4 +510,3 @@ def ajax_service_permissions(request, service_id):
         "Permissions updated",
         status=200,
         mimetype='text/plain'
-    )

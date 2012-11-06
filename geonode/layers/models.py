@@ -42,8 +42,8 @@ from django.core.urlresolvers import reverse
 from geonode import GeoNodeException
 from geonode.utils import _wms, _user, _password, get_wms, bbox_to_wkt
 from geonode.gs_helpers import cascading_delete
-from geonode.people.models import Contact, Role
 from geonode.services.models import Service
+from geonode.people.models import Profile, Role
 from geonode.security.models import PermissionLevelMixin
 from geonode.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.layers.ows import wcs_links, wfs_links, wms_links
@@ -86,7 +86,7 @@ class LayerManager(models.Manager):
         if superusers.count() == 0:
             raise RuntimeError('GeoNode needs at least one admin/superuser set')
 
-        contact = Contact.objects.get_or_create(user=superusers[0],
+        contact = Profile.objects.get_or_create(user=superusers[0],
                                                 defaults={"name": "Geonode Admin"})[0]
         return contact
 
@@ -254,7 +254,7 @@ class Layer(ResourceBase):
     popular_count = models.IntegerField(default=0)
     share_count = models.IntegerField(default=0)
 
-    contacts = models.ManyToManyField(Contact, through='ContactRole')
+    contacts = models.ManyToManyField(Profile, through='ContactRole')
 
     default_style = models.ForeignKey(Style, related_name='layer_default_style', null=True, blank=True)
     styles = models.ManyToManyField(Style, related_name='layer_styles')
@@ -430,9 +430,9 @@ class Attribute(models.Model):
 
 class ContactRole(models.Model):
     """
-    ContactRole is an intermediate model to bind Contacts and Layers and apply roles.
+    ContactRole is an intermediate model to bind Profiles as Contacts to Layers and apply roles.
     """
-    contact = models.ForeignKey(Contact)
+    contact = models.ForeignKey(Profile)
     layer = models.ForeignKey(Layer, null=True)
     role = models.ForeignKey(Role)
 
@@ -579,7 +579,7 @@ def geoserver_pre_save(instance, sender, **kwargs):
 
     if instance.poc and instance.poc.user:
         gs_layer.attribution = str(instance.poc.user)
-        profile = Contact.objects.get(user=instance.poc.user)
+        profile = Profile.objects.get(user=instance.poc.user)
         gs_layer.attribution_link = settings.SITEURL[:-1] + profile.get_absolute_url()
         gs_catalog.save(gs_layer)
 

@@ -56,9 +56,9 @@ TIME_ZONE = 'America/Chicago'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en'
 
-gettext = lambda s:s
+gettext = lambda s: s
 LANGUAGES = (
-	('en', gettext('English')),
+    ('en', gettext('English')),
     ('es', gettext('Español')),
     ('it', gettext('Italiano')),
     ('fr', gettext('Français')),
@@ -75,7 +75,7 @@ LANGUAGES = (
 #    ('el', 'Ελληνικά'),
 #    ('id', 'Bahasa Indonesia'),
 #    ('zh', '中文'),
-#    ('ja', '日本人'),
+#    ('ja', '日本語'),
 )
 
 # If you set this to False, Django will make some optimizations so as not
@@ -143,6 +143,7 @@ INSTALLED_APPS = (
 
     # Third party apps
     'modeltranslation',
+
     # Utility
     'pagination',
     'taggit',

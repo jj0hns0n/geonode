@@ -1,8 +1,8 @@
 from modeltranslation.translator import translator, TranslationOptions
-from layers.models import layer
+from layers.models import Layer
 
 class LayerTranslationOptions(TranslationOptions):
-	fields = ('name','typename','workplace','store','storetype')
+	fields = ('abstract','purpose',)
 
-translator.register(layer,LayerTranslationOptions)
+translator.register(Layer,LayerTranslationOptions)
 

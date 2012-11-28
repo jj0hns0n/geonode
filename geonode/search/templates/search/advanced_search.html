@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "site_base.html" %}
 {% load i18n %}
 
 {% block title %} {% trans "Search Data" %} - {{ block.super }} {% endblock %}
@@ -6,16 +6,13 @@
 {% block body_class %}adv-search search{% endblock %}
 
 {% block head %}
-  {% include "geonode/ext_header.html" %}
-  {% include "geonode/app_header.html" %}
-  {% include "geonode/geo_header.html" %}
   {{ block.super }}
   <link rel="stylesheet" href="{{ STATIC_URL }}geonode/css/datepicker.css" type="text/css" media="screen" />
 {% endblock %}
 
 {% block body_outer %}
   <div class="span12">
-    <h2 class="page-title">{% trans "Advanced Search" %}</h2>
+    <h2 class="page-title">{% trans "Search" %}</h2>
     <form action="{% url search %}" class="form-horizontal advanced-search">
       <div class="row">
         <div class="span2">

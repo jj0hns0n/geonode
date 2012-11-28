@@ -25,7 +25,7 @@ from geonode.security.models import AUTHENTICATED_USERS
 from geonode.security.models import ANONYMOUS_USERS
 from geonode.layers.models import Layer
 from geonode.maps.models import Map
-from geonode.people.models import Contact
+from geonode.people.models import Profile
 from geonode.search import search
 from geonode.search import util
 from geonode.search.query import query_from_request
@@ -160,6 +160,19 @@ class searchTest(TestCase):
         self.search_assert(self.request(extent='-180,180,-90,90'), n_results=8)
         self.search_assert(self.request(extent='0,10,0,10'), n_results=3)
         self.search_assert(self.request(extent='0,1,0,1'), n_results=1)
+        
+    def test_bbox_result(self):
+        # grab one and set the bounds
+        lyr = Layer.objects.all()[0]
+        lyr.bbox_x0 = -100
+        lyr.bbox_x1 = -90
+        lyr.bbox_y0 = 38
+        lyr.bbox_y1 = 40
+        lyr.save()
+        
+        response = json.loads(self.request(lyr.title,type='layer').content)
+        self.assertEquals({u'minx': u'-100', u'miny': u'38', u'maxx': u'-90', u'maxy': u'40'},
+                          response['results'][0]['bbox'])
 
     def test_date_query(self):
         self.search_assert(self.request(period='1980-01-01T00:00:00Z,1995-01-01T00:00:00Z'),
@@ -299,4 +312,4 @@ class searchTest(TestCase):
         assert_rules([(Layer,
             [('name', 10, 1), ('title', 10, 5), ('abstract', 5, 2)])])
         assert_rules([(User, [('username', 10, 5)]),
-                      (Contact, [('organization', 5, 2)])])
+                      (Profile, [('organization', 5, 2)])])

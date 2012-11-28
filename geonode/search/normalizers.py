@@ -45,7 +45,7 @@ def _bbox(obj):
     except AttributeError:
         pass
     # unknown extent, just give something that works
-    extent = idx.extent.extent if idx else (-180,-90,180,90)
+    extent = idx.extent.extent if idx else map(str,(obj.bbox_x0, obj.bbox_y0, obj.bbox_x1, obj.bbox_y1))
     return dict(minx=extent[0], miny=extent[1], maxx=extent[2], maxy=extent[3])
 
 
@@ -147,7 +147,6 @@ class MapNormalizer(Normalizer):
         doc['category'] = mapobj.category,
         doc['detail'] = reverse('map_detail', args=(mapobj.id,))
         doc['owner'] = mapobj.owner.username
-#        doc['owner_detail'] = reverse('about_storyteller', args=(map.owner.username,))
         doc['owner_detail'] = mapobj.owner.get_absolute_url()
         doc['last_modified'] = extension.date_fmt(mapobj.last_modified)
         doc['_type'] = 'map'
@@ -180,15 +179,27 @@ class LayerNormalizer(Normalizer):
         doc['keywords'] = layer.keyword_list()
         doc['title'] = layer.title
         doc['detail'] = layer.get_absolute_url()
-        #if 'download_links' not in exclude:
-        #    links = layer.download_links()
-        #    for i,e in enumerate(links):
-        #        links[i] = [ unicode(l) for l in e]
-        #    doc['download_links'] = links
+        if 'download_links' not in exclude:
+            links = {}
+            for l in layer.link_set.all():
+                link = {}
+                link['name'] = l.name
+                link['extension'] = l.extension
+                link['url'] = l.url
+                link['mime'] = l.mime
+                link['type'] = l.link_type
+                links[l.extension] = link
+            for s in layer.styles.all():
+                link = {}
+                link['name'] = s.name
+                link['url'] = s.sld_url
+                link['type'] = 'style'
+                links['sld'] = link
+            doc['links'] = links
+
         owner = layer.owner
         if owner:
             doc['owner_detail'] = layer.owner.get_absolute_url()
-#            doc['owner_detail'] = reverse('about_storyteller', args=(layer.owner.username,))
         return doc
 
 

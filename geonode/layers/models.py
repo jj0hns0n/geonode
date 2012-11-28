@@ -42,7 +42,7 @@ from django.core.urlresolvers import reverse
 from geonode import GeoNodeException
 from geonode.utils import _wms, _user, _password, get_wms, bbox_to_wkt
 from geonode.gs_helpers import cascading_delete
-from geonode.people.models import Contact, Role
+from geonode.people.models import Profile, Role
 from geonode.security.models import PermissionLevelMixin
 from geonode.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.layers.ows import wcs_links, wfs_links, wms_links
@@ -85,73 +85,9 @@ class LayerManager(models.Manager):
         if superusers.count() == 0:
             raise RuntimeError('GeoNode needs at least one admin/superuser set')
 
-        contact = Contact.objects.get_or_create(user=superusers[0],
+        contact = Profile.objects.get_or_create(user=superusers[0],
                                                 defaults={"name": "Geonode Admin"})[0]
         return contact
-
-    def slurp(self, ignore_errors=True, verbosity=1, console=None, owner=None, workspace=None):
-        """Configure the layers available in GeoServer in GeoNode.
-
-           It returns a list of dictionaries with the name of the layer,
-           the result of the operation and the errors and traceback if it failed.
-        """
-        if console is None:
-            console = open(os.devnull, 'w')
-
-        if verbosity > 1:
-            print >> console, "Inspecting the available layers in GeoServer ..."
-        cat = self.gs_catalog
-        if workspace is not None:
-            workspace = cat.get_workspace(workspace)
-        resources = cat.get_resources(workspace=workspace)
-        number = len(resources)
-        if verbosity > 1:
-            msg =  "Found %d layers, starting processing" % number
-            print >> console, msg
-        output = []
-        for i, resource in enumerate(resources):
-            name = resource.name
-            store = resource.store
-            workspace = store.workspace
-            try:
-                layer, created = Layer.objects.get_or_create(name=name, defaults = {
-                    "workspace": workspace.name,
-                    "store": store.name,
-                    "storeType": store.resource_type,
-                    "typename": "%s:%s" % (workspace.name, resource.name),
-                    "title": resource.title or 'No title provided',
-                    "abstract": resource.abstract or 'No abstract provided',
-                    "owner": owner,
-                    "uuid": str(uuid.uuid4())
-                })
-
-                layer.save()
-            except Exception, e:
-                if ignore_errors:
-                    status = 'failed'
-                    exception_type, error, traceback = sys.exc_info()
-                else:
-                    if verbosity > 0:
-                        msg = "Stopping process because --ignore-errors was not set and an error was found."
-                        print >> sys.stderr, msg
-                    raise Exception('Failed to process %s' % resource.name, e), None, sys.exc_info()[2]
-            else:
-                if created:
-                    layer.set_default_permissions()
-                    status = 'created'
-                else:
-                    status = 'updated'
-
-            msg = "[%s] Layer %s (%d/%d)" % (status, name, i+1, number)
-            info = {'name': name, 'status': status}
-            if status == 'failed':
-                info['traceback'] = traceback
-                info['exception_type'] = exception_type
-                info['error'] = error
-            output.append(info)
-            if verbosity > 0:
-                print >> console, msg
-        return output
 
 
 class TopicCategory(models.Model):
@@ -316,7 +252,7 @@ class Layer(ResourceBase):
     popular_count = models.IntegerField(default=0)
     share_count = models.IntegerField(default=0)
 
-    contacts = models.ManyToManyField(Contact, through='ContactRole')
+    contacts = models.ManyToManyField(Profile, through='ContactRole')
 
     default_style = models.ForeignKey(Style, related_name='layer_default_style', null=True, blank=True)
     styles = models.ManyToManyField(Style, related_name='layer_styles')
@@ -492,9 +428,9 @@ class Attribute(models.Model):
 
 class ContactRole(models.Model):
     """
-    ContactRole is an intermediate model to bind Contacts and Layers and apply roles.
+    ContactRole is an intermediate model to bind Profiles as Contacts to Layers and apply roles.
     """
-    contact = models.ForeignKey(Contact)
+    contact = models.ForeignKey(Profile)
     layer = models.ForeignKey(Layer, null=True)
     role = models.ForeignKey(Role)
 
@@ -641,7 +577,7 @@ def geoserver_pre_save(instance, sender, **kwargs):
 
     if instance.poc and instance.poc.user:
         gs_layer.attribution = str(instance.poc.user)
-        profile = Contact.objects.get(user=instance.poc.user)
+        profile = Profile.objects.get(user=instance.poc.user)
         gs_layer.attribution_link = settings.SITEURL[:-1] + profile.get_absolute_url()
         gs_catalog.save(gs_layer)
 

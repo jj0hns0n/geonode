@@ -110,7 +110,7 @@ def setup_client(options):
 @task
 @needs([
     'setup_geoserver',
-    'setup_client',
+    #'setup_client',
 ])
 def setup(options):
     """Get dependencies and prepare a GeoNode development environment."""
@@ -133,7 +133,6 @@ def upgradedb(options):
     if version in ['1.1', '1.2']:
         sh("python manage.py migrate maps 0001 --fake")
         sh("python manage.py migrate avatar 0001 --fake")
-        sh("python manage.py migrate registration 0001 --fake")
     elif version is None:
         print "Please specify your GeoNode version"
     else:

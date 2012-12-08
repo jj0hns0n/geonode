@@ -99,11 +99,11 @@ setup(name='GeoNode',
         "django-announcements==0.1.2",
         "django-activity-stream==0.4.4",
         "django-request==0.3",
-        "user-messages==0.1",
         "geonode-avatar==2.1.1",
         "dialogos==0.2",
         "agon-ratings==0.2",
-		# migrations
+        "user-messages==0.1",
+        # migrations
         "South==0.7.3",
         #catalogue
         "Shapely>=1.2.15",

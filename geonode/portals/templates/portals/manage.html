@@ -7,7 +7,7 @@
 <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}portals/portals.css" />
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.css">
 {% endblock head %}
-{% block main %}
+{% block body %}
     <header>
         <h1>Manage Portal</h1>
         <a href="{% url "portals_detail" portal.slug %}" class="pull-right btn">Return to Portal Page</a>
@@ -234,7 +234,7 @@
         </section>
     </div>
 </div>
-{% endblock main %}
+{% endblock body %}
 {% block extra_script %}
 <script src="{{ STATIC_URL }}portals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
 <script src="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.js"></script>

@@ -3,7 +3,7 @@
 
 {% block width %}{% endblock %}
 
-{% block main %}
+{% block body %}
     <h1>{% if link %}{% trans "Edit Link" %}{% else %}{% trans "Add Link" %}{% endif %}</h1>
 
     <form action="{% if link %}{% url portals_edit_link portal.slug link.pk %}{% else %}{% url portals_add_link portal.slug %}{% endif %}" method="post" id="form-link-form">
@@ -14,4 +14,4 @@
             <a href="{{ portal.get_absolute_url }}" class="cancel">{% trans "Cancel" %}</a>
         </div>
     </form>
-{% endblock main %}
+{% endblock body %}

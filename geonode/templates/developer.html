@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "site_base.html" %}
 
 {% load i18n %}
 {% block title %} {% trans "Information for Developers" %} — {{ block.super }} {% endblock %}
 
-{% block main %}
+{% block body %}
   <header class="jumbotron subhead" id="overview">
     <h1>{% trans "Information for Developers" %}</h1>
     <p class="lead">{% trans "Useful information for developers interested in GeoNode." %}</p>
@@ -21,7 +21,7 @@
     <li><a href="http://openlayers.org">OpenLayers</a> - Pure JavaScript library powering the maps of GeoExt</li>
     <li><a href="http://geowebcache.org">GeoWebCache</a> - Cache engine for WMS Tiles</li>
     <li><a href="http://geoserver.org">GeoServer</a> - Standards based server for geospatial information</li>
-    <li><a href="http://pycsw.org">pycsw</a> - CSW metadata catalogue</li>
+    <li><a href="http://pycsw.org">pycsw</a> - CSW metadata catalogue server</li>
   </ul>
 
   <h4>What are OGC Services?</h4>

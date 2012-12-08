@@ -27,7 +27,7 @@ from django.utils import simplejson as json
 from django.utils.translation import ugettext_lazy as _
 
 from geonode.layers.models import Layer, Attribute
-from geonode.people.models import Contact
+from geonode.people.models import Profile 
 
 
 class JSONField(forms.CharField):
@@ -48,11 +48,11 @@ class LayerForm(forms.ModelForm):
 
     poc = forms.ModelChoiceField(empty_label = "Person outside GeoNode (fill form)",
                                  label = "Point Of Contact", required=False,
-                                 queryset = Contact.objects.exclude(user=None))
+                                 queryset = Profile.objects.exclude(user=None))
 
     metadata_author = forms.ModelChoiceField(empty_label = "Person outside GeoNode (fill form)",
                                              label = "Metadata Author", required=False,
-                                             queryset = Contact.objects.exclude(user=None))
+                                             queryset = Profile.objects.exclude(user=None))
     keywords = taggit.forms.TagField(required=False,
                                      help_text=_("A space or comma-separated list of keywords"))
     class Meta:
@@ -75,8 +75,11 @@ class LayerUploadForm(forms.Form):
     def clean(self):
         cleaned = super(LayerUploadForm, self).clean()
         base_name, base_ext = os.path.splitext(cleaned["base_file"].name)
-        if base_ext.lower() not in (".shp", ".tif", ".tiff", ".geotif", ".geotiff"):
-            raise forms.ValidationError("Only Shapefiles and GeoTiffs are supported. You uploaded a %s file" % base_ext)
+        if base_ext.lower() == '.zip':
+            # for now, no verification, but this could be unified
+            pass
+        elif base_ext.lower() not in (".shp", ".tif", ".tiff", ".geotif", ".geotiff", ".csv"):
+            raise forms.ValidationError("Only Shapefiles, GeoTiffs, and CSV files are supported. You uploaded a %s file" % base_ext)
         if base_ext.lower() == ".shp":
             dbf_file = cleaned["dbf_file"]
             shx_file = cleaned["shx_file"]

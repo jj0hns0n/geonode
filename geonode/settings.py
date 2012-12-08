@@ -64,7 +64,7 @@ LANGUAGES = (
     ('de', 'Deutsch'),
     ('el', 'Ελληνικά'),
     ('id', 'Bahasa Indonesia'),
-    ('zh', '中文'),
+#    ('zh', '中文'),
     ('ja', '日本人'),
 )
 
@@ -114,6 +114,12 @@ ROOT_URLCONF = 'geonode.urls'
 # Site id in the Django sites framework
 SITE_ID = 1
 
+# Login and logout urls override
+LOGIN_URL = '/account/login/'
+LOGOUT_URL = '/account/logout/'
+
+# Activate the Documents application
+DOCUMENTS_APP = True
 
 INSTALLED_APPS = (
 
@@ -132,24 +138,29 @@ INSTALLED_APPS = (
 
     # Utility
     'pagination',
-    'django_forms_bootstrap',
-    'crispy_forms',
     'taggit',
     'taggit_templatetags',
     'south',
     'friendlytagloader',
     'leaflet',
+    'request',
+    'crispy_forms',
+
+    # Theme
+    "pinax_theme_bootstrap_account",
+    "pinax_theme_bootstrap",
+    'django_forms_bootstrap',
 
     # Social
-    'registration',
-    'profiles',
+    'account',
     'avatar',
     'dialogos',
     'agon_ratings',
     #'notification',
-    #'announcements',
-    #'actstream',
-    #'relationships',
+    'announcements',
+    'actstream',
+    'relationships',
+    'user_messages',
 
     # GeoNode internal apps
     'geonode.maps',
@@ -160,7 +171,9 @@ INSTALLED_APPS = (
     'geonode.search',
     'geonode.catalogue',
     'geonode.groups',
+    'geonode.documents',
 )
+    
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -173,11 +186,11 @@ LOGGING = {
     },
     'handlers': {
         'null': {
-            'level':'DEBUG',
+            'level':'ERROR',
             'class':'django.utils.log.NullHandler',
         },
         'console':{
-            'level':'DEBUG',
+            'level':'ERROR',
             'class':'logging.StreamHandler',
             'formatter': 'simple'
         },
@@ -186,16 +199,21 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
         }
     },
-    'loggers': {
-        'django': {
-            'handlers':['null'],
-            'propagate': True,
-            'level':'INFO',
+    "loggers": {        
+        "django": {
+            "handlers": ["console"],
+            "level": "ERROR",
+        },
+        "django.request": {
+            "handlers": ["mail_admins"],
+            "level": "ERROR",
+            "propagate": True,
         },
         "geonode": {
             "handlers": ["console"],
             "level": "ERROR",
         },
+
         "gsconfig.catalog": {
             "handlers": ["console"],
             "level": "ERROR",
@@ -205,6 +223,10 @@ LOGGING = {
             "level": "ERROR",
         },
         "pycsw": {
+            "handlers": ["console"],
+            "level": "ERROR",
+        },
+        'south': {
             "handlers": ["console"],
             "level": "ERROR",
         },
@@ -218,13 +240,16 @@ LOGGING = {
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
-    'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.debug',
     'django.core.context_processors.i18n',
+    "django.core.context_processors.tz",
     'django.core.context_processors.media',
+    "django.core.context_processors.static",
     'django.core.context_processors.request',
-    #'announcements.context_processors.site_wide_announcements',
-    # The context processor belows add things like SITEURL
+    'django.contrib.messages.context_processors.messages',
+    'announcements.context_processors.site_wide_announcements',
+    'account.context_processors.account',
+    # The context processor below adds things like SITEURL
     # and GEOSERVER_BASE_URL to all pages that use a RequestContext
     'geonode.context_processors.resource_urls',
 )
@@ -233,6 +258,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'request.middleware.RequestMiddleware',
     # The setting below makes it possible to serve different languages per
     # user depending on things like headers in HTTP requests.
     'django.middleware.locale.LocaleMiddleware',
@@ -247,9 +273,7 @@ MIDDLEWARE_CLASSES = (
 AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
 
 def get_user_url(u):
-    from django.contrib.sites.models import Site
-    s = Site.objects.get_current()
-    return "http://" + s.domain + "/profiles/" + u.username
+    return u.profile.get_absolute_url() 
 
 
 ABSOLUTE_URL_OVERRIDES = {
@@ -260,6 +284,11 @@ ABSOLUTE_URL_OVERRIDES = {
 # FIXME(Ariel): I do not know why this setting is needed,
 # it would be best to use the ?next= parameter
 LOGIN_REDIRECT_URL = "/"
+
+#
+# Settings for default search size
+#
+DEFAULT_SEARCH_SIZE = 10
 
 
 #
@@ -273,7 +302,7 @@ AGON_RATINGS_CATEGORY_CHOICES = {
     },
     "layers.Layer": {
         "layer": "How good is this layer?"
-    },
+    }
 }
 
 # Activity Stream
@@ -287,14 +316,12 @@ ACTSTREAM_SETTINGS = {
 
 # For South migrations
 SOUTH_MIGRATION_MODULES = {
-    'registration': 'geonode.migrations.registration',
     'avatar': 'geonode.migrations.avatar',
 }
+SOUTH_TESTS_MIGRATE=False
 
-# For django-profiles
-AUTH_PROFILE_MODULE = 'people.Contact'
-
-# For django-registration
+# Settings for Social Apps
+AUTH_PROFILE_MODULE = 'people.Profile'
 REGISTRATION_OPEN = False
 
 #
@@ -314,8 +341,6 @@ NOSE_ARGS = [
 #
 # GeoNode specific settings
 #
-
-SITENAME = "GeoNode"
 
 SITEURL = "http://localhost:8000/"
 
@@ -357,9 +382,9 @@ PYCSW = {
     # pycsw configuration
     'CONFIGURATION': {
         'metadata:main': {
-            'identification_title': '%s Catalogue' % SITENAME,
+            'identification_title': 'GeoNode Catalogue',
             'identification_abstract': 'GeoNode is an open source platform that facilitates the creation, sharing, and collaborative use of geospatial data',
-            'identification_keywords': '%s,sdi,catalogue,discovery,metadata,GeoNode' % SITENAME,
+            'identification_keywords': 'sdi,catalogue,discovery,metadata,GeoNode',
             'identification_keywords_type': 'theme',
             'identification_fees': 'None',
             'identification_accessconstraints': 'None',
@@ -395,9 +420,6 @@ PYCSW = {
 }
 
 # GeoNode javascript client configuration
-
-# Google Api Key needed for 3D maps / Google Earth plugin
-GOOGLE_API_KEY = "ABQIAAAAkofooZxTfcCv9Wi3zzGTVxTnme5EwnLVtEDGnh-lFVzRJhbdQhQgAhB1eT_2muZtc0dl-ZSWrtzmrw"
 
 # Where should newly created maps be focused?
 DEFAULT_MAP_CENTER = (0, 0)
@@ -465,8 +487,6 @@ MAP_BASELAYERS = [{
 
 }]
 
-GEONODE_CLIENT_LOCATION = "/static/geonode/"
-
 # GeoNode vector data backend configuration.
 
 #Import uploaded shapefiles into a database such as PostGIS?
@@ -479,8 +499,9 @@ DB_DATASTORE_PASSWORD = ''
 DB_DATASTORE_HOST = ''
 DB_DATASTORE_PORT = ''
 DB_DATASTORE_TYPE = ''
-#The name of the store in Geoserver
 DB_DATASTORE_NAME = ''
+
+#The name of the store in Geoserver
 
 # Load more settings from a file called local_settings.py if it exists
 try:

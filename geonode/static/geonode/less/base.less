@@ -1,4 +1,4 @@
-@import "../../bootstrap/less/bootstrap";
+@import "../libs/bootstrap/less/bootstrap";
 
 @grayLight: rgb(239, 240, 239);
 @grayDark: rgb(72, 71, 72);
@@ -895,11 +895,6 @@ ul.space li {
   }
 }
 
-/** map viewer **/
-#paneltbar{
-  margin-top: 60px;
-}
-
 /** map & layer actions **/
 .map-actions,
 .layer-actions {
@@ -1062,7 +1057,8 @@ body.data-list nav.back {
   display: none;
 }
 body.data #subnav-tabs,
-body.maps #subnav-tabs {
+body.maps #subnav-tabs,
+body.documents #subnav-tabs {
   background-color: @grayLight;
   color: @graySp;
   .border-radius(3px 3px 0 0);

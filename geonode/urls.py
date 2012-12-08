@@ -23,9 +23,11 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf.urls.static import static
 from geonode.sitemap import LayerSitemap, MapSitemap
 import geonode.proxy.urls
-import geonode.signals
 
-# Uncomment the next two lines to enable the admin:
+# Import *_signals.py
+import geonode.social_signals
+
+# Setup Django Admin
 from django.contrib import admin
 admin.autodiscover()
 
@@ -62,26 +64,26 @@ urlpatterns = patterns('',
     (r'^search/', include('geonode.search.urls')),
 
     # Social views
-    (r'^accounts/', include('registration.urls')),
-    (r'^profiles/', include('idios.urls')),
+    (r"^account/", include("account.urls")),
     (r'^people/', include('geonode.people.urls')),
     (r'^avatar/', include('avatar.urls')),
-    #(r'^announcements/', include('announcements.urls')),
-    #(r'^notifications/', include('notification.urls')),
     (r'^comments/', include('dialogos.urls')),
     (r'^ratings/', include('agon_ratings.urls')),
-    #(r'^activity/', include('actstream.urls')),
-    #(r'^relationships/', include('relationships.urls')),
+    (r'^activity/', include('actstream.urls')),
+    (r'^relationships/', include('relationships.urls')),
+    (r'^announcements/', include('announcements.urls')),
+    #(r'^notifications/', include('notification.urls')),
+    (r'^messages/', include('user_messages.urls')),
 
     # Groups views
     (r'^groups/', include('geonode.groups.urls')),
 
     # Accounts
-    url(r'^accounts/ajax_login$', 'geonode.views.ajax_login',
-                                       name='auth_ajax_login'),
-    url(r'^accounts/ajax_lookup$', 'geonode.views.ajax_lookup',
-                                       name='auth_ajax_lookup'),
-    
+    url(r'^account/ajax_login$', 'geonode.views.ajax_login',
+                                       name='account_ajax_login'),
+    url(r'^account/ajax_lookup$', 'geonode.views.ajax_lookup',
+                                       name='account_ajax_lookup'),
+
     # Meta
     url(r'^lang\.js$', 'django.views.generic.simple.direct_to_template',
          {'template': 'lang.js', 'mimetype': 'text/javascript'}, name='lang'),
@@ -92,6 +94,12 @@ urlpatterns = patterns('',
     (r'^i18n/', include('django.conf.urls.i18n')),
     (r'^admin/', include(admin.site.urls)),
 
+    )
+
+#Documents views
+if settings.DOCUMENTS_APP:
+    urlpatterns += patterns('',
+        (r'^documents/', include('geonode.documents.urls')),
     )
 
 urlpatterns += geonode.proxy.urls.urlpatterns

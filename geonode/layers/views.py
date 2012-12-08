@@ -53,7 +53,7 @@ from geonode.utils import GXPMap
 from geonode.layers.utils import save
 from geonode.layers.utils import layer_set_permissions
 from geonode.utils import resolve_object
-from geonode.people.forms import ContactForm, PocForm
+from geonode.people.forms import ProfileForm, PocForm
 from geonode.security.views import _perms_info_json
 from geonode.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from django.forms.models import inlineformset_factory
@@ -186,6 +186,8 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
 
     maplayer = GXPLayer(name = layer.typename, ows_url = settings.GEOSERVER_BASE_URL + "wms", layer_params=json.dumps( layer.attribute_config()))
 
+    layer.srid_url = "http://www.spatialreference.org/ref/" + layer.srid.replace(':','/').lower() + "/"	
+	
     #layer.popular_count += 1
     #layer.save()
 
@@ -224,12 +226,12 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         new_keywords = layer_form.cleaned_data['keywords']
 
         if new_poc is None:
-            poc_form = ContactForm(request.POST, prefix="poc")
+            poc_form = ProfileForm(request.POST, prefix="poc")
             if poc_form.has_changed and poc_form.is_valid():
                 new_poc = poc_form.save()
 
         if new_author is None:
-            author_form = ContactForm(request.POST, prefix="author")
+            author_form = ProfileForm(request.POST, prefix="author")
             if author_form.has_changed and author_form.is_valid():
                 new_author = author_form.save()
 
@@ -251,17 +253,17 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
             return HttpResponseRedirect(reverse('layer_detail', args=(layer.typename,)))
 
     if poc.user is None:
-        poc_form = ContactForm(instance=poc, prefix="poc")
+        poc_form = ProfileForm(instance=poc, prefix="poc")
     else:
         layer_form.fields['poc'].initial = poc.id
-        poc_form = ContactForm(prefix="poc")
+        poc_form = ProfileForm(prefix="poc")
         poc_form.hidden=True
 
     if metadata_author.user is None:
-        author_form = ContactForm(instance=metadata_author, prefix="author")
+        author_form = ProfileForm(instance=metadata_author, prefix="author")
     else:
         layer_form.fields['metadata_author'].initial = metadata_author.id
-        author_form = ContactForm(prefix="author")
+        author_form = ProfileForm(prefix="author")
         author_form.hidden=True
 
     return render_to_response(template, RequestContext(request, {
@@ -445,8 +447,10 @@ def layer_search_page(request, template='layers/layer_search.html'):
     return render_to_response(template, RequestContext(request, {
         'init_search': json.dumps(params or {}),
         'viewer_config': json.dumps(map_obj.viewer_json(*DEFAULT_BASE_LAYERS)),
-        'GOOGLE_API_KEY' : settings.GOOGLE_API_KEY,
-        "site" : settings.SITEURL
+        "site" : settings.SITEURL,
+        "search_api": reverse("layer_search_api"),
+        "search_action": reverse("layer_search_page"),
+        "search_type": "layer",
     }))
 
 
@@ -605,11 +609,11 @@ def resolve_user(request):
         acl_user = authenticate(username=username, password=password)
         if acl_user:
             user = acl_user.username
-            superuser = user.is_superuser
+            superuser = acl_user.is_superuser
         elif _get_basic_auth_info(request) == settings.GEOSERVER_CREDENTIALS:
             geoserver = True
             superuser = True
-    elif not request.user.is_anonymous():
+    if not any([user, geoserver, superuser]) and not request.user.is_anonymous():
         user = request.user.username
         superuser = request.user.is_superuser
     return HttpResponse(json.dumps({
@@ -688,7 +692,8 @@ def feature_edit_check(request, layername):
     If the layer is not a raster and the user has edit permission, return a status of 200 (OK).
     Otherwise, return a status of 401 (unauthorized).
     """
-    layer = get_object_or_404(Layer, typename=layername);
-    return HttpResponse(
-        status=200 if request.user.has_perm('maps.change_layer', obj=layer) and layer.storeType == 'dataStore' else 401
-    )
+    layer = get_object_or_404(Layer, typename=layername)
+    if request.user.has_perm('maps.change_layer', obj=layer) and layer.storeType == 'dataStore' and settings.DB_DATASTORE:
+        return HttpResponse(json.dumps({'authorized': True}), mimetype="application/json")
+    else:
+        return HttpResponse(json.dumps({'authorized': False}), mimetype="application/json")

@@ -6,8 +6,6 @@ from django.contrib.auth.models import User, AnonymousUser
 import geonode.groups.models
 import geonode.groups.views
 
-from mock import Mock, patch
-
 class SmokeTest(TestCase):
     "Basic checks to make sure pages load, etc."
 

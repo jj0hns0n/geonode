@@ -54,12 +54,9 @@
       </ul>
     </div>
     <div class="tab-content">
-      <article class="description tab-pane active" id="info">
-        <h2>{% trans "Map Information" %}</h2>
-        <strong>{% trans "Abstract:" %}</strong>
-        {{ map.abstract }}
-        <p class="meta">{{ map }}<strong> {% trans "Uploaded by" %} <a href="{{ map.owner.get_profile.get_absolute_url }}">{{ map.owner.get_profile.name }}</a></strong></p>
-      </article>
+
+      {% include "geonode/resourcebase_info_panel.html" with resourcebase=map %}
+
       <article class="tab-pane" id="comments">
         <h2>{% trans "Comments" %}</h2>
     	{% with map as obj %}
@@ -148,7 +145,7 @@
 {% if request.user.is_authenticated %}
  {% user_rating_js request.user map "map" %}
 {% else %}
- <script src="{{ STATIC_URL }}agon_ratings/js/jquery.raty.js"></script>
+ <script src="{{ STATIC_URL }}libs/js/jquery.raty.js"></script>
 {% endif %}
 <script type="text/javascript">
  $(function() {
@@ -156,7 +153,7 @@
      half: true,
      readOnly: true,
      start: $('div.overall_rating').data('rating'),
-     path: "{{ STATIC_URL }}agon_ratings/img/"
+     path: "{{ STATIC_URL }}libs/agon_ratings/img/"
    });
    $("#rate-map").raty();
  });

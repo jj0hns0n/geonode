@@ -447,7 +447,10 @@ def layer_search_page(request, template='layers/layer_search.html'):
     return render_to_response(template, RequestContext(request, {
         'init_search': json.dumps(params or {}),
         'viewer_config': json.dumps(map_obj.viewer_json(*DEFAULT_BASE_LAYERS)),
-        "site" : settings.SITEURL
+        "site" : settings.SITEURL,
+        "search_api": reverse("layer_search_api"),
+        "search_action": reverse("layer_search_page"),
+        "search_type": "layer",
     }))
 
 
@@ -606,11 +609,11 @@ def resolve_user(request):
         acl_user = authenticate(username=username, password=password)
         if acl_user:
             user = acl_user.username
-            superuser = user.is_superuser
+            superuser = acl_user.is_superuser
         elif _get_basic_auth_info(request) == settings.GEOSERVER_CREDENTIALS:
             geoserver = True
             superuser = True
-    elif not request.user.is_anonymous():
+    if not any([user, geoserver, superuser]) and not request.user.is_anonymous():
         user = request.user.username
         superuser = request.user.is_superuser
     return HttpResponse(json.dumps({

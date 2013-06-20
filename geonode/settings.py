@@ -58,6 +58,7 @@ LANGUAGE_CODE = 'en'
 
 gettext = lambda s: s
 LANGUAGES = (
+<<<<<<< HEAD
     ('en', gettext('English')),
     ('es', gettext('Español')),
     ('it', gettext('Italiano')),
@@ -67,6 +68,12 @@ LANGUAGES = (
     ('id', gettext('Bahasa Indonesia')),
     ('zh-cn', gettext('中文')),
     ('ja', gettext('日本語')),
+    ('fa', gettext('Persian'),
+    ('pt', gettext('Portuguese')),
+    ('ru', gettext('Russian')),
+    ('vi', gettext('Vietnamese')),
+    #('fil', gettext('Filipino')),
+    
 )
 
 # If you set this to False, Django will make some optimizations so as not

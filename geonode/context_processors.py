@@ -21,7 +21,7 @@ from django.conf import settings
 from geonode import get_version
 from geonode.catalogue import default_catalogue_backend
 from django.contrib.sites.models import Site
-
+from django.core.urlresolvers import reverse
 
 def resource_urls(request):
     """Global values to pass to templates"""
@@ -29,12 +29,14 @@ def resource_urls(request):
 
     return dict(
         STATIC_URL=settings.STATIC_URL,
-        GEONODE_CLIENT_LOCATION=settings.GEONODE_CLIENT_LOCATION,
         GEOSERVER_BASE_URL=settings.GEOSERVER_BASE_URL,
         CATALOGUE_BASE_URL=default_catalogue_backend()['URL'],
-        GOOGLE_API_KEY=settings.GOOGLE_API_KEY,
         REGISTRATION_OPEN=settings.REGISTRATION_OPEN,
         VERSION=get_version(),
         SITE_NAME=site.name,
-        SITE_DOMAIN=site.domain
+        SITE_DOMAIN=site.domain,
+        DOCUMENTS_APP = settings.DOCUMENTS_APP,
+        UPLOADER_URL = reverse('data_upload') if (settings.UPLOADER_BACKEND_URL and settings.UPLOADER_BACKEND_URL == 'importer') else reverse('layer_upload'),
+        GEOGIT_ENABLED = getattr(settings, "GEOGIT_DATASTORE", False),
+        TIME_ENABLED = getattr(settings, "UPLOADER_SHOW_TIME_STEP", False)
     )

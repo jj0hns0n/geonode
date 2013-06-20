@@ -18,18 +18,29 @@
 #
 #########################################################################
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext as _
+from django.core.urlresolvers import reverse
 
 from django.contrib.auth.models import User, Permission
 
-from geonode.layers.enumerations import COUNTRIES
-from geonode.people.enumerations import ROLE_VALUES, CONTACT_FIELDS
+from taggit.managers import TaggableManager
 
+from geonode.base.enumerations import COUNTRIES
+from geonode.people.enumerations import ROLE_VALUES
+
+class Role(models.Model):
+    """
+    Roles are a generic way to create groups of permissions.
+    """
+    value = models.CharField('Role', choices=ROLE_VALUES, max_length=255, unique=True, help_text=_('function performed by the responsible party'))
+    permissions = models.ManyToManyField(Permission, verbose_name=_('permissions'), blank=True)
+
+    def __unicode__(self):
+        return self.get_value_display()
 
 class Profile(models.Model):
     user = models.OneToOneField(User, related_name="profile", null=True, blank=True)
@@ -45,6 +56,7 @@ class Profile(models.Model):
     zipcode = models.CharField(_('Postal Code'), max_length=255, blank=True, null=True, help_text=_('ZIP or other postal code'))
     country = models.CharField(choices=COUNTRIES, max_length=3, blank=True, null=True, help_text=_('country of the physical address'))
     email = models.EmailField(blank=True, null=True, help_text=_('address of the electronic mailbox of the responsible organization or individual'))
+    keywords = TaggableManager(_('keywords'), blank=True, help_text=_('commonly used word(s) or formalised word(s) or phrase(s) used to describe the subject (space or comma-separated'))
 
     def clean(self):
         # the specification says that either name or organization should be provided
@@ -54,22 +66,13 @@ class Profile(models.Model):
             raise ValidationError('Either name or organization should be provided')
 
     def get_absolute_url(self):
-        return ('profile_detail', (), { 'username': self.user.username })
-    get_absolute_url = models.permalink(get_absolute_url)
+        return reverse('profile_detail', args=[self.user.username,]) 
 
     def __unicode__(self):
         return u"%s (%s)" % (self.name, self.organization)
 
-
-class Role(models.Model):
-    """
-    Roles are a generic way to create groups of permissions.
-    """
-    value = models.CharField('Role', choices=ROLE_VALUES, max_length=255, unique=True, help_text=_('function performed by the responsible party'))
-    permissions = models.ManyToManyField(Permission, verbose_name=_('permissions'), blank=True)
-
-    def __unicode__(self):
-        return self.get_value_display()
+    def class_name(value): 
+        return value.__class__.__name__ 
 
 @receiver(post_save, sender=User)
 def user_post_save(sender, **kwargs):
@@ -80,4 +83,4 @@ def user_post_save(sender, **kwargs):
     """
     user, created = kwargs["instance"], kwargs["created"]
     if created:
-        Profile.objects.create(user=user, name=user.username)
+        Profile.objects.create(user=user, name=user.username, email=user.email)

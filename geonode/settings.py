@@ -548,6 +548,8 @@ METADATA_DOWNLOAD_ALLOWS = True
 
 CACHE_TIME=0
 
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+
 # Load more settings from a file called local_settings.py if it exists
 try:
     from local_settings import *

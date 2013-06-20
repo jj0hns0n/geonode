@@ -22,12 +22,15 @@ from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns('geonode.search.views',
     url(r'^$', 'search_page', name='search'),
+    url(r'^html$', 'search_page', {'template': 'search/search_content.html'}, name='search_content'),
     url(r'^api$', 'search_api', name='search_api'),
     url(r'^api/data$', 'search_api', kwargs={'type':'layer'}, name='layer_search_api'),
     url(r'^api/maps$', 'search_api', kwargs={'type':'map'}, name='maps_search_api'),
+    url(r'^api/documents$', 'search_api', kwargs={'type':'document'}, name='document_search_api'),
     url(r'^api/authors$', 'author_list', name='search_api_author_list'),
     url(r'^advanced/$', 'advanced_search', name='advanced_search'), 
     # Haystack ones
     #url(r"^$", "geonode.search.views.search", name="search"),
     #url(r"^api/$", "geonode.search.views.search_api", name="search_api"),
+    url(r'^form/$', 'advanced_search', name='advanced_search'), 
 )

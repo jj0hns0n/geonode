@@ -15,7 +15,7 @@
             <p>{% blocktrans %}Portals are ...{% endblocktrans %}</p>
             {% if user.is_staff %}
                 <p class="btns">
-                    <a class="btn btn-large" href="{% url portals_add %}">
+                    <a class="btn btn-large" href="{% url "portals_add" %}">
                         {% trans "Create New Portal" %}
                     </a>
                 </p>
@@ -28,7 +28,7 @@
                 <h2>{% trans "Portal List" %}</h2>
                 {% for portal in portal_list %}
                     <article class="row">
-                        {% url portals_detail portal.slug as portal_url %}
+                        {% url "portals_detail" portal.slug as portal_url %}
                         {% if portal.logo %}
                             <div class="span2">
                                 <a href="{{ portal_url }}">
@@ -56,7 +56,7 @@
                         {% for portal in portal_archive_list %}
                             <tr>
                                 <td>{{ portal }}</td>
-                                <td><a href="{% url portals_archive portal.pk %}" class="btn action">Reactivate</a></td>
+                                <td><a href="{% url "portals_archive" portal.pk %}" class="btn action">Reactivate</a></td>
                             </tr>
                         {% endfor %}
                     </tbody>

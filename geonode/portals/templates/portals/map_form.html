@@ -6,7 +6,7 @@
 {% block body %}
     <h1>{% if map %}{% trans "Edit Map" %}{% else %}{% trans "Add Map" %}{% endif %}</h1>
 
-    <form action="{% if map %}{% url portals_edit_map portal.slug map.pk %}{% else %}{% url portals_add_map portal.slug %}{% endif %}" method="post">
+    <form action="{% if map %}{% url "portals_edit_map" portal.slug map.pk %}{% else %}{% url "portals_add_map" portal.slug %}{% endif %}" method="post">
         {% csrf_token %}
         {{ form.portal }}
         <div class="form-row"><label for="id_map">Map</label>

@@ -11,7 +11,7 @@
         {% endblocktrans %}</p>
         <div class="actions">
             <button type="submit" class="btn btn-primary">{% trans "Delete" %}</button>
-            <a href="{% url portals_manage portal.pk %}" class="btn">{% trans "Cancel" %}</a>
+            <a href="{% url "portals_manage" portal.pk %}" class="btn">{% trans "Cancel" %}</a>
         </div>
     </form>
 {% endblock body %}

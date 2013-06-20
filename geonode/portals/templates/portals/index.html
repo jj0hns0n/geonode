@@ -25,11 +25,11 @@
             <div class="well">
                 <h2>{% trans "Manage" %}</h2>
                 <ul class="nav nav-list sidenav">
-                    <li><a href="{% url portals_edit portal.pk %}" class="edit">{% trans "Edit Settings" %}</a></li>
+                    <li><a href="{% url "portals_edit" portal.pk %}" class="edit">{% trans "Edit Settings" %}</a></li>
                     <li><a href="#" class="customize">{% trans "Change Theme" %}</a></li>
-                    <li><a href="{% url portals_manage portal.pk %}" class="manage">{% trans "Manage Content" %}</a></li>
+                    <li><a href="{% url "portals_manage" portal.pk %}" class="manage">{% trans "Manage Content" %}</a></li>
                     <li class="divider"></li>
-                    <li><a href="{% url portals_archive portal.pk %}" class="archive">{% trans "Archive Portal" %}</a></li>
+                    <li><a href="{% url "portals_archive" portal.pk %}" class="archive">{% trans "Archive Portal" %}</a></li>
                 </ul>
             </div>
         </aside>

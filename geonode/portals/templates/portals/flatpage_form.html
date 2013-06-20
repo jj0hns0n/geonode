@@ -9,12 +9,12 @@
 {% block body %}
     <h1>{% if flatpage %}{% trans "Edit Flatpage" %}{% else %}{% trans "Add Flatpage" %}{% endif %}</h1>
 
-    <form action="{% if flatpage %}{% url portals_edit_flatpage portal.slug flatpage.pk %}{% else %}{% url portals_add_flatpage portal.slug %}{% endif %}" method="post" id="form-flatpage">
+    <form action="{% if flatpage %}{% url "portals_edit_flatpage" portal.slug flatpage.pk %}{% else %}{% url "portals_add_flatpage" portal.slug %}{% endif %}" method="post" id="form-flatpage">
         {% csrf_token %}
         {{ form.as_p }}
         <div class="actions">
             <button type="submit" class="btn btn-primary">{% if flatpage %}{% trans "Save" %}{% else %}{% trans "Add" %}{% endif %}</button>
-            <a href="{% url portals_manage portal.pk %}" class="cancel">{% trans "Cancel" %}</a>
+            <a href="{% url "portals_manage" portal.pk %}" class="cancel">{% trans "Cancel" %}</a>
         </div>
     </form>
 {% endblock body %}

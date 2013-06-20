@@ -59,7 +59,7 @@ class TopicCategory(models.Model):
     <CodeListDictionary gml:id="MD_MD_TopicCategoryCode">
     """
     identifier = models.CharField(max_length=255, editable=False, default='location')
-    description = models.TextField(editable=False)
+    description = models.TextField(editable=True)
     gn_description = models.TextField('GeoNode description', default='', null=True)
     is_choice = models.BooleanField(default=True)
     layers_count = models.IntegerField(default=0)
@@ -81,7 +81,7 @@ class SpatialRepresentationType(models.Model):
     <CodeListDictionary gml:id="MD_SpatialRepresentationTypeCode">
     """
     identifier = models.CharField(max_length=255, editable=False)
-    description = models.CharField(max_length=255, editable=False)
+    description = models.CharField(max_length=255, editable=True)
     gn_description = models.CharField('GeoNode description', max_length=255)
     is_choice = models.BooleanField(default=True)
 
@@ -112,7 +112,7 @@ class RestrictionCodeType(models.Model):
     <CodeListDictionary gml:id="MD_RestrictionCode">
     """
     identifier = models.CharField(max_length=255, editable=False)
-    description = models.TextField(max_length=255, editable=False)
+    description = models.TextField(max_length=255, editable=True)
     gn_description = models.TextField('GeoNode description', max_length=255)
     is_choice = models.BooleanField(default=True)
 

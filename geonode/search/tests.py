@@ -21,8 +21,8 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.test.client import Client
 from django.test import TestCase
-from geonode.security.models import AUTHENTICATED_USERS
-from geonode.security.models import ANONYMOUS_USERS
+from django.core.urlresolvers import reverse
+from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.layers.models import Layer
 from geonode.maps.models import Map
 from geonode.documents.models import Document
@@ -51,7 +51,7 @@ class searchTest(TestCase):
 
     c = Client()
 
-    fixtures = ['initial_data.json'] #, 'search_testdata.json']
+    fixtures = ['initial_data.json']
 
     @classmethod
     def setUpClass(cls):
@@ -108,7 +108,7 @@ class searchTest(TestCase):
 
         contains_username = options.pop('contains_username', None)
         if contains_username:
-            self.assert_results_contain_title(jsonvalue, contains_username, 'owner')
+            self.assert_results_contain_title(jsonvalue, contains_username, 'user')
 
         n_results = options.pop('n_results', None)
         if n_results:
@@ -153,12 +153,12 @@ class searchTest(TestCase):
 
     def test_text_across_types(self):
         self.search_assert(self.request('foo'), n_results=8, n_total=8)
-        self.search_assert(self.request('common'), n_results=10, n_total=23)
+        self.search_assert(self.request('common'), n_results=10, n_total=22)
 
     def test_pagination(self):
-        self.search_assert(self.request('common', startIndex=0), n_results=10, n_total=23)
-        self.search_assert(self.request('common', startIndex=10), n_results=10, n_total=23)
-        self.search_assert(self.request('common', startIndex=20), n_results=3, n_total=23)
+        self.search_assert(self.request('common', start=0), n_results=10, n_total=22)
+        self.search_assert(self.request('common', start=10), n_results=10, n_total=22)
+        self.search_assert(self.request('common', start=20), n_results=2, n_total=22)
 
     def test_bbox_query(self):
         # @todo since maps and users are excluded at the moment, this will have
@@ -186,16 +186,16 @@ class searchTest(TestCase):
         self.search_assert(self.request(period=',1995-01-01T00:00:00Z'),
                            n_results=7)
         self.search_assert(self.request(period='1980-01-01T00:00:00Z,'),
-                           n_results=4)
+                           n_results=10, n_total=22)
 
     def test_errors(self):
         self.assert_error(self.request(sort='foo'),
-            "valid sorting values are: ['alphaaz', 'newest', 'popularity', 'alphaza', 'rel', 'oldest']")
+            "valid sorting values are: ['alphaaz', 'newest', 'popularity', 'alphaza', 'none', 'rel', 'oldest']")
         self.assert_error(self.request(extent='1,2,3'),
             'extent filter must contain x0,x1,y0,y1 comma separated')
         self.assert_error(self.request(extent='a,b,c,d'),
             'extent filter must contain x0,x1,y0,y1 comma separated')
-        self.assert_error(self.request(startIndex='x'),
+        self.assert_error(self.request(start='x'),
             'startIndex must be valid number')
         self.assert_error(self.request(limit='x'),
             'limit must be valid number')
@@ -208,10 +208,10 @@ class searchTest(TestCase):
         self.assertEquals(msg, obj['errors'][0])
 
     def test_sort(self):
-        self.search_assert(self.request('foo', sort='newest'),
-                           first_title='common double time', sorted_by='-last_modified')
-        self.search_assert(self.request('foo', sort='oldest'),
-                           first_title='uniquefirst foo', sorted_by='last_modified')
+        self.search_assert(self.request('foo', sort='newest',type='layer'),
+                           first_title='common blar', sorted_by='-last_modified')
+        self.search_assert(self.request('foo', sort='oldest',type='layer'),
+                           first_title='common double time', sorted_by='last_modified')
         self.search_assert(self.request('foo', sort='alphaaz'),
                            first_title='bar baz', sorted_by='title')
         self.search_assert(self.request('foo', sort='alphaza'),
@@ -220,7 +220,7 @@ class searchTest(TestCase):
         # apply some ratings
         ct = ContentType.objects.get_for_model(Layer)
         for l in Layer.objects.all():
-            OverallRating.objects.create(content_type=ct, object_id=l.pk, rating=l.pk, category=2)
+            OverallRating.objects.create(content_type=ct, object_id=l.pk, rating=l.pk, category=3)
         ct = ContentType.objects.get_for_model(Map)
         for l in Map.objects.all():
             OverallRating.objects.create(content_type=ct, object_id=l.pk, rating=l.pk, category=1)
@@ -240,10 +240,10 @@ class searchTest(TestCase):
         self.search_assert(self.request('po ma la'), n_results=0, n_total=0)
 
     def test_type_query(self):
-        self.search_assert(self.request('common', type='map'), n_results=9, n_total=9)
+        self.search_assert(self.request('common', type='map'), n_results=8, n_total=8)
         self.search_assert(self.request('common', type='layer'), n_results=5, n_total=5)
         self.search_assert(self.request('common', type='document'), n_results=9, n_total=9)
-        self.search_assert(self.request('foo', type='owner'), n_results=4, n_total=4)
+        self.search_assert(self.request('foo', type='user'), n_results=4, n_total=4)
         # there are 8 total layers, half vector, half raster
         self.search_assert(self.request('', type='raster'), n_results=4, n_total=4)
         self.search_assert(self.request('', type='vector'), n_results=4, n_total=4)
@@ -254,13 +254,35 @@ class searchTest(TestCase):
         # no matches
         self.search_assert(self.request('', kw='foobar', type='layer'), n_results=0, n_total=0)
 
+    def test_exclude_query(self):
+        # exclude one layer
+        self.search_assert(self.request('', exclude='CA'), n_results=10, n_total=32)
+        # exclude one general word
+        self.search_assert(self.request('', exclude='common'), n_results=10, n_total=28)
+        # exclude more than one word
+        self.search_assert(self.request('', exclude='common,something'), n_results=10, n_total=24)
+        # exclude almost everything
+        self.search_assert(self.request('', exclude='common,something,ipsum,quux,morx,one'), n_results=10, n_total=11)
+
+    def test_category_search(self):
+        #search no categories
+        self.search_assert(self.request('', category=''), n_results=10, n_total=33)
+        #search, one category
+        self.search_assert(self.request('', category='location'), n_results=9, n_total=9)
+        # search two categories
+        self.search_assert(self.request('', category='location,biota'), n_results=10, n_total=17)
+        # search with all three categories
+        self.search_assert(self.request('', category='location,biota,elevation'), n_results=10, n_total=26)
+
     def test_author_endpoint(self):
         resp = self.c.get('/search/api/authors')
         jsobj = json.loads(resp.content)
-        self.assertEquals(6, jsobj['total'])
+        self.assertEquals(7, jsobj['total'])
 
     def test_search_page(self):
-        resp = self.c.get('/search/')
+        from django.core.cache import cache
+        cache.clear()
+        resp = self.c.get(reverse('search'))
         self.assertEquals(200, resp.status_code)
 
     def test_util(self):

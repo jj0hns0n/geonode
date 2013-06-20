@@ -5,13 +5,13 @@ build
 target
 *.mo
 pip-log.txt
+MANIFEST
+dist
 
 # supporting stuff pulled in by paver script
 geonode/development.db
-geoserver-geonode-ext/jetty.log
-paster.log
-paster.pid
-geoserver-geonode-ext/logs/
+geoserver
+downloaded
 
 # Static media handling
 geonode/static/components/
@@ -26,6 +26,7 @@ geonode/uploaded
 .noseids
 geonode_test_data/
 nosetests.xml
+geonode/static/geonode/junit.xml
 
 #Temporary files
 *~
@@ -34,3 +35,9 @@ nosetests.xml
 # OSX specific
 .Python
 .DS_Store
+
+# Docs
+docs/_build
+
+# ec2.py
+scripts/cloud/.gnec2.cfg

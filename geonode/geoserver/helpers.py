@@ -290,10 +290,7 @@ def gs_slurp(ignore_errors=True, verbosity=1, console=None, owner=None, workspac
             })
 
             layer.save()
-=======
-            layer.save()
 
->>>>>>> bf48df4f0663d7b1214b7877b73414f5d5ff9bbf:geonode/geoserver/helpers.py
         except Exception, e:
             if ignore_errors:
                 status = 'failed'

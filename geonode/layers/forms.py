@@ -61,7 +61,7 @@ class LayerForm(forms.ModelForm):
                    'bbox_x0', 'bbox_x1', 'bbox_y0', 'bbox_y1', 'srid',
                    'csw_typename', 'csw_schema', 'csw_mdsource', 'csw_type',
                    'csw_wkt_geometry', 'metadata_uploaded', 'metadata_xml', 'csw_anytext',
-                   'popular_count', 'share_count')
+                   'popular_count', 'share_count', 'thumbnail', 'default_style', 'styles')
 
 class LayerUploadForm(forms.Form):
     base_file = forms.FileField()
@@ -78,8 +78,8 @@ class LayerUploadForm(forms.Form):
         if base_ext.lower() == '.zip':
             # for now, no verification, but this could be unified
             pass
-        elif base_ext.lower() not in (".shp", ".tif", ".tiff", ".geotif", ".geotiff", ".csv"):
-            raise forms.ValidationError("Only Shapefiles, GeoTiffs, and CSV files are supported. You uploaded a %s file" % base_ext)
+        elif base_ext.lower() not in (".shp", ".tif", ".tiff", ".geotif", ".geotiff"):
+            raise forms.ValidationError("Only Shapefiles and GeoTiffs are supported. You uploaded a %s file" % base_ext)
         if base_ext.lower() == ".shp":
             dbf_file = cleaned["dbf_file"]
             shx_file = cleaned["shx_file"]
@@ -139,10 +139,15 @@ class LayerDescriptionForm(forms.Form):
 class LayerAttributeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(LayerAttributeForm, self).__init__(*args, **kwargs)
-        instance = getattr(self, 'instance', None)
         self.fields['attribute'].widget.attrs['readonly'] = True
         self.fields['display_order'].widget.attrs['size'] = 3
 
     class Meta:
         model = Attribute
         exclude = ('attribute_type',)
+
+class LayerStyleUploadForm(forms.Form):
+    layerid = forms.IntegerField()
+    name = forms.CharField(required=False)
+    update = forms.BooleanField(required=False)
+    sld = forms.FileField()

@@ -21,7 +21,6 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
@@ -31,16 +30,19 @@ from django.views.generic.list import ListView
 from django.contrib.sites.models import Site
 from django.conf import settings
 
+from itertools import chain
+
 from geonode.people.models import Profile
 from geonode.people.forms import ProfileForm
 from geonode.people.forms import ForgotUsernameForm
 
-class ProfileListView(ListView):
 
-    def __init__(self, *args, **kwargs):
-        self.queryset = Profile.objects.all()
-        super(ProfileListView, self).__init__(*args, **kwargs)
-
+def profile_list(request, template='people/profile_list.html'):
+    from geonode.search.views import search_page
+    post = request.POST.copy()
+    post.update({'type': 'user'})
+    request.POST = post
+    return search_page(request, template=template)
 
 @login_required
 def profile_edit(request, username=None):
@@ -65,12 +67,65 @@ def profile_edit(request, username=None):
         "form": form,
     })
 
+def _get_user_objects(profile):   
+    qs_layers = []
+    qs_maps = []
+    qs_docs = []
+
+    for obj in profile.user.resourcebase_set.all():
+            try:
+                obj.map
+                qs_maps.append(obj.map)
+            except:
+                pass
+            try:
+                obj.layer
+                qs_layers.append(obj.layer)
+            except:
+                pass
+            try: 
+                obj.document
+                qs_docs.append(obj.document)
+            except:
+                pass
+    # chain objects
+    return qs_layers, qs_maps, qs_docs
 
 def profile_detail(request, username):
     profile = get_object_or_404(Profile, user__username=username)
+    # combined queryset from each model content type
+    qs_layers, qs_maps, qs_docs = _get_user_objects(profile)
+    object_list = []
+    content_filter = 'all'
+    sortby_field = 'date'
+    if ('content' in request.GET):
+      content = request.GET['content']
+      if content != 'all':
+          if (content == 'layers'):
+              content_filter = 'layers'
+              object_list = qs_layers
+          if (content == 'maps'):
+              content_filter = 'maps'
+              object_list = qs_maps
+          if (content == 'documents'):
+              content_filter = 'documents'
+              object_list = qs_docs
+    if content_filter == 'all':       
+        object_list = list(chain(qs_layers,qs_maps,qs_docs))
 
+    sortby_field = 'date'
+    if ('sortby' in request.GET):
+        sortby_field = request.GET['sortby']
+    if sortby_field == 'title':
+        object_list.sort(key=lambda x: x.title, reverse=False)
+    else:
+        object_list.sort(key=lambda x: x.date, reverse=True)
+    
     return render(request, "people/profile_detail.html", {
         "profile": profile,
+        "sortby_field": sortby_field,
+        "content_filter": content_filter,
+        "object_list": object_list,
     })
 
 def forgot_username(request):

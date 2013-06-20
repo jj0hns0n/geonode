@@ -58,24 +58,27 @@ def _create_viewer_config():
 _viewer_config = _create_viewer_config()
 
 
-def search_page(request, **kw):
-    params = {}
-    if kw:
-        params.update(kw)
+def search_page(request, template='search/search.html', **kw): 
+    results, facets, query = search_api(request, format='html', **kw)
+    tags = {}
 
-    context = _get_search_context()
-    context['init_search'] = json.dumps(params)
+    # get the keywords and their count
+    for item in results:
+        for tagged_item in item.o.tagged_items.all():
+                tags[tagged_item.tag.slug] = tags.get(tagged_item.tag.slug,{})
+                tags[tagged_item.tag.slug]['slug'] = tagged_item.tag.slug
+                tags[tagged_item.tag.slug]['name'] = tagged_item.tag.name
+                tags[tagged_item.tag.slug]['count'] = tags[tagged_item.tag.slug].get('count',0) + 1
 
-    return render_to_response('search/search.html', RequestContext(request, context))
+    total = 0
+    for val in facets.values(): total+=val
+    total -= facets['raster'] + facets['vector']
+    return render_to_response(template, RequestContext(request, {'object_list': results, 'total': total, 
+        'facets': facets, 'query': json.dumps(query.get_query_response()), 'tags': tags}))
 
 def advanced_search(request, **kw):
-    params = {}
-    if kw:
-        params.update(kw)
-
-    context = _get_search_context()
-    context['init_search'] = json.dumps(params)
-    return render_to_response('search/advanced_search.html', RequestContext(request, context))
+    
+    return render_to_response('search/advanced_search.html', RequestContext(request))
 
 def _get_search_context():
     cache_key = 'simple_search_context'
@@ -103,7 +106,7 @@ def _get_search_context():
     }
     if _extra_context:
         _extra_context(context)
-    cache.set(cache_key, context, 60)
+    cache.set(cache_key, context, settings.CACHE_TIME)
 
     return context
 
@@ -121,7 +124,7 @@ def _get_all_keywords():
     return allkw
 
 
-def search_api(request, **kwargs):
+def search_api(request, format='json', **kwargs):
     if request.method not in ('GET','POST'):
         return HttpResponse(status=405)
     debug = logger.isEnabledFor(logging.DEBUG)
@@ -134,12 +137,17 @@ def search_api(request, **kwargs):
         ts1 = time() - ts
         if debug:
             ts = time()
-        results = _search_json(query, items, facets, ts1)
+        if format != 'html':
+            results = _search_json(query, items, facets, ts1)
         if debug:
             ts2 = time() - ts
             logger.debug('generated combined search results in %s, %s',ts1,ts2)
             logger.debug('with %s db queries',len(connection.queries))
-        return results
+        if format == 'html':
+            return items, facets, query
+        else:
+            return results
+
     except Exception, ex:
         if not isinstance(ex, BadQuery):
             logger.exception("error during search")
@@ -148,7 +156,6 @@ def search_api(request, **kwargs):
             'success' : False,
             'errors' : [str(ex)]
         }), status=400)
-
 
 def _search_json(query, items, facets, time):
     total = len(items)
@@ -180,11 +187,10 @@ def _search_json(query, items, facets, time):
 def cache_key(query,filters):
     return str(reduce(operator.xor,map(hash,filters.items())) ^ hash(query))
 
-
 def _search(query):
     # to support super fast paging results, cache the intermediates
     results = None
-    cache_time = 60
+    cache_time = settings.CACHE_TIME 
     if query.cache:
         key = query.cache_key()
         results = cache.get(key)
@@ -206,14 +212,16 @@ def _search(query):
 
     # @todo - sorting should be done in the backend as it can optimize if
     # the query is restricted to one model. has implications for caching...
-    if query.sort == 'title':
-        keyfunc = lambda r: r.title().lower()
-    elif query.sort == 'last_modified':
-        old = datetime(1,1,1)
-        keyfunc = lambda r: r.last_modified() or old
-    else:
-        keyfunc = lambda r: getattr(r, query.sort)()
-    results.sort(key=keyfunc, reverse=not query.order)
+    if query.sort != None:
+        if query.sort == 'title':
+            keyfunc = lambda r: r.title().lower()
+        elif query.sort == 'last_modified':
+            old = datetime(1,1,1)
+            keyfunc = lambda r: r.last_modified() or old
+        else:
+            keyfunc = lambda r: getattr(r, query.sort)()
+
+        results.sort(key=keyfunc, reverse=not query.order)
 
     return results, facets
 

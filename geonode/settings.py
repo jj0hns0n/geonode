@@ -156,7 +156,7 @@ INSTALLED_APPS = (
     'south',
     'friendlytagloader',
     'leaflet',
-    'request',
+    #'request',
     'crispy_forms',
     'geoexplorer',
     'django_extensions',

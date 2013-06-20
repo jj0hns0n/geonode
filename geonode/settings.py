@@ -94,6 +94,14 @@ STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, "static"),
 ]
 
+# List of finder classes that know how to find static files in
+# various locations.
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+)
+
 # Note that Django automatically includes the "templates" dir in all the
 # INSTALLED_APPS, se there is no need to add maps/templates or admin/templates
 TEMPLATE_DIRS = (
@@ -120,6 +128,11 @@ LOGOUT_URL = '/account/logout/'
 
 # Activate the Documents application
 DOCUMENTS_APP = True
+ALLOWED_DOCUMENT_TYPES = [
+    'doc', 'docx', 'xls', 'xslx', 'pdf', 'zip', 'jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif', 'txt'
+]
+MAX_DOCUMENT_SIZE = 2 # MB
+
 
 INSTALLED_APPS = (
 
@@ -144,8 +157,8 @@ INSTALLED_APPS = (
     'taggit_templatetags',
     'south',
     'friendlytagloader',
-    'leaflet',
-    'request',
+    'geoexplorer',
+    'django_extensions',
 
     # Theme
     "pinax_theme_bootstrap_account",
@@ -157,17 +170,17 @@ INSTALLED_APPS = (
     'avatar',
     'dialogos',
     'agon_ratings',
-    #'notification',
+    'notification',
     'announcements',
     'actstream',
-    'relationships',
     'user_messages',
 
     # GeoNode internal apps
-    'geonode.security',
-    'geonode.layers',
-    'geonode.maps',
     'geonode.people',
+    'geonode.base',
+    'geonode.layers',
+    'geonode.upload',
+    'geonode.maps',
     'geonode.proxy',
     'geonode.portals',
     'geonode.security',
@@ -175,7 +188,7 @@ INSTALLED_APPS = (
     'geonode.catalogue',
     'geonode.documents',
 )
-    
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -185,6 +198,11 @@ LOGGING = {
         },
         'simple': {
             'format': '%(message)s',        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+     }
     },
     'handlers': {
         'null': {
@@ -198,18 +216,14 @@ LOGGING = {
         },
         'mail_admins': {
             'level': 'ERROR',
+            'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
         }
     },
-    "loggers": {        
+    "loggers": {
         "django": {
             "handlers": ["console"],
             "level": "ERROR",
-        },
-        "django.request": {
-            "handlers": ["mail_admins"],
-            "level": "ERROR",
-            "propagate": True,
         },
         "geonode": {
             "handlers": ["console"],
@@ -249,7 +263,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
-    'announcements.context_processors.site_wide_announcements',
     'account.context_processors.account',
     # The context processor below adds things like SITEURL
     # and GEOSERVER_BASE_URL to all pages that use a RequestContext
@@ -260,7 +273,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'request.middleware.RequestMiddleware',
     # The setting below makes it possible to serve different languages per
     # user depending on things like headers in HTTP requests.
     'django.middleware.locale.LocaleMiddleware',
@@ -270,6 +282,11 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'geonode.portals.middleware.FlatpageFallbackMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # This middleware allows to print private layers for the users that have 
+    # the permissions to view them.
+    # It sets temporary the involved layers as public before restoring the permissions.
+    # Beware that for few seconds the involved layers are public there could be risks.
+    #'geonode.middleware.PrintProxyMiddleware',
 )
 
 
@@ -283,7 +300,7 @@ DEFAULT_HOST = 'www'
 AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
 
 def get_user_url(u):
-    return u.profile.get_absolute_url() 
+    return u.profile.get_absolute_url()
 
 
 ABSOLUTE_URL_OVERRIDES = {
@@ -312,6 +329,9 @@ AGON_RATINGS_CATEGORY_CHOICES = {
     },
     "layers.Layer": {
         "layer": "How good is this layer?"
+    },
+    "documents.Document": {
+        "document": "How good is this document?"
     }
 }
 
@@ -446,14 +466,14 @@ MAP_BASELAYERS = [{
         "restUrl": "/gs/rest"
      }
   },{
-    "source": {"ptype": "gx_olsource"},
+    "source": {"ptype": "gxp_olsource"},
     "type":"OpenLayers.Layer",
     "args":["No background"],
     "visibility": False,
     "fixed": True,
     "group":"background"
   }, {
-    "source": {"ptype": "gx_olsource"},
+    "source": {"ptype": "gxp_olsource"},
     "type":"OpenLayers.Layer.OSM",
     "args":["OpenStreetMap"],
     "visibility": False,
@@ -478,7 +498,7 @@ MAP_BASELAYERS = [{
   },{
     "source": {"ptype": "gxp_mapboxsource"},
   }, {
-    "source": {"ptype": "gx_olsource"},
+    "source": {"ptype": "gxp_olsource"},
     "type":"OpenLayers.Layer.WMS",
     "group":"background",
     "visibility": False,
@@ -499,6 +519,10 @@ MAP_BASELAYERS = [{
 
 # GeoNode vector data backend configuration.
 
+# Uploader backend (rest or importer)
+
+UPLOADER_BACKEND_URL = 'rest'
+
 #Import uploaded shapefiles into a database such as PostGIS?
 DB_DATASTORE = False
 
@@ -509,9 +533,19 @@ DB_DATASTORE_PASSWORD = ''
 DB_DATASTORE_HOST = ''
 DB_DATASTORE_PORT = ''
 DB_DATASTORE_TYPE = ''
+#The name of the store in Geoserver
 DB_DATASTORE_NAME = ''
 
-#The name of the store in Geoserver
+LEAFLET_CONFIG = {
+    'TILES_URL': 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png'
+}
+
+# Default TopicCategory to be used for resources. Use the slug field here
+DEFAULT_TOPICCATEGORY = 'location'
+
+MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
+
+CACHE_TIME=0
 
 # Load more settings from a file called local_settings.py if it exists
 try:

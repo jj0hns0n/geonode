@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from geonode.base.models import TopicCategory, ContactRole, ResourceBase, Link, Thumbnail
 from geonode.base.models import (TopicCategory, SpatialRepresentationType,
     Region, RestrictionCodeType, ContactRole, ResourceBase, Link)
 
@@ -71,3 +72,4 @@ admin.site.register(RestrictionCodeType, RestrictionCodeTypeAdmin)
 admin.site.register(ContactRole, ContactRoleAdmin)
 admin.site.register(ResourceBase, ResourceBaseAdmin)
 admin.site.register(Link, LinkAdmin)
+admin.site.register(Thumbnail, admin.ModelAdmin)

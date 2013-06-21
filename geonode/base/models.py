@@ -62,9 +62,6 @@ class TopicCategory(models.Model):
     description = models.TextField(editable=True)
     gn_description = models.TextField('GeoNode description', default='', null=True)
     is_choice = models.BooleanField(default=True)
-    layers_count = models.IntegerField(default=0)
-    maps_count = models.IntegerField(default=0)
-    documents_count = models.IntegerField(default=0)
 
     def __unicode__(self):
         return u"{0}".format(self.gn_description)
@@ -328,6 +325,16 @@ class ResourceBase(models.Model, PermissionLevelMixin, ThumbnailMixin):
         self.bbox_y0 = box[2]
         self.bbox_y1 = box[3]
 
+    def download_links(self):
+        links = []
+        for url in self.link_set.all():
+            if url.link_type == 'html':
+                links.append((self.title, 'Web address (URL)', 'WWW:LINK-1.0-http--link', url.url))
+            else:
+                description = '%s (%s Format)' % (self.title, url.name)
+                links.append((self.title, description, 'WWW:DOWNLOAD-1.0-http--download', url.url))
+        return links
+
     def _set_poc(self, poc):
         # reset any poc asignation to this resource
         ContactRole.objects.filter(role=self.poc_role, resource=self).delete()
@@ -444,8 +451,3 @@ def resourcebase_post_save(instance, sender, **kwargs):
                                            )
     resourcebase.poc = pc
     resourcebase.metadata_author = ac
-
-def resourcebase_post_delete(instance, sender, **kwargs):
-    resourcebase = instance.resourcebase_ptr
-    update_counts(resourcebase, instance.class_name, increment = -1)
-

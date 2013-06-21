@@ -824,11 +824,9 @@ class LayersTest(TestCase):
         layer.delete()
         elevation = TopicCategory.objects.get(identifier='elevation')
         self.assertEquals(elevation.layers_count,3)
-=======
         elevation = topics.get(identifier='elevation')
         self.assertEquals(elevation.layer_count,4)
         layer.delete()
         topics = topics.annotate(**{ 'layer_count': Count('resourcebase__layer__category')})
         elevation = topics.get(identifier='elevation')
         self.assertEquals(elevation.layer_count,3)
->>>>>>> 54f56b9eb4ba76408a05799398a00c704a641ecb

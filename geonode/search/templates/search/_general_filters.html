@@ -9,13 +9,13 @@
     {% for category in category_list %}
     <li><a data-class="{{category.identifier}}" class="trigger-query">{{ category.gn_description }}
     {% if type == 'layer' %}
-    ({{ category.layer_count }})
+    <span class="badge pull-right">{{ category.layer_count }}</span>
     {% elif type == 'map' %}
-    ({{ category.map_count }})
+    <span class="badge pull-right">{{ category.map_count }}</span>
     {% elif type == 'document' %}
-    ({{ category.document_count }})
+    <span class="badge pull-right">{{ category.document_count }}</span>
     {% else %}
-    ({{ category.layer_count|add:category.map_count|add:category.document_count }})
+    <span class="badge pull-right">{{ category.layer_count|add:category.map_count|add:category.document_count }}</span>
     {% endif %}
     </a></li>
     {% endfor %}
@@ -36,7 +36,7 @@
   <h2><a href="#" class="toggle toggle-nav"><i class="icon-chevron-down"></i> {% trans "Keywords" %}</a></h2>
   <ul class="nav" id="keywords">
     {% for tag in tags.values %}
-      <li><a data-class="{{ tag.slug }}" class="trigger-query">{{ tag.name }} <span>(<span class="count">{{ tag.count }}</span>)</span></a></li>
+      <li><a data-class="{{ tag.slug }}" class="trigger-query">{{ tag.name }} <span class="badge pull-right">{{ tag.count }}</span></a></li>
     {% endfor %}
   </ul>
 </nav>

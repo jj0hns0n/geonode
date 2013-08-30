@@ -68,7 +68,7 @@ class TopicCategory(models.Model):
     <CodeListDictionary gml:id="MD_MD_TopicCategoryCode">
     """
     identifier = models.CharField(max_length=255, editable=False, default='location')
-    description = models.TextField(editable=False)
+    description = models.TextField(editable=True)
     gn_description = models.TextField('GeoNode description', default='', null=True)
     is_choice = models.BooleanField(default=True)
 
@@ -87,7 +87,7 @@ class SpatialRepresentationType(models.Model):
     <CodeListDictionary gml:id="MD_SpatialRepresentationTypeCode">
     """
     identifier = models.CharField(max_length=255, editable=False)
-    description = models.CharField(max_length=255, editable=False)
+    description = models.CharField(max_length=255, editable=True)
     gn_description = models.CharField('GeoNode description', max_length=255)
     is_choice = models.BooleanField(default=True)
 
@@ -118,7 +118,7 @@ class RestrictionCodeType(models.Model):
     <CodeListDictionary gml:id="MD_RestrictionCode">
     """
     identifier = models.CharField(max_length=255, editable=False)
-    description = models.TextField(max_length=255, editable=False)
+    description = models.TextField(max_length=255, editable=True)
     gn_description = models.TextField('GeoNode description', max_length=255)
     is_choice = models.BooleanField(default=True)
 
@@ -239,7 +239,7 @@ class ResourceBase(models.Model, PermissionLevelMixin, ThumbnailMixin):
 
     # section 3
     keywords = TaggableManager(_('keywords'), blank=True, help_text=_('commonly used word(s) or formalised word(s) or phrase(s) used to describe the subject (space or comma-separated'))
-    regions = models.ManyToManyField(Region, verbose_name=_('keywords region'), help_text=_('keyword identifies a location'), blank=True)
+    regions = models.ManyToManyField(Region, null=True, blank=True, verbose_name=_('keywords region'), help_text=_('keyword identifies a location'))
     restriction_code_type = models.ForeignKey(RestrictionCodeType, verbose_name=_('restrictions'), help_text=_('limitation(s) placed upon the access or use of the data.'), null=True, blank=True, limit_choices_to=Q(is_choice=True))
     constraints_other = models.TextField(_('restrictions other'), blank=True, null=True, help_text=_('other restrictions and legal prerequisites for accessing and using the resource or metadata'))
 
@@ -427,6 +427,33 @@ class Link(models.Model):
     url = models.TextField(unique=True, max_length=1000)
 
     objects = LinkManager()
+
+def update_counts(instance, type, increment = 0):
+        category = instance.category
+        if category is None:
+            return
+        if type == 'Layer':
+            category.layers_count += increment
+        elif type == 'Map':
+            category.maps_count += increment
+        elif type == 'Document':
+            category.documents_count += increment
+        category.save()
+
+def resourcebase_pre_save(instance, sender, **kwargs):
+    
+    try: # check is not created
+        old_resourcebase = ResourceBase.objects.get(pk=instance.pk)
+        old_category = old_resourcebase.category
+        new_category = instance.category
+
+        if old_category != new_category:
+            update_counts(old_resourcebase, instance.class_name, increment = -1)
+            update_counts(instance, instance.class_name, increment = 1)
+
+    except ResourceBase.DoesNotExist: # is created
+        update_counts(instance, instance.class_name, increment = 1)
+
 
 def resourcebase_post_save(instance, sender, **kwargs):
     """

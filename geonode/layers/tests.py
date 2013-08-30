@@ -893,6 +893,7 @@ class LayersTest(TestCase):
         self.assertEquals(Style.objects.count(), 1)
 
     def test_category_counts(self):
+        location = TopicCategory.objects.get(identifier='location')
         topics = TopicCategory.objects.all()
         topics = topics.annotate(**{ 'layer_count': Count('resourcebase__layer__category')})
         location = topics.get(identifier='location')
@@ -901,6 +902,13 @@ class LayersTest(TestCase):
 
         # change the category of one layers_count
         layer = Layer.objects.filter(category=location)[0]
+        elevation = TopicCategory.objects.get(identifier='elevation')
+        layer.category = elevation
+        layer.save()
+        #reload location since it's caching the old count
+        location = TopicCategory.objects.get(identifier='location')
+        self.assertEquals(location.layers_count,2)
+        self.assertEquals(elevation.layers_count,4)
         elevation = topics.get(identifier='elevation')
         layer.category = elevation
         layer.save()
@@ -915,6 +923,11 @@ class LayersTest(TestCase):
         # delete a layer and check the count update
         # use the first since it's the only one which has styles
         layer =  Layer.objects.get(pk=1)
+        elevation = TopicCategory.objects.get(identifier='elevation')
+        self.assertEquals(elevation.layers_count,4)
+        layer.delete()
+        elevation = TopicCategory.objects.get(identifier='elevation')
+        self.assertEquals(elevation.layers_count,3)
         elevation = topics.get(identifier='elevation')
         self.assertEquals(elevation.layer_count,4)
         layer.delete()

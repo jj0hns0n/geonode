@@ -151,7 +151,7 @@ def search_api(request, format='json', **kwargs):
     except Exception, ex:
         if not isinstance(ex, BadQuery):
             logger.exception("error during search")
-            raise ex
+            #raise ex
         return HttpResponse(json.dumps({
             'success' : False,
             'errors' : [str(ex)]

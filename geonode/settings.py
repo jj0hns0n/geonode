@@ -68,22 +68,22 @@ TIME_ZONE = 'America/Chicago'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en'
 
+gettext = lambda s: s
 LANGUAGES = (
-    ('en', 'English'),
-    ('es', 'Español'),
-    ('it', 'Italiano'),
-    ('fr', 'Français'),
-    ('de', 'Deutsch'),
-    ('el', 'Ελληνικά'),
-    ('id', 'Bahasa Indonesia'),
-    ('zh-cn', '中文'),
-    ('ja', '日本人'),
-    ('fa', 'Persian'),
-    ('pt', 'Portuguese'),
-    ('ru', 'Russian'),
-    ('vi', 'Vietnamese'),
-    #('fil', 'Filipino'),
-    
+    ('en', gettext('English')),
+    ('es', gettext('Español')),
+    ('it', gettext('Italiano')),
+    ('fr', gettext('Français')),
+    ('de', gettext('Deutsch')),
+    ('el', gettext('Ελληνικά')),
+    ('id', gettext('Bahasa Indonesia')),
+    ('zh-cn', gettext('中文')),
+    ('ja', gettext('日本語')),
+    ('fa', gettext('Persian')),
+    ('pt', gettext('Portuguese')),
+    ('ru', gettext('Russian')),
+    ('vi', gettext('Vietnamese')),
+    #('fil', gettext('Filipino')),
 )
 
 # If you set this to False, Django will make some optimizations so as not
@@ -167,6 +167,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
 
     # Third party apps
+    'modeltranslation',
 
     # Utility
     'pagination',
@@ -595,6 +596,13 @@ LOCKDOWN_GEONODE = False
 
 # Add additional paths (as regular expressions) that don't require authentication.
 AUTH_EXEMPT_URLS = ()
+
+# allows/inhibits metadata download (just display or not the link in layer info page)
+METADATA_DOWNLOAD_ALLOWS = True
+
+CACHE_TIME=0
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 
 if LOCKDOWN_GEONODE:
     MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('geonode.security.middleware.LoginRequiredMiddleware',)

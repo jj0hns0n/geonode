@@ -252,6 +252,7 @@ def gs_slurp(ignore_errors=True, verbosity=1, console=None, owner=None, workspac
     cat = Catalog(url, _user, _password)
     if workspace is not None:
         workspace = cat.get_workspace(workspace)
+    resources = cat.get_resources(workspace=workspace)
         resources = cat.get_resources(workspace=workspace)
     elif store is not None:
         store = cat.get_store(store)
@@ -290,6 +291,7 @@ def gs_slurp(ignore_errors=True, verbosity=1, console=None, owner=None, workspac
                 "owner": owner,
                 "uuid": str(uuid.uuid4())
             })
+
             layer.save()
 
         except Exception, e:
@@ -319,16 +321,79 @@ def gs_slurp(ignore_errors=True, verbosity=1, console=None, owner=None, workspac
             print >> console, msg
     return output
 
-def get_stores(store_type = None):
-    url = "%srest" % settings.OGC_SERVER['default']['LOCATION']
-    cat = Catalog(url, _user, _password) 
-    stores = cat.get_stores()
-    store_list = []
-    for store in stores:
-        store.fetch()
-        stype = store.dom.find('type').text.lower()
-        if store_type and store_type.lower() == stype:
-            store_list.append({'name':store.name, 'type': stype})
-        elif store_type is None:
-            store_list.append({'name':store.name, 'type': stype})
-    return store_list
+    def get_stores(store_type = None):
+        url = "%srest" % settings.OGC_SERVER['default']['LOCATION']
+        cat = Catalog(url, _user, _password) 
+        stores = cat.get_stores()
+        store_list = []
+        for store in stores:
+            store.fetch()
+            stype = store.dom.find('type').text.lower()
+            if store_type and store_type.lower() == stype:
+                store_list.append({'name':store.name, 'type': stype})
+            elif store_type is None:
+                store_list.append({'name':store.name, 'type': stype})
+        return store_list
+    
+
+    def save_layer_from_geoserver(self, workspace, store, resource):
+        """Method ported in from old remote-services branch
+           Needs refactoring to work with latest slurp.
+        """
+        cat = self.gs_catalog
+        gn = self.gn_catalog
+        if store.resource_type == "wmsStore":
+            type = "WMS"
+            method = "C"
+            base_url = store.capabilitiesURL
+            name = store.name
+        elif store.type == "Web Feature Server":
+            type = "WFS"
+            method = "C"
+            base_url = store.connection_parameters['WFSDataStoreFactory:GET_CAPABILITIES_URL'] 
+            name = store.name
+        else:
+            type = "OWS"
+            method = "L"
+            base_url = settings.GEOSERVER_BASE_URL + "ows" 
+            name = settings.SITENAME
+        
+        service, created = Service.objects.get_or_create(type = type, method=method,
+                                                base_url = base_url,
+                                                name = name)
+        try:
+            layer, created = self.get_or_create(name=resource.name, defaults = {
+                "service": service,
+                "workspace": workspace.name,
+                "store": store.name,
+                "storeType": store.resource_type,
+                "typename": "%s:%s" % (workspace.name, resource.name),
+                "title": resource.title or 'No title provided',
+                "abstract": resource.abstract or 'No abstract provided',
+                "uuid": str(uuid.uuid4())
+            })
+
+            ## Due to a bug in GeoNode versions prior to 1.0RC2, the data
+            ## in the database may not have a valid date_type set.  The
+            ## invalid values are expected to differ from the acceptable
+            ## values only by case, so try to convert, then fallback to a
+            ## default.
+            ##
+            ## We should probably drop this adjustment in 1.1. --David Winslow
+            if layer.date_type not in Layer.VALID_DATE_TYPES:
+                candidate = lower(layer.date_type)
+                if candidate in Layer.VALID_DATE_TYPES:
+                    layer.date_type = candidate
+                else:
+                    layer.date_type = Layer.VALID_DATE_TYPES[0]
+
+            layer.save()
+
+            if created: 
+                layer.set_default_permissions()
+                status = 'created'
+            else:
+                status = 'updated'
+            return layer, status
+        finally:
+            pass

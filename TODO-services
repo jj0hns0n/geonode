@@ -1,0 +1,28 @@
+Owner not set on Services when run from management command
+WMS Refelctor doesnt work for thumbnails for remote layers
+Make sure layer abstract etc are parsed and stored properly
+Parse Styles into DB Model
+Parse Attributes into DB Model
+How do we handle metadata (talk to Tom!)
+Disable Edit Styles/Permissions
+Download links for remote layers
+Create a map using this layer doesnt work right (uses typename)
+Check on unique typename (should be unique together with service)
+How do we deal with permissions on indexed services?
+Show Public services on service list page
+How do we deal with Layer Owner for indexed layers?
+Display service info on layer info page for remote layers
+Pagination of layer listing on service_detail page
+Replace Ext with Jquery in service_detail page
+Add List of Services to Profile
+
+Migrate anything left in gs_helpers.py
+Make sure updatelayers works after refactor
+Hook up harvesting in updatelayers?
+Handle for cascaded layers in slurp (save_layer_from_geoserver)
+Migrate save_layer_from_geonetwork
+MapLayer linked to layer?
+Pre/Post Save signals on layer to deal with remote layers
+Default Service on syncdb?
+Handle for Services in layers/utils.py
+

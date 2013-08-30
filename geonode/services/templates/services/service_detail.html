@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load geonode_auth %}
+
+{% block head %}
+{% include "geonode/ext_header.html" %}
+{% include "geonode/app_header.html" %}
+{% include "geonode/geo_header.html" %}
+{{ block.super }}
+<script type="text/javascript">
+var app;
+Ext.onReady(function() {
+{% has_obj_perm user service "maps.change_service_permissions" as can_change_permissions %}
+{% autoescape off %}
+{% if can_change_permissions %}
+    new GeoNode.PermissionsEditor({
+        levels: {
+            'admin': 'service_admin',
+            'readwrite': 'service_readwrite',
+            'readonly': 'service_readonly',
+            '_none': '_none'
+        },
+        renderTo: "permissions_form",
+        userLookup: "{% url geonode.views.ajax_lookup %}",
+        permissions: {{ permissions_json }},
+        listeners: {
+            updated: function(perms) {
+                var submitTo = "{% url ajax_service_permissions service.id %}";
+                Ext.Ajax.request({ url: submitTo, jsonData: perms.writePermissions() });
+            }
+        }
+    });
+{% endif %}
+{% endautoescape %}
+});
+</script>
+{% endblock %}
+
+{% block main %}
+<div class="twocol">
+  <h3>{{service.name}}</h3>
+  <p><strong>{% trans "Abstract:" %}</strong> {{service.abstract}}</p>
+  <p><strong>{% trans "Contact:" %}</strong> <a href="{{ service.owner.get_profile.get_absolute_url }}">{{ service.owner }}</a></a></p>
+</div>
+{% endblock %}
+{% block sidebar %}
+<div id="sidebar" class="threecol">
+    <h3>{% trans "Layers" %}</h3>
+  <p>{% trans "This Service contains the following layers" %} </p>
+  <ul>
+    {% for layer in layers %}
+    {% if not layer.group == "background" %}
+    <li>{% autoescape off %}<a href='{{ layer.get_absolute_url }}'>{{layer.name}}</a>{% endautoescape %}</li>
+    {% endif %}
+    {% endfor %}
+  </ul>
+    {% has_obj_perm user service "maps.change_service" as can_change %}
+    {% has_obj_perm user service "maps.delete_service" as can_remove %}
+    {% has_obj_perm user service "maps.change_service_permissions" as can_change_permissions %}
+    {% if can_change or can_remove or can_change_permissions %}
+        <h3>{% trans "Manage" %}</h3>
+        <ul>
+        {% if can_change %}
+            <li><a href="{% url edit_service service.id %}">{% trans "Edit Service Metadata" %}</a></li>
+        {% endif %}
+        {% if can_remove %}
+            <li><a href="{% url remove_service service.id %}">{% trans "Remove Service" %}</a></li>
+        {% endif %}
+        </ul>
+        {% if can_change_permissions %}
+            <h3>{% trans "Permissions" %}</h3>
+            <p>{% trans "Select what kind of privileges to allow for this service." %}</p>
+            <div id="permissions_form"></div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

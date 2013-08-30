@@ -16,7 +16,11 @@ Ext.onReady(function() {
         }],
         useToolbar: true,
         proxy: "/proxy/?url=",
-        printService: "/printing/print/",
+        {% if MF_PRINT_ENABLED %}
+        printService: "{{GEOSERVER_BASE_URL}}pdf/",
+        {% else %}
+        printService: "",
+        {% endif %}
         rest: "/maps/",
 
         // tell the map viewer where and how to be rendered

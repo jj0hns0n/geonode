@@ -270,7 +270,7 @@ def cleanup(name, uuid):
 
 
 def save(layer, base_file, user, overwrite=True, title=None,
-         abstract=None, permissions=None, keywords=()):
+         abstract=None, permissions=None, keywords=(), charset='UTF-8'):
     """Upload layer data to Geoserver and registers it with Geonode.
 
        If specified, the layer given is overwritten, otherwise a new layer
@@ -344,7 +344,7 @@ def save(layer, base_file, user, overwrite=True, title=None,
                 'gathering extra files', name)
     if the_layer_type == FeatureType.resource_type:
         logger.debug('Uploading vector layer: [%s]', base_file)
-        if settings.DB_DATASTORE:
+        if settings.OGC_SERVER['default']['OPTIONS']['DATASTORE'] != '':
             create_store_and_resource = _create_db_featurestore
         else:
             create_store_and_resource = _create_featurestore
@@ -378,6 +378,7 @@ def save(layer, base_file, user, overwrite=True, title=None,
     try:
         store, gs_resource = create_store_and_resource(name,
                                                        data,
+                                                       charset=charset,
                                                        overwrite=overwrite)
     except UploadError, e:
         msg = ('Could not save the layer %s, there was an upload '
@@ -505,8 +506,8 @@ def save(layer, base_file, user, overwrite=True, title=None,
     # Step 11. Set default permissions on the newly created layer
     # FIXME: Do this as part of the post_save hook
     logger.info('>>> Step 10. Setting default permissions for [%s]', name)
-    if permissions is not None:
 
+    if permissions is not None and len(permissions.keys()) > 0:
         layer_set_permissions(saved_layer, permissions)
     else:
         saved_layer.set_default_permissions()
@@ -703,38 +704,44 @@ def upload(incoming, user=None, overwrite=False,
     return output
 
 
-def _create_featurestore(name, data, overwrite):
+def _create_featurestore(name, data, overwrite=False, charset="UTF-8"):
     cat = Layer.objects.gs_catalog
-    cat.create_featurestore(name, data, overwrite=overwrite)
+    cat.create_featurestore(name, data, overwrite=overwrite, charset=charset)
     return cat.get_store(name), cat.get_resource(name)
 
 
-def _create_coveragestore(name, data, overwrite):
+def _create_coveragestore(name, data, overwrite=False, charset="UTF-8"):
     cat = Layer.objects.gs_catalog
     cat.create_coveragestore(name, data, overwrite=overwrite)
     return cat.get_store(name), cat.get_resource(name)
 
 
-def _create_db_featurestore(name, data, overwrite=False, charset=None):
+def _create_db_featurestore(name, data, overwrite=False, charset="UTF-8"):
     """Create a database store then use it to import a shapefile.
 
     If the import into the database fails then delete the store
     (and delete the PostGIS table for it).
     """
     cat = Layer.objects.gs_catalog
+    dsname = settings.OGC_SERVER['default']['OPTIONS']['DATASTORE']
+
     try:
-        ds = cat.get_store(settings.DB_DATASTORE_NAME)
+        ds = cat.get_store(dsname)
     except FailedRequestError:
-        ds = cat.create_datastore(settings.DB_DATASTORE_NAME)
+        ds = cat.create_datastore(dsname)
+        db = settings.DATABASES[dsname]
+        db_engine = 'postgis' if \
+            'postgis' in db['ENGINE'] else db['ENGINE']
         ds.connection_parameters.update(
-            host=settings.DB_DATASTORE_HOST,
-            port=settings.DB_DATASTORE_PORT,
-            database=settings.DB_DATASTORE_DATABASE,
-            user=settings.DB_DATASTORE_USER,
-            passwd=settings.DB_DATASTORE_PASSWORD,
-            dbtype=settings.DB_DATASTORE_TYPE)
+            host = db['HOST'],
+            port = db['PORT'],
+            database = db['NAME'],
+            user = db['USER'],
+            passwd = db['PASSWORD'],
+            dbtype = db_engine
+            )
         cat.save(ds)
-        ds = cat.get_store(settings.DB_DATASTORE_NAME)
+        ds = cat.get_store(dsname)
 
     try:
         cat.add_data_to_store(ds, name, data,
@@ -742,7 +749,11 @@ def _create_db_featurestore(name, data, overwrite=False, charset=None):
                               charset=charset)
         return ds, cat.get_resource(name, store=ds)
     except Exception:
-        delete_from_postgis(name)
+        # FIXME(Ariel): This is not a good idea, today there was a problem 
+        # accessing postgis that caused add_data_to_store to fail,
+        # for the same reasons the call to delete_from_postgis below failed too
+        # I am commenting it out and filing it as issue #1058
+        #delete_from_postgis(name)
         raise
 
 def style_update(request, url):

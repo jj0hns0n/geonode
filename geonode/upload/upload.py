@@ -32,6 +32,7 @@ State is stored in a UploaderSession object stored in the user's session.
 This needs to be made more stateful by adding a model.
 """
 from geonode.geoserver.helpers import get_sld_for
+from geonode.base.models import SpatialRepresentationType
 from geonode.layers.utils import get_valid_layer_name
 from geonode.layers.utils import layer_type
 from geonode.layers.metadata import set_metadata
@@ -303,7 +304,7 @@ def run_import(upload_session, async):
             )
         import_session.tasks[0].set_target(
             target.name, target.workspace.name)
-    elif (settings.DB_DATASTORE and
+    elif (settings.OGC_SERVER['default']['OPTIONS']['DATASTORE'] != '' and
         import_session.tasks[0].items[0].layer.layer_type != 'RASTER'):
         target = create_geoserver_db_featurestore(store_type='postgis', store_name = upload_session.geogit_store)
         _log('setting target datastore %s %s',
@@ -576,7 +577,11 @@ def final_step(upload_session, user):
 
         # set model properties
         for (key, value) in vals.items():
-            setattr(saved_layer, key, value)
+            if key == "spatial_representation_type":
+                #value = SpatialRepresentationType.objects.get(identifier=value)
+                pass
+            else:
+                setattr(saved_layer, key, value)
 
         saved_layer.save()
 

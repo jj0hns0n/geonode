@@ -91,6 +91,16 @@
             </section>
 
             <section>
+              <p>Select the charset or leave default</p>
+              <select id="charset">
+                {% for charset in charsets %}
+                {% if charset.0 == 'UTF-8' %} 
+                <option selected='selected' value={{ charset.0 }}>{{ charset.1 }}</option>
+                {% else %}
+                <option value={{ charset.0 }}>{{ charset.1 }}</option>
+                {% endif %}
+                {% endfor %}
+              </select>
               <a href="#" id="clear-button">Clear</a>
               <a href="#" id="upload-button" class="btn">Upload files</a>
             </section>
@@ -101,12 +111,14 @@
 
 {% block sidebar %}
 
+{% if GS_SECURITY_ENABLED %}
 <h3>{% trans "Permissions"  %}</h3>
 <div>
   <form id="permission_form">
         {% include "_permissions.html" %}
   </form>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_script %}
@@ -126,7 +138,9 @@
 {% endautoescape %}
 
 </script>
+{% if GS_SECURITY_ENABLED %}
 {% with "none" as layer %}
 {% include "_permissions_form_js.html" %}
 {% endwith %}
+{% endif %}
 {% endblock extra_script %}

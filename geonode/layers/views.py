@@ -167,7 +167,6 @@ def layer_upload(request, template='upload/layer_upload.html'):
             status_code = 500
         return HttpResponse(json.dumps(out), mimetype='application/json', status=status_code)
 
-
 def layer_detail(request, layername, template='layers/layer_detail.html'):
     layer = _resolve_layer(request, layername, 'layers.view_layer', _PERMISSION_MSG_VIEW)
 
@@ -191,6 +190,27 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
         "viewer": json.dumps(map_obj.viewer_json(* (DEFAULT_BASE_LAYERS + [maplayer]))),
         "permissions_json": _perms_info_json(layer, LAYER_LEV_NAMES),
         "documents": get_related_documents(layer),
+    }))
+
+def layer_detail_leaflet(request, layername, template='layers/layer_leaflet_map.html'):
+    layer = _resolve_layer(request, layername, 'layers.view_layer', _PERMISSION_MSG_VIEW)
+
+    maplayer = { 
+        "name": layer.typename, 
+        "ows_url": settings.GEOSERVER_BASE_URL + "wms", 
+        "layer_params": layer.attribute_config()
+    }
+
+    layer.srid_url = "http://www.spatialreference.org/ref/" + layer.srid.replace(':','/').lower() + "/"
+
+    DEFAULT_BASE_LAYERS = default_map_config()[1]
+    info = dir(layer);
+
+    return render_to_response(template, RequestContext(request, {
+        "layer": layer,
+        "viewer": json.dumps(maplayer),
+        "permissions_json": _perms_info_json(layer, LAYER_LEV_NAMES),
+        "leaflet": True
     }))
 
 

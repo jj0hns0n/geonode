@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block body_class %}portals{% endblock %}
+
+{% block body_outer %}
+  <div {% block width %}class="span12"{% endblock %} id="main">
+    {% block body %}{% endblock %}
+  </div>
+{% endblock %}

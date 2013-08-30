@@ -1,0 +1,17 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+
+{% block width %}{% endblock %}
+
+{% block body %}
+    <h1>{% if document %}{% trans "Edit Document" %}{% else %}{% trans "Add Document" %}{% endif %}</h1>
+
+    <form action="{% if document %}{% url "portals_edit_document" portal.slug document.pk %}{% else %}{% url portals_add_document portal.slug %}{% endif %}" method="post" enctype="multipart/form-data" id="form-document-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">{% if document %}{% trans "Save Changes" %}{% else %}{% trans "Add" %}{% endif %}</button>
+            <a href="{{ portal.get_absolute_url }}" class="cancel">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock body %}

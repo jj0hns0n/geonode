@@ -1,0 +1,15 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+
+{% block body %}
+    <h1>{% trans "Remove Dataset" %}</h1>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        <p>{% blocktrans with dataset.title as dataset_title %}Are you sure you want to remove the dataset "{{ dataset_title }}" from this portal?{% endblocktrans %}</p>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">{% trans "Remove" %}</button>
+            <a href="{{ portal.get_absolute_url }}" class="btn cancel">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock body %}

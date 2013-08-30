@@ -1,0 +1,30 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.css">    
+{% endblock head %}
+
+{% block body %}
+    <h1>{% if flatpage %}{% trans "Edit Flatpage" %}{% else %}{% trans "Add Flatpage" %}{% endif %}</h1>
+
+    <form action="{% if flatpage %}{% url "portals_edit_flatpage" portal.slug flatpage.pk %}{% else %}{% url "portals_add_flatpage" portal.slug %}{% endif %}" method="post" id="form-flatpage">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">{% if flatpage %}{% trans "Save" %}{% else %}{% trans "Add" %}{% endif %}</button>
+            <a href="{% url "portals_manage" portal.pk %}" class="cancel">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock body %}
+
+{% block extra_script %}
+<script src="{{ STATIC_URL }}portals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
+<script src="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.js"></script>
+<script>
+$(function() {
+    $("#id_content").wysihtml5();
+});
+</script>
+{% endblock %}

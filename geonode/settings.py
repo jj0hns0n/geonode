@@ -170,6 +170,8 @@ INSTALLED_APPS = (
 
     # Utility
     'pagination',
+    'django_hosts',
+    'django_forms_bootstrap',
     'taggit',
     'taggit_templatetags',
     'south',
@@ -205,6 +207,7 @@ INSTALLED_APPS = (
     'geonode.upload',
     'geonode.maps',
     'geonode.proxy',
+    'geonode.portals',
     'geonode.security',
     'geonode.search',
     'geonode.catalogue',
@@ -300,8 +303,11 @@ MIDDLEWARE_CLASSES = (
     # The setting below makes it possible to serve different languages per
     # user depending on things like headers in HTTP requests.
     'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django_hosts.middleware.HostsMiddleware',
     'pagination.middleware.PaginationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'geonode.portals.middleware.FlatpageFallbackMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # This middleware allows to print private layers for the users that have 
     # the permissions to view them.
@@ -309,6 +315,11 @@ MIDDLEWARE_CLASSES = (
     # Beware that for few seconds the involved layers are public there could be risks.
     #'geonode.middleware.PrintProxyMiddleware',
 )
+
+
+ROOT_URLCONF = 'geonode.urls'
+ROOT_HOSTCONF = 'geonode.hosts'
+DEFAULT_HOST = 'www'
 
 
 # Replacement of default authentication backend in order to support

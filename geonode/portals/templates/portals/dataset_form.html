@@ -1,0 +1,30 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block width %}{% endblock %}
+
+{% block body %}
+    <h1>{% if dataset %}{% trans "Edit Dataset" %}{% else %}{% trans "Add Dataset" %}{% endif %}</h1>
+
+    <form action="{% if dataset %}{% url "portals_edit_dataset" portal.slug dataset.pk %}{% else %}{% url "portals_add_dataset" portal.slug %}{% endif %}" method="post" class="form">
+        {% csrf_token %}
+        {{ form.portal }}
+        <div class="form-row">
+            <label for="id_dataset">Dataset</label>
+            {% if form.dataset.errors %}{% for error in form.dataset.errors %}<div class="alert alert-error">{{ error }}</div>{% endfor %}{% endif %}
+            {{ form.dataset }}
+        </div>
+        <div class="form-row"><label for="id_summary">Description (optional)</label>{{ form.summary }}</div>
+
+        <div class="actions">
+            {% if dataset %}
+            <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
+            {% else %}
+            <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
+            <button type="submit" class="btn btn-primary" name="featured" value="true">{% trans "Add as Featured" %}</button>
+            {% endif %}
+            <a href="{{ portal.get_absolute_url }}" class="cancel">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock body %}

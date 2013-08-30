@@ -1,0 +1,19 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+
+{% block body %}
+    <h1>{% if portal.active %}{% trans "Archive Portal" %}{% else %}{% trans "Reactivate Portal" %}{% endif %}</h1>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        <p>{% if portal.active %}
+            {% blocktrans %}Are you sure you want to archive the portal "{{ portal }}"? You will be able to reactivate the portal at any time.{% endblocktrans %}
+            {% else %}
+            {% blocktrans %}Please confirm that you would like to reactivate the portal, "{{ portal }}".{% endblocktrans %}</p>
+            {% endif %}
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">{% if portal.active %}{% trans "Archive" %}{% else %}{% trans "Reactivate" %}{% endif %}</button>
+            <a href="{{ portal.get_absolute_url }}">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock body %}

@@ -1,0 +1,58 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block title %}
+    {% if portal %}
+        {% blocktrans %}Edit Portal: {{ portal }}{% endblocktrans %}
+    {% else %}
+        {% blocktrans %}Create Portal{% endblocktrans %}
+    {% endif %}
+{% endblock title %}
+
+{% block body %}
+    
+<h1>
+{% if portal %}
+    {% blocktrans %}Edit Portal: {{ portal }}{% endblocktrans %}
+{% else %}
+    {% blocktrans %}Create Portal{% endblocktrans %}
+{% endif %}
+</h1>
+
+<form action="" method="post" class="form span5" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|as_bootstrap }}
+    <div class="form-actions">
+        <a href="{% url "portals_list" %}">Cancel</a>
+        <button type="submit" class="btn btn-large">{% trans "Save"%}</button>
+    </div>
+</form>
+
+{% endblock body %}
+
+{% block head %}
+    {{ block.super }}
+<style>
+    #id_summary { width: 480px; }
+</style>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.css">
+{% endblock %}
+{% block extra_script %}
+<script src="{{ STATIC_URL }}portals/wysihtml5/wysihtml5-0.3.0_rc2.min.js"></script>
+<script src="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.js"></script>
+<script>
+    jQuery.fn.slugify = function(obj) {
+        jQuery(this).data('obj', jQuery(obj));
+        jQuery(this).keyup(function() {
+            var obj = jQuery(this).data('obj');
+            var slug = jQuery(this).val().replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-]/g,'').toLowerCase();
+            obj.val(slug);
+        });
+    }
+    $(function() { 
+        $("#id_summary").wysihtml5();
+        $("#id_name").slugify("#id_slug");
+    });
+</script>
+{% endblock %}

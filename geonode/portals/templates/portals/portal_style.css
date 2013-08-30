@@ -1,0 +1,13 @@
+{% load portals %}
+{% if portal.logo %}
+.nav-logo {
+    background-image: url({{ portal.logo.url }});
+    background-size: auto 50px;
+}
+{% endif %}
+{% for item in portal.context_items.all %}
+{{ item.selector }} {
+    {{ item.css_property}}: {{ item.value }};
+    {% if item.selector == ".navbar-inner" %}background-image: none;{% endif %}
+}
+{% endfor %}

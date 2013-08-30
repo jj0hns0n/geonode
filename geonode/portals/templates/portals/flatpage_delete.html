@@ -1,0 +1,17 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+
+{% block body %}
+    <h1>{% trans "Delete Flatpage" %}</h1>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        <p>{% blocktrans with flatpage.title as title %}
+            Are you sure you want to delete "{{ title }}" from this portal?
+        {% endblocktrans %}</p>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">{% trans "Delete" %}</button>
+            <a href="{% url "portals_manage" portal.pk %}" class="btn">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock body %}

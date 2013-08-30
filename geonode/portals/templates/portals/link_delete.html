@@ -1,0 +1,22 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+
+{% block body %}
+    <h1>{% trans "Delete Link" %}</h1>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        <p>{% blocktrans with link.label as link_label %}
+            Are you sure you want to delete "{{ link_label }}" from this portal?
+        {% endblocktrans %}</p>
+        {% if link.children.count %}
+            {% blocktrans %}
+            <p>The {{ link.children.count }} link{{ link.children.count|pluralize:"s" }} in this category will also be deleted.</p>            
+            {% endblocktrans %}
+        {% endif %}
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">{% trans "Delete" %}</button>
+            <a href="{{ portal.get_absolute_url }}" class="btn">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock body %}

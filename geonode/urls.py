@@ -69,6 +69,9 @@ urlpatterns = patterns('',
     # Printing Views
     (r'^printing/', include('geonode.printing.urls')),
 
+    # Portals views
+    (r'^portals/', include('geonode.portals.urls')),
+
     # Upload views
     (r'^upload/', include('geonode.upload.urls')),
 

@@ -1,0 +1,153 @@
+{% extends "portals/base.html" %}
+{% load i18n %}
+
+{% block head %}
+{{ block.super }}
+<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}portals/portals.css" />
+{% if user.is_staff %}
+<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}portals/jqueryminicolors/jquery.miniColors.css" />
+<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}portals/jqueryfontselector/jquery.fontSelector.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}portals/wysihtml5/bootstrap-wysihtml5.css">
+{% endif %}
+{% endblock head %}
+
+{% block title %}{{ portal.name }}{% endblock %}
+
+{% block body_outer %}
+    <div class="span12">
+        <div class="hero-unit">
+            <h1>{{ portal.name }}</h1>
+            {% if portal.summary %}<p id="summary">{{ portal.summary|safe }}</p>{% endif %}
+        </div>
+    </div>
+    {% if user.is_staff %}
+        <aside class="span3">
+            <div class="well">
+                <h2>{% trans "Manage" %}</h2>
+                <ul class="nav nav-list sidenav">
+                    <li><a href="{% url "portals_edit" portal.pk %}" class="edit">{% trans "Edit Settings" %}</a></li>
+                    <li><a href="#" class="customize">{% trans "Change Theme" %}</a></li>
+                    <li><a href="{% url "portals_manage" portal.pk %}" class="manage">{% trans "Manage Content" %}</a></li>
+                    <li class="divider"></li>
+                    <li><a href="{% url "portals_archive" portal.pk %}" class="archive">{% trans "Archive Portal" %}</a></li>
+                </ul>
+            </div>
+        </aside>
+    {% endif %}
+
+    <div class="span9">
+        {% if featured_maps %}
+            <section class="widget">
+                <h2>{% trans "Featured Maps" %}</h2>
+                <ul class="unstyled list">
+                    {% for m in featured_maps %}
+                        <li>
+                            <h3><a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a></h3>
+                            {% if m.summary %}
+                            <p>{{ m.summary }}</p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        {% if maps %}
+            <section class="widget">
+                <h2>{% trans "Maps" %}</h2>
+                <ul class="unstyled">
+                    {% for m in maps %}
+                        <li>
+                            <h3><a href="{{ m.map.get_absolute_url }}">{{ m.map.title }}</a></h3>
+                            {% if m.summary %}
+                            <p>{{ m.summary }}</p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        {% if featured_datasets %}
+            <section class="widget">
+                <h2>{% trans "Featured Datasets" %}</h2>
+                <ul class="unstyled">
+                    {% for d in featured_datasets %}
+                        <li>
+                            <h3><a href="{{ d.dataset.get_absolute_url }}">{{ m.map.title }}</a></h3>
+                            {% if d.summary %}
+                            <p>{{ d.summary }}</p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        {% if datasets %}
+            <section class="widget">
+                <h2>{% trans "Datasets" %}</h2>
+                <ul class="unstyled">
+                    {% for d in datasets %}
+                        <li>
+                            <h3><a href="{{ d.dataset.get_absolute_url }}">{{ d.dataset.title }}</a></h3>
+                            {% if d.summary %}
+                            <p>{{ d.summary }}</p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        {% if portal.links.count %}
+            <section class="widget">
+                <h2>{% trans "Links" %}</h2>
+                <ul class="unstyled">
+                    {% for category in portal.links.categories %}
+                        <li>
+                            <h3>{{ category.label }}</h3>
+
+                            <ul class="unstyled sub">
+                            {% for link in category.children.all %}
+                                <li><a href="{{ link.link }}">{{ link.label }}</a>{% if link.summary %} &mdash; {{ link.summary }}{% endif %}
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        {% if portal.documents.count %}
+            <section class="widget">
+                <h2>{% trans "Documents" %}</h2>
+                <ul class="unstyled">
+                    {% for category in portal.documents.categories %}
+                        <li>
+                            <h3>{{ category.label }}</h3>
+                            <ul class="unstyled sub">
+                            {% for document in category.children.all %}
+                                <li><a href="{{ document.file.url }}">{{ document.label }}</a></li>
+                            {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        {% if user.is_staff %}
+        <div id="customize-modal" class="modal fade" style="display: none">
+            <div class="modal-body">
+            {{ portal_customize_snippet|safe }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block extra_script %}
+    {% if user.is_staff %}
+<script src="{{ STATIC_URL }}portals/jqueryminicolors/jquery.miniColors.min.js"></script>
+<script src="{{ STATIC_URL }}portals/jqueryfontselector/jquery.fontSelector.js"></script>
+
+<script src="{{ STATIC_URL }}portals/portal.js"></script>
+    {% endif %}
+{% endblock %}

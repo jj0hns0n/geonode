@@ -1,0 +1,70 @@
+div.portal_summary {
+    clear: both;
+    padding-left: 135px;
+    padding-bottom: 20px;
+    position: relative;
+}
+div.portal_summary div.image {
+    position: absolute;
+    left: 0;
+    width: 125px;
+    margin-right: 10px;
+}
+div.portal_summary div.image img {
+    display: block;
+    margin: 0 auto;
+    max-width: 125px;
+    max-height: 125px;
+}
+ul.stats {
+    font-size: 0.9em;
+}
+ul.stats li {
+    float: left;
+    margin-right: 15px;
+}
+ul.stats .badge {
+    font-size: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+ul.unstyled li b {
+    display: block;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 0.5em;
+}
+
+.btn-toolbar {
+    text-align: right;
+}
+.btn-toolbar .btn-group {
+    text-align: left;
+}
+span.actions {
+    float: right;
+}
+span.actions a {
+    opacity: 0.6;
+}
+span.actions a:hover {
+    opacity: 1;
+}
+#customize_form fieldset {
+    float: left;
+    margin-right: 20px;
+}
+#customize_form input.miniColors {
+    width: 65px;
+}
+#customize_form input[type=text] {
+    width: 80px;
+}
+#customize p { color: #000; }
+#id_summary { width: 400px; }
+#form-modal #id_summary { height: 40px; }
+#id_content {
+    height: 150px;
+    width: 500px;
+}

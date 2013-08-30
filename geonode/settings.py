@@ -175,8 +175,9 @@ INSTALLED_APPS = (
     'south',
     'friendlytagloader',
     'leaflet',
-    #'request',
+    'request',
     'crispy_forms',
+    'haystack',
     'geoexplorer',
     'django_extensions',
 
@@ -563,6 +564,15 @@ MAP_BASELAYERS = [{
     ]
 
 }]
+
+# Haystack Search Backend Configuration
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
+    },
+}
 
 LEAFLET_CONFIG = {
     'TILES_URL': 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png'

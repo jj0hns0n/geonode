@@ -11,8 +11,61 @@ class Migration(SchemaMigration):
     )
     
     def forwards(self, orm):
+<<<<<<< HEAD
+        
+        # Adding model 'Layer'
+        db.create_table('layers_layer', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('workspace', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('store', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('storeType', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('uuid', self.gf('django.db.models.fields.CharField')(max_length=36)),
+            ('typename', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
+            ('owner', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, blank=True)),
+            ('title', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('date', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('date_type', self.gf('django.db.models.fields.CharField')(default='publication', max_length=255)),
+            ('edition', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('abstract', self.gf('django.db.models.fields.TextField')(blank=True)),
+            ('purpose', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('maintenance_frequency', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('keywords_region', self.gf('django.db.models.fields.CharField')(default='USA', max_length=3)),
+            ('constraints_use', self.gf('django.db.models.fields.CharField')(default='copyright', max_length=255)),
+            ('constraints_other', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('spatial_representation_type', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('language', self.gf('django.db.models.fields.CharField')(default='eng', max_length=3)),
+            ('topic_category', self.gf('django.db.models.fields.CharField')(default='location', max_length=255)),
+            ('temporal_extent_start', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
+            ('temporal_extent_end', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
+            ('geographic_bounding_box', self.gf('django.db.models.fields.TextField')()),
+            ('bbox_left', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
+            ('bbox_right', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
+            ('bbox_bottom', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
+            ('bbox_top', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
+            ('supplemental_information', self.gf('django.db.models.fields.TextField')(default=u'You can customize the template to suit your needs. You can add and remove fields and fill out default information (e.g. contact details). Fields you can not change in the default view may be accessible in the more comprehensive (and more complex) advanced view. You can even use the XML editor to create custom structures, but they have to be validated by the system, so know what you do :-)')),
+            ('distribution_url', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('distribution_description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('data_quality_statement', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+        ))
+        db.send_create_signal('layers', ['Layer'])
+
+        # Adding model 'ContactRole'
+        db.create_table('layers_contactrole', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('contact', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['people.Contact'])),
+            ('layer', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['layers.Layer'])),
+            ('role', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['people.Role'])),
+        ))
+        db.send_create_signal('layers', ['ContactRole'])
+
+        # Adding unique constraint on 'ContactRole', fields ['contact', 'layer', 'role']
+        db.create_unique('layers_contactrole', ['contact_id', 'layer_id', 'role_id'])
+
+=======
         # nothing to do, as the initial models have been moved from maps
         pass
+>>>>>>> bf48df4f0663d7b1214b7877b73414f5d5ff9bbf
 
     def backwards(self, orm):
         # nothing to do, as the initial models have been moved from maps
@@ -50,7 +103,11 @@ class Migration(SchemaMigration):
         },
         'auth.user': {
             'Meta': {'object_name': 'User'},
+<<<<<<< HEAD
+            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2012, 6, 14, 20, 7, 11, 976393)'}),
+=======
             'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2012, 12, 28, 4, 21, 6, 406783)'}),
+>>>>>>> bf48df4f0663d7b1214b7877b73414f5d5ff9bbf
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
@@ -82,9 +139,15 @@ class Migration(SchemaMigration):
         'layers.layer': {
             'Meta': {'object_name': 'Layer'},
             'abstract': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+<<<<<<< HEAD
+            'bbox_bottom': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+            'bbox_left': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+            'bbox_right': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+=======
             'bbox_left': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'bbox_right': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'bbox_bottom': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+>>>>>>> bf48df4f0663d7b1214b7877b73414f5d5ff9bbf
             'bbox_top': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'constraints_other': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'constraints_use': ('django.db.models.fields.CharField', [], {'max_length': '255'}),

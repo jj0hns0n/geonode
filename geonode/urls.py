@@ -89,6 +89,9 @@ urlpatterns = patterns('',
     # Groups views
     (r'^groups/', include('geonode.groups.urls')),
 
+    # Search
+    (r'search/', include('geonode.search.urls')),
+
     # Accounts
     url(r'^account/ajax_login$', 'geonode.views.ajax_login',
                                        name='account_ajax_login'),

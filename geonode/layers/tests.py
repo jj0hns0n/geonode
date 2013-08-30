@@ -30,6 +30,7 @@ from django.contrib.auth.models import User, AnonymousUser, Group
 from django.utils import simplejson as json
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ValidationError
+from django.db.models import signals
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.db.models import Count
@@ -40,6 +41,8 @@ import geonode.layers.views
 import geonode.layers.models
 
 from geonode import GeoNodeException
+from geonode.layers.models import post_save_layer
+from geonode.layers.models import Layer
 
 from geonode.layers.models import Layer, Style
 from geonode.layers.forms import JSONField, LayerUploadForm

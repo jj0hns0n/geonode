@@ -84,6 +84,12 @@ class Map(ResourceBase, GXPMapBase):
     popular_count = models.IntegerField(default=0)
     share_count = models.IntegerField(default=0)
 
+    bbox_top = models.FloatField(blank=True,null=True)
+    bbox_bottom = models.FloatField(blank=True,null=True)
+    bbox_right = models.FloatField(blank=True,null=True)
+    bbox_left = models.FloatField(blank=True,null=True)
+    # The extent of the layers in the map
+
     def __unicode__(self):
         return '%s by %s' % (self.title, (self.owner.username if self.owner else "<Anonymous>"))
 
@@ -330,6 +336,19 @@ class Map(ResourceBase, GXPMapBase):
             self.bbox_y1 = bbox[3]
 
         return bbox
+
+    def updateBounds(self):
+        bbox_left = bbox_right = bbox_bottom = bbox_top = 0
+        for layer in self.local_layers:
+            bbox_top = max(bbox_top,layer.bbox_top)
+            bbox_right = max(bbox_right,layer.bbox_right)
+            bbox_bottom = min(bbox_bottom,layer.bbox_bottom)
+            bbox_left = min(bbox_left,layer.bbox_left)
+        
+        self.bbox_bottom = bbox_bottom
+        self.bbox_left = bbox_left
+        self.bbox_top = bbox_top
+        self.bbox_right = bbox_right
 
     def create_from_layer_list(self, user, layers, title, abstract):
         self.owner = user

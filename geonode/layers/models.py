@@ -371,6 +371,21 @@ class Layer(ResourceBase):
         if self.owner:
             self.set_user_level(self.owner, self.LEVEL_ADMIN)
 
+    def keyword_list(self):
+        return [kw.name for kw in self.keywords.all()]
+
+    def set_latlon_bounds(self,box):
+        """
+        Set the four bounds in lat lon projection
+        """
+        self.bbox_x0 = box[0]
+        self.bbox_x1 = box[1]
+        self.bbox_y0 = box[2]
+        self.bbox_y1 = box[3]
+
+    def get_absolute_url(self):
+        return reverse('geonode.layers.views.layer_detail', None, [str(self.typename)])
+
     def tiles_url(self):
         return self.link_set.get(name='Tiles').url
 

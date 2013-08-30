@@ -19,7 +19,7 @@
 
 from django import forms
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
@@ -83,9 +83,10 @@ def ajax_lookup(request):
             mimetype='text/plain'
         )
     users = User.objects.filter(username__startswith=request.POST['query'])
+    groups = Group.objects.filter(name__startswith=request.POST['query'])
     json_dict = {
-        'users': [({'username': u.username}) for u in users],
-        'count': users.count(),
+        'users': [({'username': u.username}) for u in users] + [({'username': g.name}) for g in groups],
+        'count': users.count() + groups.count(),
     }
     return HttpResponse(
         content=json.dumps(json_dict),

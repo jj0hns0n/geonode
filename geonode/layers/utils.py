@@ -57,21 +57,22 @@ logger = logging.getLogger('geonode.layers.utils')
 
 _separator = '\n' + ('-' * 100) + '\n'
 
-
-def layer_set_permissions(layer, perm_spec):
+def set_object_permissions(obj, perm_spec):
     if "authenticated" in perm_spec:
-        layer.set_gen_level(AUTHENTICATED_USERS, perm_spec['authenticated'])
+        obj.set_gen_level(AUTHENTICATED_USERS, perm_spec['authenticated'])
     if "anonymous" in perm_spec:
-        layer.set_gen_level(ANONYMOUS_USERS, perm_spec['anonymous'])
-    if isinstance(perm_spec['users'], dict): perm_spec['users'] = perm_spec['users'].items()
-    users = [n[0] for n in perm_spec['users']]
-    excluded = users + [layer.owner]
-    existing = layer.get_user_levels().exclude(user__username__in=excluded)
-    existing.delete()
-    for username, level in perm_spec['users']:
-        user = User.objects.get(username=username)
-        layer.set_user_level(user, level)
-
+        obj.set_gen_level(ANONYMOUS_USERS, perm_spec['anonymous'])
+    users_and_groups = [n for (n, p) in perm_spec['users']]
+    obj.get_user_levels().exclude(user__username__in = users_and_groups + [obj.owner]).delete()
+    obj.get_group_levels().exclude(group__name__in = users_and_groups).delete()
+    
+    for name, level in perm_spec['users']:
+        try:
+            group = Group.objects.get(name=name)
+            obj.set_group_level(group, level)
+        except Group.DoesNotExist:
+            user = User.objects.get(username=name)
+            obj.set_user_level(user, level)
 
 def layer_type(filename):
     """Finds out if a filename is a Feature or a Vector
@@ -509,6 +510,7 @@ def save(layer, base_file, user, overwrite=True, title=None,
 
     if permissions is not None and len(permissions.keys()) > 0:
         layer_set_permissions(saved_layer, permissions)
+        set_object_permissions(saved_layer, permissions)
     else:
         saved_layer.set_default_permissions()
 

@@ -294,6 +294,10 @@ class Map(ResourceBase, GXPMapBase):
             user = User.objects.get(username=username)
             self.set_user_level(user, self.LEVEL_NONE)
 
+        for groupname in current_perms['groups'].keys():
+            group = Group.objects.get(name=groupname)
+            self.set_group_level(user, self.LEVEL_NONE)
+
         # assign owner admin privs
         if self.owner:
             self.set_user_level(self.owner, self.LEVEL_ADMIN)

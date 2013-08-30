@@ -19,7 +19,7 @@
 #########################################################################
 
 from geonode.security.models import ObjectRole, UserObjectRoleMapping, \
-    GenericObjectRoleMapping
+    GroupObjectRoleMapping, GenericObjectRoleMapping
 from django.contrib import admin
 
 admin.site.register(ObjectRole)

@@ -83,6 +83,9 @@ urlpatterns = patterns('',
     #(r'^notifications/', include('notification.urls')),
     (r'^messages/', include('user_messages.urls')),
 
+    # Groups views
+    (r'^groups/', include('geonode.groups.urls')),
+
     # Accounts
     url(r'^account/ajax_login$', 'geonode.views.ajax_login',
                                        name='account_ajax_login'),

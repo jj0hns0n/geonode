@@ -174,6 +174,9 @@ INSTALLED_APPS = (
     'taggit_templatetags',
     'south',
     'friendlytagloader',
+    'leaflet',
+    #'request',
+    'crispy_forms',
     'geoexplorer',
     'django_extensions',
 
@@ -203,6 +206,7 @@ INSTALLED_APPS = (
     'geonode.security',
     'geonode.search',
     'geonode.catalogue',
+    'geonode.groups',
     'geonode.documents',
 )
 

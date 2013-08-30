@@ -38,6 +38,12 @@ def _view_perms_context(obj, level_names):
     ulevs.sort()
     ctx['users'] = ulevs
 
+    glevs = []
+    for g, l in ctx['groups'].items():
+        glevs.append([g, lname(l)])
+    glevs.sort()
+    ctx['groups'] = glevs
+
     return ctx
 
 def _perms_info(obj, level_names):
@@ -45,7 +51,7 @@ def _perms_info(obj, level_names):
     # these are always specified even if none
     info[ANONYMOUS_USERS] = info.get(ANONYMOUS_USERS, obj.LEVEL_NONE)
     info[AUTHENTICATED_USERS] = info.get(AUTHENTICATED_USERS, obj.LEVEL_NONE)
-    info['users'] = sorted(info['users'].items())
+    info['users'] = sorted(info['users'].items() + info['groups'].items())
     info['levels'] = [(i, level_names[i]) for i in obj.permission_levels]
     if hasattr(obj, 'owner') and obj.owner is not None:
         info['owner'] = obj.owner.username

@@ -51,7 +51,7 @@ from geonode.utils import default_map_config
 from geonode.utils import GXPLayer
 from geonode.utils import GXPMap
 from geonode.layers.utils import save
-from geonode.layers.utils import layer_set_permissions
+from geonode.layers.utils import set_object_permissions
 from geonode.utils import resolve_object
 from geonode.people.forms import ProfileForm, PocForm
 from geonode.security.views import _perms_info_json
@@ -573,6 +573,9 @@ def layer_permissions(request, layername):
             'You are not allowed to change permissions for this layer',
             status=401,
             mimetype='text/plain')
+
+    permission_spec = json.loads(request.raw_post_data)
+    set_object_permissions(layer, permission_spec)
 
     if request.method == 'POST':
         permission_spec = json.loads(request.raw_post_data)

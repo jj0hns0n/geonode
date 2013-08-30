@@ -39,7 +39,6 @@ from geoserver.catalog import FailedRequestError
 from geonode.security.models import *
 from geonode.maps.models import Map
 from geonode.layers.models import Layer
-from geonode.layers.views import layer_set_permissions
 from geonode import GeoNodeException
 from geonode.layers.utils import (
     upload,

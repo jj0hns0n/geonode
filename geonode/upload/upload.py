@@ -37,7 +37,7 @@ from geonode.layers.utils import get_valid_layer_name
 from geonode.layers.utils import layer_type
 from geonode.layers.metadata import set_metadata
 from geonode.layers.models import Layer
-from geonode.layers.utils import layer_set_permissions
+from geonode.layers.utils import set_object_permissions 
 from geonode.people.models import Profile 
 from geonode import GeoNodeException
 from geonode.people.utils import get_default_user
@@ -591,7 +591,7 @@ def final_step(upload_session, user):
     permissions = upload_session.permissions
     _log('Setting default permissions for [%s]', name)
     if permissions is not None:
-        layer_set_permissions(saved_layer, permissions)
+        set_object_permissions(saved_layer, permissions)
 
     _log('Verifying the layer [%s] was created correctly' % name)
 

@@ -34,6 +34,11 @@ class Command(BaseCommand):
             dest='ignore_errors',
             default=False,
             help='Stop after any errors are encountered.'),
+        make_option('--skip-unadvertised',
+            action='store_true',
+            dest='skip_unadvertised',
+            default=False,
+            help='Skip processing unadvertised layers from GeoSever.'),
         make_option('-u', '--user', dest="user", default=None,
             help="Name of the user account which should own the imported layers"),
         make_option('-f', '--filter', dest="filter", default=None,
@@ -46,6 +51,7 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         ignore_errors = options.get('ignore_errors')
+        skip_unadvertised = options.get('skip_unadvertised')
         verbosity = int(options.get('verbosity'))
         user = options.get('user')
         owner = get_valid_user(user)
@@ -58,20 +64,12 @@ class Command(BaseCommand):
         else:
             console = None
 
-        start = datetime.datetime.now()
         output = gs_slurp(ignore_errors, verbosity=verbosity,
-                owner=owner, console=console, workspace=workspace, store=store, filter=filter)
-        updated = [dict_['name'] for dict_ in output if dict_['status']=='updated']
-        created = [dict_['name'] for dict_ in output if dict_['status']=='created']
-        failed = [dict_['name'] for dict_ in output if dict_['status']=='failed']
-        finish = datetime.datetime.now()
-        td = finish - start
-        duration = td.microseconds / 1000000 + td.seconds + td.days * 24 * 3600
-        duration_rounded = round(duration, 2)
+                owner=owner, console=console, workspace=workspace, store=store, filter=filter, skip_unadvertised=skip_unadvertised)
 
         if verbosity > 1:
             print "\nDetailed report of failures:"
-            for dict_ in output:
+            for dict_ in output['layers']:
                 if dict_['status'] == 'failed':
                     print "\n\n", dict_['name'], "\n================"
                     traceback.print_exception(dict_['exception_type'],
@@ -80,10 +78,14 @@ class Command(BaseCommand):
 
         if verbosity > 0:
             print "\n\nFinished processing %d layers in %s seconds.\n" % (
-                                              len(output), duration_rounded)
-            print "%d Created layers" % len(created)
-            print "%d Updated layers" % len(updated)
-            print "%d Failed layers" % len(failed)
+                                              len(output['layers']), round(output['stats']['duration_sec'],2))
+            print "%d Created layers" % output['stats']['created']
+            print "%d Updated layers" % output['stats']['updated']
+            print "%d Failed layers" % output['stats']['failed']
+            try:
+                duration_layer = round(output['stats']['duration_sec'] * 1.0 / len(output['layers']),2)
+            except ZeroDivisionError:
+                duration_layer = 0
             if len(output) > 0:
-                print "%f seconds per layer" % (duration * 1.0 / len(output))
+                print "%f seconds per layer" % duration_layer
 

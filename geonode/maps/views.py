@@ -26,7 +26,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, HttpResponseServerError
 from django.shortcuts import render_to_response
 from django.conf import settings
 from django.template import RequestContext
@@ -47,11 +47,11 @@ from geonode.maps.forms import MapForm
 from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.security.views import _perms_info
 from geonode.documents.models import get_related_documents
-
+from geonode.utils import ogc_server_settings
 
 logger = logging.getLogger("geonode.maps.views")
 
-_user, _password = settings.OGC_SERVER['default']['USER'], settings.OGC_SERVER['default']['PASSWORD']
+_user, _password = ogc_server_settings.credentials
 
 DEFAULT_MAPS_SEARCH_BATCH_SIZE = 10
 MAX_MAPS_SEARCH_BATCH_SIZE = 25
@@ -122,6 +122,7 @@ def map_detail(request, mapid, template='maps/map_detail.html'):
         'layers': layers,
         'permissions_json': json.dumps(_perms_info(map_obj, MAP_LEV_NAMES)),
         "documents": get_related_documents(map_obj),
+        'ows': getattr(ogc_server_settings, 'ows', ''),
     }))
 
 
@@ -331,7 +332,7 @@ def new_map_config(request):
                 layers.append(MapLayer(
                     map = map_obj,
                     name = layer.typename,
-                    ows_url = settings.OGC_SERVER['default']['LOCATION'] + "wms",
+                    ows_url = ogc_server_settings.public_url + "wms",
                     layer_params=json.dumps( layer.attribute_config()),
                     visibility = True
                 ))
@@ -378,7 +379,7 @@ def map_download(request, mapid, template='maps/map_download.html'):
 
     map_status = dict()
     if request.method == 'POST':
-        url = "%srest/process/batchDownload/launch/" % settings.OGC_SERVER['default']['LOCATION']
+        url = "%srest/process/batchDownload/launch/" % ogc_server_settings.LOCATION
 
         def perm_filter(layer):
             return request.user.has_perm('layers.view_layer', obj=layer)
@@ -424,7 +425,7 @@ def map_download(request, mapid, template='maps/map_download.html'):
          "locked_layers": locked_layers,
          "remote_layers": remote_layers,
          "downloadable_layers": downloadable_layers,
-         "geoserver" : settings.OGC_SERVER['default']['LOCATION'],
+         "geoserver" : ogc_server_settings.LOCATION,
          "site" : settings.SITEURL
     }))
 
@@ -436,7 +437,7 @@ def map_download_check(request):
     try:
         layer = request.session["map_status"]
         if type(layer) == dict:
-            url = "%srest/process/batchDownload/status/%s" % (settings.OGC_SERVER['default']['LOCATION'],layer["id"])
+            url = "%srest/process/batchDownload/status/%s" % (ogc_server_settings.LOCATION,layer["id"])
             resp,content = http_client.request(url,'GET')
             status= resp.status
             if resp.status == 400:
@@ -458,6 +459,38 @@ def map_wmc(request, mapid, template="maps/wmc.xml"):
         'map': mapObject,
         'siteurl': settings.SITEURL,
     }), mimetype='text/xml')
+
+def map_wms(request, mapid):
+    """
+    Publish local map layers as group layer in local OWS.
+
+    /maps/:id/wms
+
+    GET: return endpoint information for group layer,
+    PUT: update existing or create new group layer.
+    """
+
+    mapObject = _resolve_map(request, mapid, 'maps.view_map')
+
+    if request.method == 'PUT':
+        try:
+            layerGroupName = mapObject.publish_layer_group()
+            response = dict(
+                layerGroupName=layerGroupName,
+                ows=getattr(ogc_server_settings, 'ows', ''),
+            )
+            return HttpResponse(json.dumps(response), mimetype="application/json")
+        except FailedRequestError:
+            return HttpResponseServerError()
+        
+    if request.method == 'GET':
+        response = dict(
+            layerGroupName=getattr(mapObject.layer_group, 'name', ''),
+            ows=getattr(ogc_server_settings, 'ows', ''),
+        )
+        return HttpResponse(json.dumps(response), mimetype="application/json")
+
+    return HttpResponseNotAllowed(['PUT', 'GET'])
 
 #### MAPS PERMISSIONS ####
 

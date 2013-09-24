@@ -18,12 +18,17 @@
 #
 #########################################################################
 
-# Django settings for the GeoNode project.
 import os
+
+
+# --- Django settings for the GeoNode project ---
 
 #
 # General Django development settings
 #
+
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = 'myv-y4#7j-d*p-__@j#*3z@!y24fz8%^z2v6atuy4bo9vqr1_a'
 
 # Defines the directory that contains the settings file as the PROJECT_ROOT
 # It is used for relative settings elsewhere.
@@ -58,11 +63,11 @@ DATABASES = {
     #}
 }
 
-# Local time zone for this installation. Choices can be found here:
+# Locale/Location/Time settings
+
+# Local time zone for this installation. 
+# Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
 TIME_ZONE = 'America/Chicago'
 
 # Language code for this installation. All choices can be found here:
@@ -90,6 +95,15 @@ LANGUAGES = (
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
+
+# Location of translation files
+LOCALE_PATHS = (
+    os.path.join(PROJECT_ROOT, "locale"),
+)
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+
+# Static Media / Template Settings
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -128,20 +142,15 @@ TEMPLATE_DIRS = (
     os.path.join(STATICFILES_DIRS[0], "print_templates"),
 )
 
-# Location of translation files
-LOCALE_PATHS = (
-    os.path.join(PROJECT_ROOT, "locale"),
-)
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'myv-y4#7j-d*p-__@j#*3z@!y24fz8%^z2v6atuy4bo9vqr1_a'
+# URL / Hosts / Sites Settings
+
+# Location of url mappings
+ROOT_URLCONF = 'geonode.urls'
 
 ABSOLUTE_URL_OVERRIDES = {
     'auth.user': get_user_url
 }
-
-# Location of url mappings
-ROOT_URLCONF = 'geonode.urls'
 
 # Hosts Config
 # TODO Test if Configured
@@ -154,9 +163,7 @@ SITE_ID = 1
 def get_user_url(u):
     return u.profile.get_absolute_url()
 
-#
 # Test Settings
-#
 
 # Setting a custom test runner to avoid running the tests for
 # some problematic 3rd party apps
@@ -168,6 +175,45 @@ NOSE_ARGS = [
       '--detailed-errors',
       ]
 
+# Customizations to built in Django settings required by GeoNode
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    "django.core.context_processors.tz",
+    'django.core.context_processors.media',
+    "django.core.context_processors.static",
+    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
+    'account.context_processors.account',
+    'pinax_theme_bootstrap_account.context_processors.theme',
+    # The context processor below adds things like SITEURL
+    # and GEOSERVER_BASE_URL to all pages that use a RequestContext
+    'geonode.context_processors.resource_urls',
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    # The setting below makes it possible to serve different languages per
+    # user depending on things like headers in HTTP requests.
+    'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django_hosts.middleware.HostsMiddleware',
+    'pagination.middleware.PaginationMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'geonode.portals.middleware.FlatpageFallbackMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # This middleware allows to print private layers for the users that have 
+    # the permissions to view them.
+    # It sets temporary the involved layers as public before restoring the permissions.
+    # Beware that for few seconds the involved layers are public there could be risks.
+    #'geonode.middleware.PrintProxyMiddleware',
+)
+
+# Apps Settings 
 
 INSTALLED_APPS = (
 
@@ -237,6 +283,8 @@ INSTALLED_APPS = (
     'geonode.contrib.services',
 )
 
+# Logging Settings
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -298,55 +346,12 @@ LOGGING = {
 }
 
 #
-# Customizations to built in Django settings required by GeoNode
-#
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    "django.core.context_processors.tz",
-    'django.core.context_processors.media',
-    "django.core.context_processors.static",
-    'django.core.context_processors.request',
-    'django.contrib.messages.context_processors.messages',
-    'account.context_processors.account',
-    'pinax_theme_bootstrap_account.context_processors.theme',
-    # The context processor below adds things like SITEURL
-    # and GEOSERVER_BASE_URL to all pages that use a RequestContext
-    'geonode.context_processors.resource_urls',
-)
-
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    # The setting below makes it possible to serve different languages per
-    # user depending on things like headers in HTTP requests.
-    'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django_hosts.middleware.HostsMiddleware',
-    'pagination.middleware.PaginationMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'geonode.portals.middleware.FlatpageFallbackMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # This middleware allows to print private layers for the users that have 
-    # the permissions to view them.
-    # It sets temporary the involved layers as public before restoring the permissions.
-    # Beware that for few seconds the involved layers are public there could be risks.
-    #'geonode.middleware.PrintProxyMiddleware',
-)
-
-#
 # GeoNode specific settings
 #
 
+# TODO Use from Sites?
 SITEURL = "http://localhost:8000/"
 
-# Default TopicCategory to be used for resources. Use the slug field here
-DEFAULT_TOPICCATEGORY = 'location'
-
-MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
 
 # OGC (WMS/WFS/WCS) Server Settings
 OGC_SERVER = {
@@ -446,6 +451,11 @@ PYCSW = {
     }
 }
 
+# Default TopicCategory to be used for resources. Use the slug field here
+DEFAULT_TOPICCATEGORY = 'location'
+
+MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
+
 # GeoNode javascript client configuration
 
 # Where should newly created maps be focused?
@@ -518,7 +528,7 @@ LEAFLET_CONFIG = {
     'TILES_URL': 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png'
 }
 
-# Search Settings
+# GeoNode Search Settings
 
 # Search Snippet Cache Time in Seconds
 CACHE_TIME=0
@@ -535,6 +545,11 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 
+# GeoNode Security Settings
+
+# Replacement of default authentication backend in order to support
+# permissions per object.
+AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
 
 # Require users to authenticate before using Geonode
 LOCKDOWN_GEONODE = False
@@ -545,16 +560,14 @@ AUTH_EXEMPT_URLS = ()
 if LOCKDOWN_GEONODE:
     MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('geonode.security.middleware.LoginRequiredMiddleware',)
 
-# Replacement of default authentication backend in order to support
-# permissions per object.
-AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
+# allows/inhibits data download (just display or not the link in layer info page)
+ALLOW_DATA_DOWNLOAD = True
 
 # allows/inhibits metadata download (just display or not the link in layer info page)
-METADATA_DOWNLOAD_ALLOWS = True
+ALLOW_METADATA_DOWNLOAD = True
 
-MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
-
-# Activate the Documents application
+# GeoNode Documents Settings
+ 
 DOCUMENTS_APP = True
 ALLOWED_DOCUMENT_TYPES = [
     'doc', 'docx', 'xls', 'xslx', 'pdf', 'zip', 'jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif', 'txt'
@@ -562,9 +575,7 @@ ALLOWED_DOCUMENT_TYPES = [
 MAX_DOCUMENT_SIZE = 2 # MB
 
 
-#
 # Settings for third party apps
-#
 
 # Agon Ratings
 AGON_RATINGS_CATEGORY_CHOICES = {

@@ -151,6 +151,24 @@ DEFAULT_HOST = 'www'
 # Site id in the Django sites framework
 SITE_ID = 1
 
+def get_user_url(u):
+    return u.profile.get_absolute_url()
+
+#
+# Test Settings
+#
+
+# Setting a custom test runner to avoid running the tests for
+# some problematic 3rd party apps
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+# Arguments for the test runner
+NOSE_ARGS = [
+      '--nocapture',
+      '--detailed-errors',
+      ]
+
+
 INSTALLED_APPS = (
 
     # Apps bundled with Django
@@ -318,63 +336,6 @@ MIDDLEWARE_CLASSES = (
     # Beware that for few seconds the involved layers are public there could be risks.
     #'geonode.middleware.PrintProxyMiddleware',
 )
-
-
-
-
-
-#
-# Settings for third party apps
-#
-
-# Agon Ratings
-AGON_RATINGS_CATEGORY_CHOICES = {
-    "maps.Map": {
-        "map": "How good is this map?"
-    },
-    "layers.Layer": {
-        "layer": "How good is this layer?"
-    },
-    "documents.Document": {
-        "document": "How good is this document?"
-    }
-}
-
-# Activity Stream
-ACTSTREAM_SETTINGS = {
-    'MODELS': ('auth.user', 'layers.layer', 'maps.map'),
-    'FETCH_RELATIONS': True,
-    'USE_PREFETCH': True,
-    'USE_JSONFIELD': True,
-    'GFK_FETCH_DEPTH': 1,
-}
-
-# For South migrations
-SOUTH_MIGRATION_MODULES = {
-    'avatar': 'geonode.migrations.avatar',
-}
-SOUTH_TESTS_MIGRATE=False
-
-# Settings for Social Apps
-AUTH_PROFILE_MODULE = 'people.Profile'
-REGISTRATION_OPEN = False
-
-# Email for users to contact admins.
-THEME_ACCOUNT_CONTACT_EMAIL = 'admin@example.com'
-
-#
-# Test Settings
-#
-
-# Setting a custom test runner to avoid running the tests for
-# some problematic 3rd party apps
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
-# Arguments for the test runner
-NOSE_ARGS = [
-      '--nocapture',
-      '--detailed-errors',
-      ]
 
 #
 # GeoNode specific settings
@@ -592,16 +553,6 @@ AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
 METADATA_DOWNLOAD_ALLOWS = True
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
-def get_user_url(u):
-    return u.profile.get_absolute_url()
-
-# Login and logout urls override
-LOGIN_URL = '/account/login/'
-LOGOUT_URL = '/account/logout/'
-# Redirects to home page after login
-# FIXME(Ariel): I do not know why this setting is needed,
-# it would be best to use the ?next= parameter
-LOGIN_REDIRECT_URL = "/"
 
 # Activate the Documents application
 DOCUMENTS_APP = True
@@ -610,6 +561,53 @@ ALLOWED_DOCUMENT_TYPES = [
 ]
 MAX_DOCUMENT_SIZE = 2 # MB
 
+
+#
+# Settings for third party apps
+#
+
+# Agon Ratings
+AGON_RATINGS_CATEGORY_CHOICES = {
+    "maps.Map": {
+        "map": "How good is this map?"
+    },
+    "layers.Layer": {
+        "layer": "How good is this layer?"
+    },
+    "documents.Document": {
+        "document": "How good is this document?"
+    }
+}
+
+# Activity Stream
+ACTSTREAM_SETTINGS = {
+    'MODELS': ('auth.user', 'layers.layer', 'maps.map'),
+    'FETCH_RELATIONS': True,
+    'USE_PREFETCH': True,
+    'USE_JSONFIELD': True,
+    'GFK_FETCH_DEPTH': 1,
+}
+
+# For South migrations
+SOUTH_MIGRATION_MODULES = {
+    'avatar': 'geonode.migrations.avatar',
+}
+SOUTH_TESTS_MIGRATE=False
+
+# Settings for Social Apps
+AUTH_PROFILE_MODULE = 'people.Profile'
+REGISTRATION_OPEN = False
+
+# Email for users to contact admins.
+THEME_ACCOUNT_CONTACT_EMAIL = 'admin@example.com'
+
+# Login and logout urls override
+LOGIN_URL = '/account/login/'
+LOGOUT_URL = '/account/logout/'
+# Redirects to home page after login
+# FIXME(Ariel): I do not know why this setting is needed,
+# it would be best to use the ?next= parameter
+LOGIN_REDIRECT_URL = "/"
 
 # Load more settings from a file called local_settings.py if it exists
 try:

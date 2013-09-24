@@ -47,6 +47,7 @@ DATABASES = {
         'NAME': os.path.join(PROJECT_ROOT, 'development.db'),
     },
     # vector datastore for uploads
+    # TODO Add links to docs page about configuring this
     #'datastore' : {
     #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
     #    'NAME': '',
@@ -135,23 +136,20 @@ LOCALE_PATHS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'myv-y4#7j-d*p-__@j#*3z@!y24fz8%^z2v6atuy4bo9vqr1_a'
 
+ABSOLUTE_URL_OVERRIDES = {
+    'auth.user': get_user_url
+}
+
 # Location of url mappings
 ROOT_URLCONF = 'geonode.urls'
 
+# Hosts Config
+# TODO Test if Configured
+ROOT_HOSTCONF = 'geonode.hosts'
+DEFAULT_HOST = 'www'
+
 # Site id in the Django sites framework
 SITE_ID = 1
-
-# Login and logout urls override
-LOGIN_URL = '/account/login/'
-LOGOUT_URL = '/account/logout/'
-
-# Activate the Documents application
-DOCUMENTS_APP = True
-ALLOWED_DOCUMENT_TYPES = [
-    'doc', 'docx', 'xls', 'xslx', 'pdf', 'zip', 'jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif', 'txt'
-]
-MAX_DOCUMENT_SIZE = 2 # MB
-
 
 INSTALLED_APPS = (
 
@@ -166,8 +164,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.humanize',
 
-    # Third party apps
-    'modeltranslation',
+    # - Third party apps -
 
     # Utility
     'pagination',
@@ -183,6 +180,7 @@ INSTALLED_APPS = (
     'haystack',
     'geoexplorer',
     'django_extensions',
+    'modeltranslation',
 
     # Theme
     "pinax_theme_bootstrap_account",
@@ -194,26 +192,31 @@ INSTALLED_APPS = (
     'avatar',
     'dialogos',
     'agon_ratings',
-    #'notification',
+    'notification',
     'announcements',
     'actstream',
     'user_messages',
 
-    # GeoNode internal apps
-    'geonode.services',
-    'geonode.people',
-    'geonode.printing',
-    'geonode.base',
-    'geonode.layers',
-    'geonode.upload',
-    'geonode.maps',
-    'geonode.proxy',
-    'geonode.portals',
-    'geonode.security',
-    'geonode.search',
-    'geonode.catalogue',
-    'geonode.groups',
-    'geonode.documents',
+    # - GeoNode internal apps -
+
+    # core
+    'geonode.core.base',
+    'geonode.core.catalogue',
+    'geonode.core.layers',
+    'geonode.core.maps',
+    'geonode.core.people',
+    'geonode.core.proxy',
+    'geonode.core.search',
+    'geonode.core.security',
+    'geonode.core.printing',
+    'geonode.core.upload',
+
+    # contrib (optional)
+    'geonode.contrib.documents',
+    'geonode.contrib.groups',
+    'geonode.contrib.portals',
+    'geonode.contrib.printing',
+    'geonode.contrib.services',
 )
 
 LOGGING = {
@@ -280,7 +283,6 @@ LOGGING = {
 # Customizations to built in Django settings required by GeoNode
 #
 
-
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.debug',
@@ -318,32 +320,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 
-ROOT_URLCONF = 'geonode.urls'
-ROOT_HOSTCONF = 'geonode.hosts'
-DEFAULT_HOST = 'www'
 
-
-# Replacement of default authentication backend in order to support
-# permissions per object.
-AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
-
-def get_user_url(u):
-    return u.profile.get_absolute_url()
-
-
-ABSOLUTE_URL_OVERRIDES = {
-    'auth.user': get_user_url
-}
-
-# Redirects to home page after login
-# FIXME(Ariel): I do not know why this setting is needed,
-# it would be best to use the ?next= parameter
-LOGIN_REDIRECT_URL = "/"
-
-#
-# Settings for default search size
-#
-DEFAULT_SEARCH_SIZE = 10
 
 
 #
@@ -410,9 +387,6 @@ DEFAULT_TOPICCATEGORY = 'location'
 
 MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
 
-# Search Snippet Cache Time in Seconds
-CACHE_TIME=0
-
 # OGC (WMS/WFS/WCS) Server Settings
 OGC_SERVER = {
     'default' : {
@@ -442,6 +416,7 @@ UPLOADER = {
     }
 }
 
+# TODO Move to OGC_SERVER dict?
 GEOSERVER_PRINT_URL = "".join([GEOSERVER_BASE_URL, "rest/printng/render."])
 
 # CSW settings
@@ -578,6 +553,18 @@ MAP_BASELAYERS = [{
 
 }]
 
+LEAFLET_CONFIG = {
+    'TILES_URL': 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png'
+}
+
+# Search Settings
+
+# Search Snippet Cache Time in Seconds
+CACHE_TIME=0
+
+# Settings for default search size
+DEFAULT_SEARCH_SIZE = 10
+
 # Haystack Search Backend Configuration
 HAYSTACK_CONNECTIONS = {
     'default': {
@@ -587,10 +574,6 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 
-LEAFLET_CONFIG = {
-    'TILES_URL': 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png'
-}
-
 
 # Require users to authenticate before using Geonode
 LOCKDOWN_GEONODE = False
@@ -598,15 +581,35 @@ LOCKDOWN_GEONODE = False
 # Add additional paths (as regular expressions) that don't require authentication.
 AUTH_EXEMPT_URLS = ()
 
+if LOCKDOWN_GEONODE:
+    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('geonode.security.middleware.LoginRequiredMiddleware',)
+
+# Replacement of default authentication backend in order to support
+# permissions per object.
+AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
+
 # allows/inhibits metadata download (just display or not the link in layer info page)
 METADATA_DOWNLOAD_ALLOWS = True
 
-CACHE_TIME=0
-
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+def get_user_url(u):
+    return u.profile.get_absolute_url()
 
-if LOCKDOWN_GEONODE:
-    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('geonode.security.middleware.LoginRequiredMiddleware',)
+# Login and logout urls override
+LOGIN_URL = '/account/login/'
+LOGOUT_URL = '/account/logout/'
+# Redirects to home page after login
+# FIXME(Ariel): I do not know why this setting is needed,
+# it would be best to use the ?next= parameter
+LOGIN_REDIRECT_URL = "/"
+
+# Activate the Documents application
+DOCUMENTS_APP = True
+ALLOWED_DOCUMENT_TYPES = [
+    'doc', 'docx', 'xls', 'xslx', 'pdf', 'zip', 'jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif', 'txt'
+]
+MAX_DOCUMENT_SIZE = 2 # MB
+
 
 # Load more settings from a file called local_settings.py if it exists
 try:

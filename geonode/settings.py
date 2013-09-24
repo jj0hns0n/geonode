@@ -23,6 +23,8 @@ import os
 
 # --- Django settings for the GeoNode project ---
 
+# TODO Provide a complete docs page about all settings.
+
 #
 # General Django development settings
 #
@@ -41,10 +43,6 @@ DEBUG = TEMPLATE_DEBUG = True
 # Set to True to load non-minified versions of (static) client dependencies
 DEBUG_STATIC = False
 
-# This is needed for integration tests, they require
-# geonode to be listening for GeoServer auth requests.
-os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
-
 # Defines settings for development
 DATABASES = {
     'default': {
@@ -52,7 +50,6 @@ DATABASES = {
         'NAME': os.path.join(PROJECT_ROOT, 'development.db'),
     },
     # vector datastore for uploads
-    # TODO Add links to docs page about configuring this
     #'datastore' : {
     #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
     #    'NAME': '',
@@ -103,6 +100,7 @@ LOCALE_PATHS = (
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 
+
 # Static Media / Template Settings
 
 # Absolute path to the directory that holds media.
@@ -142,7 +140,6 @@ TEMPLATE_DIRS = (
     os.path.join(STATICFILES_DIRS[0], "print_templates"),
 )
 
-
 # URL / Hosts / Sites Settings
 
 # Location of url mappings
@@ -151,6 +148,9 @@ ROOT_URLCONF = 'geonode.urls'
 ABSOLUTE_URL_OVERRIDES = {
     'auth.user': get_user_url
 }
+
+# TODO Use from Sites?
+SITEURL = "http://localhost:8000/"
 
 # Hosts Config
 # TODO Test if Configured
@@ -164,6 +164,10 @@ def get_user_url(u):
     return u.profile.get_absolute_url()
 
 # Test Settings
+
+# This is needed for integration tests, they require
+# geonode to be listening for GeoServer auth requests.
+os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
 
 # Setting a custom test runner to avoid running the tests for
 # some problematic 3rd party apps
@@ -188,8 +192,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'account.context_processors.account',
     'pinax_theme_bootstrap_account.context_processors.theme',
-    # The context processor below adds things like SITEURL
-    # and GEOSERVER_BASE_URL to all pages that use a RequestContext
     'geonode.context_processors.resource_urls',
 )
 
@@ -197,8 +199,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # The setting below makes it possible to serve different languages per
-    # user depending on things like headers in HTTP requests.
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_hosts.middleware.HostsMiddleware',
@@ -206,11 +206,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'geonode.portals.middleware.FlatpageFallbackMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # This middleware allows to print private layers for the users that have 
-    # the permissions to view them.
-    # It sets temporary the involved layers as public before restoring the permissions.
-    # Beware that for few seconds the involved layers are public there could be risks.
-    #'geonode.middleware.PrintProxyMiddleware',
+    'geonode.middleware.PrintProxyMiddleware',
 )
 
 # Apps Settings 
@@ -231,20 +227,19 @@ INSTALLED_APPS = (
     # - Third party apps -
 
     # Utility
-    'pagination',
+    'crispy_forms',
     'django_hosts',
-    'django_forms_bootstrap',
+    'django_extensions',
+    'friendlytagloader',
+    'geoexplorer',
+    'haystack',
+    'leaflet',
+    'modeltranslation',
+    'pagination',
+    'request',
+    'south',
     'taggit',
     'taggit_templatetags',
-    'south',
-    'friendlytagloader',
-    'leaflet',
-    'request',
-    'crispy_forms',
-    'haystack',
-    'geoexplorer',
-    'django_extensions',
-    'modeltranslation',
 
     # Theme
     "pinax_theme_bootstrap_account",
@@ -349,10 +344,6 @@ LOGGING = {
 # GeoNode specific settings
 #
 
-# TODO Use from Sites?
-SITEURL = "http://localhost:8000/"
-
-
 # OGC (WMS/WFS/WCS) Server Settings
 OGC_SERVER = {
     'default' : {
@@ -370,6 +361,7 @@ OGC_SERVER = {
         'WPS_ENABLED' : False,
         # Set to name of database in DATABASES dictionary to enable
         'DATASTORE': '', #'datastore',
+        'PRINT_URL': "rest/printng/render.",
     }
 }
 
@@ -381,9 +373,6 @@ UPLOADER = {
         'GEOGIT_ENABLED': False,
     }
 }
-
-# TODO Move to OGC_SERVER dict?
-GEOSERVER_PRINT_URL = "".join([GEOSERVER_BASE_URL, "rest/printng/render."])
 
 # CSW settings
 CATALOGUE = {
@@ -410,6 +399,7 @@ CATALOGUE = {
 }
 
 # pycsw settings
+# TODO Move these to the database
 PYCSW = {
     # pycsw configuration
     'CONFIGURATION': {
@@ -458,14 +448,15 @@ MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
 
 # GeoNode javascript client configuration
 
-# Where should newly created maps be focused?
+# Center New Maps on this point
 DEFAULT_MAP_CENTER = (0, 0)
 
-# How tightly zoomed should newly created maps be?
+# Initial Zoom for New Maps
 # 0 = entire world;
 # maximum zoom is between 12 and 15 (for Google Maps, coverage varies by area)
 DEFAULT_MAP_ZOOM = 0
 
+# Baselayer Configuration
 MAP_BASELAYERS = [{
     "source": {
         "ptype": "gxp_wmscsource",

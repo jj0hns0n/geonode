@@ -267,7 +267,6 @@ INSTALLED_APPS = (
     'geonode.core.proxy',
     'geonode.core.search',
     'geonode.core.security',
-    'geonode.core.printing',
     'geonode.core.upload',
 
     # contrib (optional)

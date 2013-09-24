@@ -1,6 +1,6 @@
 from django import template
 
-from geonode.layers.models import Layer
+from geonode.core.layers.models import Layer
 
 
 register = template.Library()

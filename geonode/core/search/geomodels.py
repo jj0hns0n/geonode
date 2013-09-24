@@ -24,10 +24,10 @@ It needs testing still...
 from django.conf import settings
 from django.db.models import signals
 
-from geonode.maps.models import Layer
-from geonode.maps.models import Map
-from geonode.maps.models import map_changed_signal
-from geonode.search import util
+from geonode.core.maps.models import Layer
+from geonode.core.maps.models import Map
+from geonode.core.maps.models import map_changed_signal
+from geonode.core.search import util
 
 from logging import getLogger
 

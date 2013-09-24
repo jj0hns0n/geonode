@@ -31,14 +31,14 @@ or return response objects.
 State is stored in a UploaderSession object stored in the user's session.
 This needs to be made more stateful by adding a model.
 """
-from geonode.upload.forms import LayerUploadForm
+from geonode.core.upload.forms import LayerUploadForm
 from geonode.utils import json_response as do_json_response
-from geonode.upload import forms
-from geonode.upload.models import Upload, UploadFile
-from geonode.upload import upload
-from geonode.upload.utils import rename_and_prepare, find_sld, get_upload_type
-from geonode.upload.forms import UploadFileForm
-from geonode.base.enumerations import CHARSETS
+from geonode.core.upload import forms
+from geonode.core.upload.models import Upload, UploadFile
+from geonode.core.upload import upload
+from geonode.core.upload.utils import rename_and_prepare, find_sld, get_upload_type
+from geonode.core.upload.forms import UploadFileForm
+from geonode.core.base.enumerations import CHARSETS
 from geonode.utils import ogc_server_settings
 from geonode.geoserver.uploader import uploader
 

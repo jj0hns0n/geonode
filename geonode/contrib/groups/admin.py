@@ -1,15 +1,15 @@
 from django.contrib import admin
 
-import geonode.groups.models
+import geonode.contrib.groups.models
 
 
 class GroupMemberInline(admin.TabularInline):
-    model = geonode.groups.models.GroupMember
+    model = geonode.contrib.groups.models.GroupMember
 
 
-admin.site.register(geonode.groups.models.Group,
+admin.site.register(geonode.contrib.groups.models.Group,
     inlines = [
         GroupMemberInline
     ]
 )
-admin.site.register(geonode.groups.models.GroupInvitation)
+admin.site.register(geonode.contrib.groups.models.GroupInvitation)

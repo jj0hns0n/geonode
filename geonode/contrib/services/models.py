@@ -10,10 +10,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 
-from geonode.services.enumerations import SERVICE_TYPES, SERVICE_METHODS
-from geonode.security.models import PermissionLevelMixin
-from geonode.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.people.models import Contact, Role
+from geonode.contrib.services.enumerations import SERVICE_TYPES, SERVICE_METHODS
+from geonode.core.security.models import PermissionLevelMixin
+from geonode.core.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.people.models import Contact, Role
 
 class Service(models.Model, PermissionLevelMixin):
     """

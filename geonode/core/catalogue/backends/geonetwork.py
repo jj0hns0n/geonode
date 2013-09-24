@@ -27,7 +27,7 @@ from owslib.util import nspath
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, XML, tostring 
 
-from geonode.catalogue.backends.generic import CatalogueBackend \
+from geonode.core.catalogue.backends.generic import CatalogueBackend \
     as GenericCatalogueBackend
 
 

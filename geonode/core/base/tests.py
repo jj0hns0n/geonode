@@ -1,5 +1,5 @@
 from django.test import TestCase
-from geonode.base.models import ResourceBase
+from geonode.core.base.models import ResourceBase
 from geonode.utils import OGC_Servers_Handler
 
 class ThumbnailTests(TestCase):

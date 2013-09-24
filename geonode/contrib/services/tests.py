@@ -27,7 +27,7 @@ from django.contrib.auth.models import User, AnonymousUser
 from django.core.urlresolvers import reverse
 
 class ServicesTests(TestCase):
-    """Tests geonode.services app/module
+    """Tests geonode.contrib.services app/module
     """
 
     def setUp(self):

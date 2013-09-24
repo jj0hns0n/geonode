@@ -18,7 +18,7 @@
 #########################################################################
 
 from django.contrib.sitemaps import Sitemap
-from geonode.maps.models import Layer, Map 
+from geonode.core.maps.models import Layer, Map 
 
 class LayerSitemap(Sitemap):
     changefreq = "never"

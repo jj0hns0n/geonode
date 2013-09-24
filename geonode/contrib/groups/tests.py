@@ -3,8 +3,8 @@ from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User, AnonymousUser
 
-import geonode.groups.models
-import geonode.groups.views
+import geonode.contrib.groups.models
+import geonode.contrib.groups.views
 
 class SmokeTest(TestCase):
     "Basic checks to make sure pages load, etc."
@@ -86,7 +86,7 @@ class SmokeTest(TestCase):
  
 
 class MembershipTest(TestCase):
-    "Tests membership logic in the geonode.groups models"
+    "Tests membership logic in the geonode.contrib.groups models"
 
     fixtures = ["group_test_data"]
 
@@ -95,7 +95,7 @@ class MembershipTest(TestCase):
 
         anon = AnonymousUser()
         normal = User.objects.get(username="norman")
-        group = geonode.groups.models.Group.objects.get(slug="bar")
+        group = geonode.contrib.groups.models.Group.objects.get(slug="bar")
 
         self.assert_(not group.user_is_member(anon))
         self.assert_(not group.user_is_member(normal))
@@ -105,13 +105,13 @@ class MembershipTest(TestCase):
 
         anon = AnonymousUser()
         normal = User.objects.get(username="norman")
-        group = geonode.groups.models.Group.objects.get(slug="bar")
+        group = geonode.contrib.groups.models.Group.objects.get(slug="bar")
         group.join(normal)
         self.assert_(group.user_is_member(normal))
         self.assertRaises(ValueError, lambda: group.join(anon))
 
 class InvitationTest(TestCase):
-    "Tests invitation logic in geonode.groups models"
+    "Tests invitation logic in geonode.contrib.groups models"
 
     fixtures = ["group_test_data"]
 
@@ -121,11 +121,11 @@ class InvitationTest(TestCase):
         anon = AnonymousUser()
         normal = User.objects.get(username="norman")
         admin = User.objects.get(username="admin")
-        group = geonode.groups.models.Group.objects.get(slug="bar")
+        group = geonode.contrib.groups.models.Group.objects.get(slug="bar")
         group.invite(normal, admin, role="member", send=False)
 
         self.assert_(
-            geonode.groups.models.GroupInvitation.objects.filter(
+            geonode.contrib.groups.models.GroupInvitation.objects.filter(
                 user=normal,
                 from_user=admin,
                 group=group
@@ -138,10 +138,10 @@ class InvitationTest(TestCase):
         anon = AnonymousUser()
         normal = User.objects.get(username="norman")
         admin = User.objects.get(username="admin")
-        group = geonode.groups.models.Group.objects.get(slug="bar")
+        group = geonode.contrib.groups.models.Group.objects.get(slug="bar")
         group.invite(normal, admin, role="member", send=False)
 
-        invitation = geonode.groups.models.GroupInvitation.objects.get(
+        invitation = geonode.contrib.groups.models.GroupInvitation.objects.get(
             user = normal,
             from_user = admin,
             group = group
@@ -160,10 +160,10 @@ class InvitationTest(TestCase):
         anon = AnonymousUser()
         normal = User.objects.get(username="norman")
         admin = User.objects.get(username="admin")
-        group = geonode.groups.models.Group.objects.get(slug="bar")
+        group = geonode.contrib.groups.models.Group.objects.get(slug="bar")
         group.invite(normal, admin, role="member", send=False)
 
-        invitation = geonode.groups.models.GroupInvitation.objects.get(
+        invitation = geonode.contrib.groups.models.GroupInvitation.objects.get(
             user = normal,
             from_user = admin,
             group = group

@@ -20,7 +20,7 @@
 
 from django.utils.translation import ugettext_lazy as _
 
-from geonode.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
+from geonode.core.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
 
 from django.utils import simplejson as json
 

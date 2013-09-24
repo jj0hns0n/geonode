@@ -18,7 +18,7 @@
 #
 #########################################################################
 
-from geonode.layers.models import Style, Attribute, Layer
+from geonode.core.layers.models import Style, Attribute, Layer
 
 styles = [
     {

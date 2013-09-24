@@ -22,10 +22,10 @@ import logging
 
 from django.conf import settings
 from django.db.models import signals
-from geonode.layers.models import Layer
-from geonode.documents.models import Document
-from geonode.catalogue import get_catalogue
-from geonode.base.models import Link
+from geonode.core.layers.models import Layer
+from geonode.contrib.documents.models import Document
+from geonode.core.catalogue import get_catalogue
+from geonode.core.base.models import Link
 
 
 LOGGER = logging.getLogger(__name__)
@@ -127,7 +127,7 @@ def catalogue_pre_save(instance, sender, **kwargs):
             instance.distribution_description = \
             'Online link to the \'%s\' description on GeoNode ' % instance.title
 
-if 'geonode.catalogue' in settings.INSTALLED_APPS:
+if 'geonode.core.catalogue' in settings.INSTALLED_APPS:
     signals.pre_save.connect(catalogue_pre_save, sender=Layer)
     signals.post_save.connect(catalogue_post_save, sender=Layer)
     signals.pre_delete.connect(catalogue_pre_delete, sender=Layer)

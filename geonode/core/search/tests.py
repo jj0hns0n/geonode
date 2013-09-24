@@ -22,15 +22,15 @@ from django.contrib.contenttypes.models import ContentType
 from django.test.client import Client
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.layers.models import Layer
-from geonode.maps.models import Map
-from geonode.documents.models import Document
-from geonode.people.models import Profile
-from geonode.search import search
-from geonode.search import util
-from geonode.search.populate_search_test_data import create_models
-from geonode.search.query import query_from_request
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.layers.models import Layer
+from geonode.core.maps.models import Map
+from geonode.contrib.documents.models import Document
+from geonode.core.people.models import Profile
+from geonode.core.search import search
+from geonode.core.search import util
+from geonode.core.search.populate_search_test_data import create_models
+from geonode.core.search.query import query_from_request
 from agon_ratings.models import OverallRating
 import json
 import logging

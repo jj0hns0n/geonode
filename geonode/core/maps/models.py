@@ -37,10 +37,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
 
-from geonode.layers.models import Layer
-from geonode.base.models import ResourceBase, resourcebase_post_save, resourcebase_post_delete
-from geonode.maps.signals import map_changed_signal
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.layers.models import Layer
+from geonode.core.base.models import ResourceBase, resourcebase_post_save, resourcebase_post_delete
+from geonode.core.maps.signals import map_changed_signal
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.utils import GXPMapBase
 from geonode.utils import GXPLayerBase
 from geonode.utils import layer_from_viewer_config
@@ -53,7 +53,7 @@ from geoserver.layer import Layer as GsLayer
 from geoserver.layergroup import UnsavedLayerGroup as GsUnsavedLayerGroup
 from agon_ratings.models import OverallRating
 
-logger = logging.getLogger("geonode.maps.models")
+logger = logging.getLogger("geonode.core.maps.models")
 
 _user, _password = ogc_server_settings.credentials
 
@@ -203,7 +203,7 @@ class Map(ResourceBase, GXPMapBase):
             return []
 
     def get_absolute_url(self):
-        return reverse('geonode.maps.views.map_detail', None, [str(self.id)])
+        return reverse('geonode.core.maps.views.map_detail', None, [str(self.id)])
 
     def update_thumbnail(self, save=True):
         if len(self.layers) == 0:

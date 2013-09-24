@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.template.loader import render_to_string
 
-from geonode.maps.models import Map, Layer
+from geonode.core.maps.models import Map, Layer
 from .managers import DocumentManager, LinkManager, PortalManager
 
 

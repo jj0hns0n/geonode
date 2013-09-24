@@ -17,11 +17,11 @@
 #
 #########################################################################
 
-from geonode.people.models import Profile 
-from geonode.layers.models import Layer
-from geonode.maps.models import Map
-from geonode.documents.models import Document
-from geonode.search.util import resolve_extension
+from geonode.core.people.models import Profile 
+from geonode.core.layers.models import Layer
+from geonode.core.maps.models import Map
+from geonode.contrib.documents.models import Document
+from geonode.core.search.util import resolve_extension
 
 from django.conf import settings
 import re

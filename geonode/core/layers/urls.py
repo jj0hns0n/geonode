@@ -21,11 +21,11 @@
 from django.conf.urls.defaults import patterns, url
 
 js_info_dict = {
-    'packages': ('geonode.layers',),
+    'packages': ('geonode.core.layers',),
 }
 
 urlpatterns = patterns(
-    'geonode.layers.views',
+    'geonode.core.layers.views',
     url(r'^$', 'layer_list', name='layer_browse'),
     url(r'^tag/(?P<slug>[-\w]+?)/$', 'layer_tag', name='layer_browse_tag'),
     url(r'^acls/?$', 'layer_acls', name='layer_acls'),

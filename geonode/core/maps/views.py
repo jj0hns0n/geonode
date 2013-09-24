@@ -36,20 +36,20 @@ from django.views.decorators.http import require_POST
 
 from geonode.views import _handleThumbNail
 from geonode.utils import http_client
-from geonode.layers.models import Layer
-from geonode.maps.models import Map, MapLayer
+from geonode.core.layers.models import Layer
+from geonode.core.maps.models import Map, MapLayer
 from geonode.utils import forward_mercator
 from geonode.utils import DEFAULT_TITLE
 from geonode.utils import DEFAULT_ABSTRACT
 from geonode.utils import default_map_config
 from geonode.utils import resolve_object
-from geonode.maps.forms import MapForm
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.security.views import _perms_info
-from geonode.documents.models import get_related_documents
+from geonode.core.maps.forms import MapForm
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.security.views import _perms_info
+from geonode.contrib.documents.models import get_related_documents
 from geonode.utils import ogc_server_settings
 
-logger = logging.getLogger("geonode.maps.views")
+logger = logging.getLogger("geonode.core.maps.views")
 
 _user, _password = ogc_server_settings.credentials
 
@@ -86,7 +86,7 @@ def bbox_to_wkt(x0, x1, y0, y1, srid="4326"):
 #### BASIC MAP VIEWS ####
 
 def map_list(request, template='maps/map_list.html'):
-    from geonode.search.views import search_page
+    from geonode.core.search.views import search_page
     post = request.POST.copy()
     post.update({'type': 'map'})
     request.POST = post

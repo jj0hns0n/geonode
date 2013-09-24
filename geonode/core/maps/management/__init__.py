@@ -32,6 +32,6 @@ if "notification" in settings.INSTALLED_APPS:
         notification.models.NoticeType.create("map_rated", _("Rating for Map"), _("A rating was given to a map"))
 
     signals.post_syncdb.connect(create_notice_types, sender=notification.models)
-    logger.info("Notifications Configured for geonode.maps.management.commands")
+    logger.info("Notifications Configured for geonode.core.maps.management.commands")
 else:
-    logger.info("Skipping creation of NoticeTypes for geonode.maps.management.commands, since notification app was not found.")
+    logger.info("Skipping creation of NoticeTypes for geonode.core.maps.management.commands, since notification app was not found.")

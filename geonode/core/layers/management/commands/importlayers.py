@@ -19,7 +19,7 @@
 
 from django.core.management.base import BaseCommand
 from optparse import make_option
-from geonode.layers.utils import upload
+from geonode.core.layers.utils import upload
 import traceback
 import datetime
 import sys

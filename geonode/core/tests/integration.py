@@ -36,11 +36,11 @@ from django.core.urlresolvers import reverse
 
 from geoserver.catalog import FailedRequestError
 
-from geonode.security.models import *
-from geonode.maps.models import Map
-from geonode.layers.models import Layer
+from geonode.core.security.models import *
+from geonode.core.maps.models import Map
+from geonode.core.layers.models import Layer
 from geonode import GeoNodeException
-from geonode.layers.utils import (
+from geonode.core.layers.utils import (
     upload,
     file_upload,
     save
@@ -48,11 +48,11 @@ from geonode.layers.utils import (
 from geonode.utils import http_client
 from .utils import check_layer, get_web_page
 
-from geonode.maps.utils import *
+from geonode.core.maps.utils import *
 
 from geonode.geoserver.helpers import cascading_delete, fixup_style
 
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
 
 import gisdata
 
@@ -64,7 +64,7 @@ import logging
 logging.getLogger("south").setLevel(logging.INFO)
 
 class GeoNodeCoreTest(TestCase):
-    """Tests geonode.security app/module
+    """Tests geonode.core.security app/module
     """
 
     def setUp(self):
@@ -74,7 +74,7 @@ class GeoNodeCoreTest(TestCase):
         pass
 
 class GeoNodeProxyTest(TestCase):
-    """Tests geonode.proxy app/module
+    """Tests geonode.core.proxy app/module
     """
 
     def setUp(self):
@@ -193,7 +193,7 @@ class Printing(TestCase):
 
 
 class GeoNodeMapTest(TestCase):
-    """Tests geonode.maps app/module
+    """Tests geonode.core.maps app/module
     """
     #    fixtures = ['people_data.json']
 
@@ -203,7 +203,7 @@ class GeoNodeMapTest(TestCase):
     def tearDown(self):
         pass
 
-    # geonode.maps.utils
+    # geonode.core.maps.utils
 
     def test_layer_upload(self):
         """Test that layers can be uploaded to running GeoNode/GeoServer
@@ -401,7 +401,7 @@ class GeoNodeMapTest(TestCase):
         uploaded2.delete()
         uploaded3.delete()
 
-    # geonode.maps.views
+    # geonode.core.maps.views
 
 
     def test_layer_delete_from_geoserver(self):
@@ -462,8 +462,8 @@ class GeoNodeMapTest(TestCase):
 
     # geonode.geoserver.helpers
         # If catalogue is installed, then check that it is deleted from there too.
-        if 'geonode.catalogue' in settings.INSTALLED_APPS:
-            from geonode.catalogue import get_catalogue
+        if 'geonode.core.catalogue' in settings.INSTALLED_APPS:
+            from geonode.core.catalogue import get_catalogue
             catalogue = get_catalogue()
 
             # Verify that it no longer exists in GeoNetwork
@@ -596,7 +596,7 @@ class GeoNodeMapTest(TestCase):
         self.assertEquals(response.status_code, 302)
 
 class GeoNodeMapPrintTest(TestCase):
-    """Tests geonode.maps print
+    """Tests geonode.core.maps print
     """
 
     def setUp(self):
@@ -614,7 +614,7 @@ class GeoNodeMapPrintTest(TestCase):
         if 'geonode.middleware.PrintProxyMiddleware' in settings.MIDDLEWARE_CLASSES:
             # STEP 1: Import a layer
             from django.contrib.auth.models import User
-            from geonode.maps.models import Map
+            from geonode.core.maps.models import Map
 
             client = Client()
             client.login(username='norman', password='norman')

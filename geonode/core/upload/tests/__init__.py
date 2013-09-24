@@ -16,8 +16,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
-import geonode.upload.files as files
-from geonode.upload.utils import rename_and_prepare
+import geonode.core.upload.files as files
+from geonode.core.upload.utils import rename_and_prepare
 
 import contextlib
 import os

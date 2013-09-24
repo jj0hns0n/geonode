@@ -18,8 +18,8 @@
 #
 #########################################################################
 
-from geonode.people.models import Profile
-from geonode.base.models import ContactRole
+from geonode.core.people.models import Profile
+from geonode.core.base.models import ContactRole
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 import taggit

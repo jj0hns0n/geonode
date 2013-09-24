@@ -22,9 +22,9 @@ from django.conf import settings
 from django.conf.urls import patterns
 from django.core.urlresolvers import reverse
 from geonode.geoserver.helpers import cascading_delete
-from geonode.layers.models import Layer
-from geonode.upload.models import Upload
-from geonode.upload.views import _ALLOW_TIME_STEP
+from geonode.core.layers.models import Layer
+from geonode.core.upload.models import Upload
+from geonode.core.upload.views import _ALLOW_TIME_STEP
 from geonode.urls import include
 from geonode.urls import urlpatterns
 from geoserver.catalog import Catalog
@@ -55,7 +55,7 @@ import logging
 logging.getLogger('south').setLevel(logging.WARNING)
 
 # hack the global urls to ensure we're activated locally
-urlpatterns += patterns('',(r'^upload/', include('geonode.upload.urls')))
+urlpatterns += patterns('',(r'^upload/', include('geonode.core.upload.urls')))
 
 def upload_step(step=None):
     step = reverse('data_upload',args=[step] if step else [])
@@ -206,7 +206,7 @@ class UploaderBase(TestCase):
         # make a test_settings module that will apply our overrides
         test_settings = ['from geonode.settings import *']
         if os.path.exists('geonode/upload/tests/test_settings.py'):
-            test_settings.append('from geonode.upload.tests.test_settings import *')
+            test_settings.append('from geonode.core.upload.tests.test_settings import *')
         for so in cls.settings_overrides:
             test_settings.append('%s=%s' % so)
         with open('integration_settings.py', 'w') as fp:

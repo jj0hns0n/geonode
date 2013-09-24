@@ -44,22 +44,22 @@ from django.db.models import signals
 from geoserver.catalog import FailedRequestError
 
 from geonode.utils import http_client, _get_basic_auth_info, json_response
-from geonode.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm, LayerAttributeForm, LayerStyleUploadForm
-from geonode.layers.models import Layer, Attribute, set_styles, geoserver_post_save, geoserver_pre_save
-from geonode.base.models import ContactRole
+from geonode.core.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm, LayerAttributeForm, LayerStyleUploadForm
+from geonode.core.layers.models import Layer, Attribute, set_styles, geoserver_post_save, geoserver_pre_save
+from geonode.core.base.models import ContactRole
 from geonode.utils import default_map_config
 from geonode.utils import GXPLayer
 from geonode.utils import GXPMap
-from geonode.layers.utils import save
-from geonode.layers.utils import set_object_permissions
+from geonode.core.layers.utils import save
+from geonode.core.layers.utils import set_object_permissions
 from geonode.utils import resolve_object
-from geonode.people.forms import ProfileForm, PocForm
-from geonode.security.views import _perms_info_json
-from geonode.documents.models import get_related_documents
+from geonode.core.people.forms import ProfileForm, PocForm
+from geonode.core.security.views import _perms_info_json
+from geonode.contrib.documents.models import get_related_documents
 from geonode.utils import ogc_server_settings
 from geoserver.resource import FeatureType
 
-logger = logging.getLogger("geonode.layers.views")
+logger = logging.getLogger("geonode.core.layers.views")
 
 
 _user, _password = ogc_server_settings.credentials
@@ -95,7 +95,7 @@ def _resolve_layer(request, typename, permission='layers.change_layer',
 #### Basic Layer Views ####
 
 def layer_list(request, template='layers/layer_list.html'):
-    from geonode.search.views import search_page
+    from geonode.core.search.views import search_page
     post = request.POST.copy()
     post.update({'type': 'layer'})
     request.POST = post

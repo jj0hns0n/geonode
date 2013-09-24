@@ -6,7 +6,7 @@ from django.test.client import Client
 from django.conf import settings
 from django.utils import simplejson as json
 
-from geonode.maps.models import Map
+from geonode.core.maps.models import Map
 
 class SecurityTest(TestCase):
     """
@@ -21,7 +21,7 @@ class SecurityTest(TestCase):
         """
         Tests the Geonode login required authentication middleware.
         """
-        from geonode.security.middleware import LoginRequiredMiddleware
+        from geonode.core.security.middleware import LoginRequiredMiddleware
         middleware = LoginRequiredMiddleware()
 
         white_list = [

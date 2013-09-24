@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
-from geonode.upload.models import Upload, UploadFile
+from geonode.core.upload.models import Upload, UploadFile
 
 from django.contrib import admin
 

@@ -157,8 +157,8 @@ if (window.GeoExt && GeoExt.ux && GeoExt.ux.PrintPreview) {
 }
 
 
-if (window.GeoNode && GeoNode.MapSearchTable) {
-    Ext.apply(GeoNode.MapSearchTable.prototype, {
+if (window.GeoNode && geonode.core.mapsearchTable) {
+    Ext.apply(geonode.core.mapsearchTable.prototype, {
         titleHeaderText: gettext('Title'),
         contactHeaderText: gettext("Contact"),
         lastModifiedHeaderText: gettext("Last Modified"),
@@ -177,8 +177,8 @@ if (window.GeoNode && GeoNode.MapSearchTable) {
 }
 
 
-if (window.GeoNode && GeoNode.SearchTable) {
-    Ext.apply(GeoNode.SearchTable.prototype, {
+if (window.GeoNode && geonode.core.searchTable) {
+    Ext.apply(geonode.core.searchTable.prototype, {
         selectHeaderText: gettext('Select'),
         nameHeaderText: gettext('Name'),
         titleHeaderText: gettext('Title'),
@@ -197,8 +197,8 @@ if (window.GeoNode && GeoNode.SearchTable) {
         remoteTooltip: gettext('This data is stored on a remote server')    
     });
 }
-if (window.GeoNode && GeoNode.SearchTableRowExpander) {
-    Ext.apply(GeoNode.SearchTableRowExpander.prototype, {
+if (window.GeoNode && geonode.core.searchTableRowExpander) {
+    Ext.apply(geonode.core.searchTableRowExpander.prototype, {
         abstractText: gettext("Abstract:"),
         abstractEmptyText: gettext('No abstract is provided for this layer.'),
         attributionEmptyText: gettext("No attribution information is provided for this layer."),

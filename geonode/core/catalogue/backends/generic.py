@@ -27,7 +27,7 @@ from owslib.csw import CatalogueServiceWeb, namespaces
 from owslib.util import http_post, nspath
 from urlparse import urlparse
 from lxml import etree
-from geonode.catalogue.backends.base import BaseCatalogueBackend
+from geonode.core.catalogue.backends.base import BaseCatalogueBackend
 
 logger = logging.getLogger(__name__)
 

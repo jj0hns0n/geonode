@@ -18,8 +18,8 @@
 #########################################################################
 from django import forms
 from django.conf import settings
-from geonode.layers.forms import JSONField
-from geonode.upload.models import UploadFile 
+from geonode.core.layers.forms import JSONField
+from geonode.core.upload.models import UploadFile 
 from geonode.utils import ogc_server_settings
 import os
 import tempfile

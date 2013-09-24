@@ -25,16 +25,16 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.core.cache import cache
 
-from geonode.maps.views import default_map_config
-from geonode.maps.models import Layer
-from geonode.maps.models import Map
-from geonode.documents.models import Document
-from geonode.people.models import Profile 
-from geonode.search.search import combined_search_results
-from geonode.search.util import resolve_extension
-from geonode.search.normalizers import apply_normalizers
-from geonode.search.query import query_from_request
-from geonode.search.query import BadQuery
+from geonode.core.maps.views import default_map_config
+from geonode.core.maps.models import Layer
+from geonode.core.maps.models import Map
+from geonode.contrib.documents.models import Document
+from geonode.core.people.models import Profile 
+from geonode.core.search.search import combined_search_results
+from geonode.core.search.util import resolve_extension
+from geonode.core.search.normalizers import apply_normalizers
+from geonode.core.search.query import query_from_request
+from geonode.core.search.query import BadQuery
 
 from datetime import datetime
 from time import time
@@ -259,7 +259,7 @@ from haystack.query import SearchQuerySet, SQ
 from django.db.models import Sum
 from django.contrib.gis.geos import GEOSGeometry
 
-from geonode.maps.views import default_map_config, Map, Layer
+from geonode.core.maps.views import default_map_config, Map, Layer
 
 default_facets = ["map", "layer", "vector", "raster", "contact"]
 fieldsets = {

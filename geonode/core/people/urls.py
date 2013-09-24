@@ -19,7 +19,7 @@
 
 from django.conf.urls.defaults import *
 
-urlpatterns = patterns('geonode.people.views',
+urlpatterns = patterns('geonode.core.people.views',
     url(r'^$', 'profile_list' , name='profile_browse'),
     url(r"^edit/(?P<username>[^/]*)$", "profile_edit", name="profile_edit"),
     url(r"^profile/(?P<username>[^/]*)/$", "profile_detail", name="profile_detail"),

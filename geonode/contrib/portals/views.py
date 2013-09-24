@@ -14,7 +14,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 
-from geonode.maps.models import Map
+from geonode.core.maps.models import Map
 from .forms import (DocumentForm, FlatpageForm, LinkForm,
     PortalForm, PortalContextItemForm, PortalDatasetForm, PortalMapForm,
     PortalSummaryForm)

@@ -8,12 +8,12 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.contrib.contenttypes import generic
 
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.layers.models import Layer
-from geonode.base.models import ResourceBase, resourcebase_post_save
-from geonode.maps.signals import map_changed_signal
-from geonode.maps.models import Map
-from geonode.people.models import Profile
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.layers.models import Layer
+from geonode.core.base.models import ResourceBase, resourcebase_post_save
+from geonode.core.maps.signals import map_changed_signal
+from geonode.core.maps.models import Map
+from geonode.core.people.models import Profile
 
 class Document(ResourceBase):
     """

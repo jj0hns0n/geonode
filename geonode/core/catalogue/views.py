@@ -23,7 +23,7 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from pycsw import server
-from geonode.catalogue.backends.pycsw_local import CONFIGURATION
+from geonode.core.catalogue.backends.pycsw_local import CONFIGURATION
 
 
 @csrf_exempt
@@ -33,7 +33,7 @@ def csw_global_dispatch(request):
     # this view should only operate if pycsw_local is the backend
     # else, redirect to the URL of the non-pycsw_local backend
     if (settings.CATALOGUE['default']['ENGINE'] !=
-        'geonode.catalogue.backends.pycsw_local'):
+        'geonode.core.catalogue.backends.pycsw_local'):
         return HttpResponseRedirect(settings.CATALOGUE['default']['URL'])
 
     mdict = dict(settings.PYCSW['CONFIGURATION'], **CONFIGURATION)

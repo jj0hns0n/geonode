@@ -24,7 +24,7 @@ from django.conf.urls.static import static
 from geonode.sitemap import LayerSitemap, MapSitemap
 from django.views.generic import TemplateView
 
-import geonode.proxy.urls
+import geonode.core.proxy.urls
 
 # Import *_signals.py
 import geonode.social_signals
@@ -52,35 +52,35 @@ urlpatterns = patterns('',
     url(r'^about/$', TemplateView.as_view(template_name='about.html'), name='about'),
 
     # Services views
-    (r'^services/', include('geonode.services.urls')),
+    (r'^services/', include('geonode.contrib.services.urls')),
 
     # Layer views
-    (r'^layers/', include('geonode.layers.urls')),
+    (r'^layers/', include('geonode.core.layers.urls')),
 
     # Map views
-    (r'^maps/', include('geonode.maps.urls')),
+    (r'^maps/', include('geonode.core.maps.urls')),
 
     # Catalogue views
-    (r'^catalogue/', include('geonode.catalogue.urls')),
+    (r'^catalogue/', include('geonode.core.catalogue.urls')),
 
     # Search views
-    (r'^search/', include('geonode.search.urls')),
+    (r'^search/', include('geonode.core.search.urls')),
 
     # Printing Views
-    (r'^printing/', include('geonode.printing.urls')),
+    (r'^printing/', include('geonode.contrib.printing.urls')),
 
     # Portals views
-    (r'^portals/', include('geonode.portals.urls')),
+    (r'^portals/', include('geonode.contrib.portals.urls')),
 
     # Upload views
-    (r'^upload/', include('geonode.upload.urls')),
+    (r'^upload/', include('geonode.core.upload.urls')),
 
     # GeoServer Helper Views 
     (r'^gs/', include('geonode.geoserver.urls')),
 
     # Social views
     (r"^account/", include("account.urls")),
-    (r'^people/', include('geonode.people.urls')),
+    (r'^people/', include('geonode.core.people.urls')),
     (r'^avatar/', include('avatar.urls')),
     (r'^comments/', include('dialogos.urls')),
     (r'^ratings/', include('agon_ratings.urls')),
@@ -90,10 +90,10 @@ urlpatterns = patterns('',
     (r'^messages/', include('user_messages.urls')),
 
     # Groups views
-    (r'^groups/', include('geonode.groups.urls')),
+    (r'^groups/', include('geonode.contrib.groups.urls')),
 
     # Search
-    (r'search/', include('geonode.search.urls')),
+    (r'search/', include('geonode.core.search.urls')),
 
     # Accounts
     url(r'^account/ajax_login$', 'geonode.views.ajax_login',
@@ -115,10 +115,10 @@ urlpatterns = patterns('',
 #Documents views
 if settings.DOCUMENTS_APP:
     urlpatterns += patterns('',
-        (r'^documents/', include('geonode.documents.urls')),
+        (r'^documents/', include('geonode.contrib.documents.urls')),
     )
 
-urlpatterns += geonode.proxy.urls.urlpatterns
+urlpatterns += geonode.core.proxy.urls.urlpatterns
 
 # Serve static files
 urlpatterns += staticfiles_urlpatterns()

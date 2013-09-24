@@ -1,6 +1,6 @@
 from django.db.models import signals
 
-from geonode.maps.models import Map, MapLayer, pre_save_maplayer
+from geonode.core.maps.models import Map, MapLayer, pre_save_maplayer
 
 maplayers = [
     {

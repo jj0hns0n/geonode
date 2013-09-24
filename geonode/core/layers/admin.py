@@ -21,7 +21,7 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from geonode.layers.models import Layer, Attribute, Style
+from geonode.core.layers.models import Layer, Attribute, Style
 
 class AttributeInline(admin.TabularInline):
     model = Attribute

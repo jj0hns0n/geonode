@@ -5,8 +5,8 @@ from django.core.urlresolvers import reverse
 
 from haystack import indexes
 
-from geonode.layers.models import Layer
-from geonode.people.models import Contact
+from geonode.core.layers.models import Layer
+from geonode.core.people.models import Contact
 
 
 class LayerIndex(indexes.RealTimeSearchIndex, indexes.Indexable):

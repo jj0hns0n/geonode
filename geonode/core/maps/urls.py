@@ -21,10 +21,10 @@
 from django.conf.urls.defaults import patterns, url
 
 js_info_dict = {
-    'packages': ('geonode.maps',),
+    'packages': ('geonode.core.maps',),
 }
 
-urlpatterns = patterns('geonode.maps.views',
+urlpatterns = patterns('geonode.core.maps.views',
     url(r'^$', 'map_list', name='maps_browse'),
     url(r'^tag/(?P<slug>[-\w]+?)/$', 'maps_tag', name='maps_browse_tag'),
     url(r'^new$', 'new_map', name="new_map"),

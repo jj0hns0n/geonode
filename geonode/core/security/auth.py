@@ -22,8 +22,8 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.contenttypes.models import ContentType 
 from django.db import models
 from django.contrib.auth.models import User, Group
-from geonode.security.models import GenericObjectRoleMapping, Permission, UserObjectRoleMapping
-from geonode.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
+from geonode.core.security.models import GenericObjectRoleMapping, Permission, UserObjectRoleMapping
+from geonode.core.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
 
 class GranularBackend(ModelBackend):
     """

@@ -32,13 +32,13 @@ from django.conf import settings
 
 from itertools import chain
 
-from geonode.people.models import Profile
-from geonode.people.forms import ProfileForm
-from geonode.people.forms import ForgotUsernameForm
+from geonode.core.people.models import Profile
+from geonode.core.people.forms import ProfileForm
+from geonode.core.people.forms import ForgotUsernameForm
 
 
 def profile_list(request, template='people/profile_list.html'):
-    from geonode.search.views import search_page
+    from geonode.core.search.views import search_page
     post = request.POST.copy()
     post.update({'type': 'user'})
     request.POST = post

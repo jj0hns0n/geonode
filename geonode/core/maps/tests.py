@@ -28,16 +28,16 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from agon_ratings.models import OverallRating
 
-import geonode.maps.models
-from geonode.layers.models import Layer
-from geonode.maps.models import Map
+import geonode.core.maps.models
+from geonode.core.layers.models import Layer
+from geonode.core.maps.models import Map
 from geonode.utils import default_map_config
-from geonode.search.populate_search_test_data import create_models
-from geonode.maps.populate_maplayers import create_maplayers
+from geonode.core.search.populate_search_test_data import create_models
+from geonode.core.maps.populate_maplayers import create_maplayers
 
 
 class MapsTest(TestCase):
-    """Tests geonode.maps app/module
+    """Tests geonode.core.maps app/module
     """
 
     fixtures = ['initial_data.json']

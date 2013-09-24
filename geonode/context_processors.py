@@ -19,7 +19,7 @@
 
 from django.conf import settings
 from geonode import get_version
-from geonode.catalogue import default_catalogue_backend
+from geonode.core.catalogue import default_catalogue_backend
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from geonode.utils import ogc_server_settings

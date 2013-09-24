@@ -4,11 +4,11 @@ from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 
-from geonode.layers.models import Layer 
-from geonode.maps.models import Map
-from geonode.groups.forms import GroupInviteForm, GroupForm, GroupUpdateForm
-from geonode.groups.forms import GroupMapForm, GroupLayerForm
-from geonode.groups.models import Group, GroupInvitation, GroupLayer, GroupMap
+from geonode.core.layers.models import Layer 
+from geonode.core.maps.models import Map
+from geonode.contrib.groups.forms import GroupInviteForm, GroupForm, GroupUpdateForm
+from geonode.contrib.groups.forms import GroupMapForm, GroupLayerForm
+from geonode.contrib.groups.models import Group, GroupInvitation, GroupLayer, GroupMap
 
 
 def group_list(request):

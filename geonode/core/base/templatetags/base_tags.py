@@ -5,7 +5,7 @@ from django.db.models import Count
 from agon_ratings.models import Rating
 from django.contrib.contenttypes.models import ContentType
 
-from geonode.base.models import TopicCategory
+from geonode.core.base.models import TopicCategory
 
 register = template.Library()
 

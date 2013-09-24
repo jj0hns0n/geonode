@@ -32,15 +32,15 @@ from django.utils.translation import ugettext as _
 from django.utils import simplejson as json
 from django.shortcuts import get_object_or_404
 
-from geonode.security.views import _perms_info
-from geonode.services.models import Service
-from geonode.layers.models import Layer
-from geonode.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.layers.utils import layer_set_permissions
+from geonode.core.security.views import _perms_info
+from geonode.contrib.services.models import Service
+from geonode.core.layers.models import Layer
+from geonode.core.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.layers.utils import layer_set_permissions
 from geoserver.catalog import Catalog
 from owslib.wms import WebMapService
 
-logger = logging.getLogger("geonode.layers.views")
+logger = logging.getLogger("geonode.core.layers.views")
 
 _user, _password = settings.GEOSERVER_CREDENTIALS
 

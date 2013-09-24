@@ -37,31 +37,31 @@ from django.core.urlresolvers import reverse
 from geonode import GeoNodeException
 from geonode.utils import _wms, _user, _password, get_wms, bbox_to_wkt
 from geonode.gs_helpers import cascading_delete
-from geonode.services.models import Service
-from geonode.people.models import Profile, Role
-from geonode.security.models import PermissionLevelMixin
-from geonode.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.layers.ows import wcs_links, wfs_links, wms_links
-from geonode.layers.enumerations import COUNTRIES, ALL_LANGUAGES, \
+from geonode.contrib.services.models import Service
+from geonode.core.people.models import Profile, Role
+from geonode.core.security.models import PermissionLevelMixin
+from geonode.core.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.layers.ows import wcs_links, wfs_links, wms_links
+from geonode.core.layers.enumerations import COUNTRIES, ALL_LANGUAGES, \
     HIERARCHY_LEVELS, UPDATE_FREQUENCIES, CONSTRAINT_OPTIONS, \
     SPATIAL_REPRESENTATION_TYPES,  TOPIC_CATEGORIES, \
     DEFAULT_SUPPLEMENTAL_INFORMATION, LINK_TYPES
-from geonode.base.models import ResourceBase, ResourceBaseManager, Link, \
+from geonode.core.base.models import ResourceBase, ResourceBaseManager, Link, \
     resourcebase_post_save, resourcebase_post_delete
 from geonode.utils import  _user, _password, get_wms
 from geonode.utils import http_client
 from geonode.geoserver.helpers import cascading_delete
-from geonode.people.models import Profile
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.layers.ows import wcs_links, wfs_links, wms_links, \
+from geonode.core.people.models import Profile
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.layers.ows import wcs_links, wfs_links, wms_links, \
     wps_execute_layer_attribute_statistics
-from geonode.layers.enumerations import LAYER_ATTRIBUTE_NUMERIC_DATA_TYPES
+from geonode.core.layers.enumerations import LAYER_ATTRIBUTE_NUMERIC_DATA_TYPES
 from geonode.utils import ogc_server_settings
 
 from geoserver.catalog import Catalog, FailedRequestError
 from agon_ratings.models import OverallRating
 
-logger = logging.getLogger("geonode.layers.models")
+logger = logging.getLogger("geonode.core.layers.models")
 
 class Style(models.Model):
     """Model for storing styles.
@@ -385,13 +385,13 @@ class Layer(ResourceBase):
         self.bbox_y1 = box[3]
 
     def get_absolute_url(self):
-        return reverse('geonode.layers.views.layer_detail', None, [str(self.typename)])
+        return reverse('geonode.core.layers.views.layer_detail', None, [str(self.typename)])
 
     def tiles_url(self):
         return self.link_set.get(name='Tiles').url
 
     def maps(self):
-        from geonode.maps.models import MapLayer
+        from geonode.core.maps.models import MapLayer
         return  MapLayer.objects.filter(name=self.typename)
 
     @property
@@ -486,7 +486,7 @@ def post_delete_layer(instance, sender, **kwargs):
     Removed the layer from any associated map, if any.
     Remove the layer default style.
     """
-    from geonode.maps.models import MapLayer
+    from geonode.core.maps.models import MapLayer
     logger.debug("Going to delete associated maplayers for [%s]", instance.typename.encode('utf-8'))
     MapLayer.objects.filter(name=instance.typename).delete()
     logger.debug("Going to delete the default style for [%s]", instance.typename.encode('utf-8'))

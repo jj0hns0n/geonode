@@ -26,7 +26,7 @@ from django.conf import settings
 from django.db.models import signals
 from django.contrib.auth.models import User
 
-from geonode.layers.models import Layer
+from geonode.core.layers.models import Layer
 
 activity = None
 if "actstream" in settings.INSTALLED_APPS:

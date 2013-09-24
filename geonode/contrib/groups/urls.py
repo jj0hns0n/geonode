@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import *
 
 
-urlpatterns = patterns('geonode.groups.views',
+urlpatterns = patterns('geonode.contrib.groups.views',
     url(r'^$', 'group_list', name="group_list"),
     url(r'^create/$', 'group_create', name="group_create"),
     url(r'^group/(?P<slug>[-\w]+)/$', 'group_detail', name='group_detail'),

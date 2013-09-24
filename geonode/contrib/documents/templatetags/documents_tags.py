@@ -1,6 +1,6 @@
 from django import template
  
-from geonode.documents.models import Document
+from geonode.contrib.documents.models import Document
 
 
 register = template.Library()

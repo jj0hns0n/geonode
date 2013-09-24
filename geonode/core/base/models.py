@@ -11,12 +11,12 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from django.contrib.staticfiles.templatetags import staticfiles
 
-from geonode.base.enumerations import ALL_LANGUAGES, \
+from geonode.core.base.enumerations import ALL_LANGUAGES, \
     HIERARCHY_LEVELS, UPDATE_FREQUENCIES, \
     DEFAULT_SUPPLEMENTAL_INFORMATION, LINK_TYPES
 from geonode.utils import bbox_to_wkt
-from geonode.people.models import Profile, Role
-from geonode.security.models import PermissionLevelMixin
+from geonode.core.people.models import Profile, Role
+from geonode.core.security.models import PermissionLevelMixin
 
 from taggit.managers import TaggableManager
 

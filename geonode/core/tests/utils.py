@@ -19,7 +19,7 @@
 
 import urllib, urllib2, cookielib
 import contextlib
-from geonode.maps.models import Layer
+from geonode.core.maps.models import Layer
 
 def get_web_page(url, username=None, password=None, login_url=None):
     """Get url page possible with username and password.

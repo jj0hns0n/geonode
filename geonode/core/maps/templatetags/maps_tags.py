@@ -1,6 +1,6 @@
 from django import template
 
-from geonode.maps.models import Map
+from geonode.core.maps.models import Map
 
 
 register = template.Library()

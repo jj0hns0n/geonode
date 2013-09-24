@@ -1,4 +1,4 @@
-from geonode.portals.views import flatpage
+from geonode.contrib.portals.views import flatpage
 from django.http import Http404
 from django.conf import settings
 

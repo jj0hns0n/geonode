@@ -3,13 +3,13 @@ To run these tests, make sure a test db is setup:
 
 Create the admin user as per the above account credentials
 
-Run geoserver. Make sure that geonode.upload is in INSTALLED_APPS:
+Run geoserver. Make sure that geonode.core.upload is in INSTALLED_APPS:
 
   paver start_geoserver
 
 While geoserver is running, run tests:
 
-  REUSE_DB=1 python manage.py test geonode.upload.tests.integration
+  REUSE_DB=1 python manage.py test geonode.core.upload.tests.integration
 
 These tests will internally run a django server and modify the settings as
 needed to adjust differences in configuration.
@@ -17,7 +17,7 @@ needed to adjust differences in configuration.
 The upload tests will load a settings module to allow specification of a postgres
 database other than what you might use for other local purposes. This module is:
 
-  geonode.upload.tests.local_settings
+  geonode.core.upload.tests.local_settings
 
 If the `local_settings` or standard django settings do not set the name of the OGC_SERVER DATASTORE option,
 the importer tests that import into the database will not run.
@@ -25,10 +25,10 @@ the importer tests that import into the database will not run.
 The `test_settings` module must also be supplied when launching the tests to run
 the full suite including the DATASTORE tests:
 
-  DJANGO_SETTINGS_MODULE=geonode.upload.tests.test_settings python manage.py test geonode.upload.tests.integration
+  DJANGO_SETTINGS_MODULE=geonode.core.upload.tests.test_settings python manage.py test geonode.core.upload.tests.integration
 
 If there are existing layers in the test database, the tests will not run unless
 the environment variable `DELETE_LAYERS` is present. For example:
 
-  DELETE_LAYERS= python manage.py test geonode.upload.integrationtests
+  DELETE_LAYERS= python manage.py test geonode.core.upload.integrationtests
 

@@ -22,10 +22,10 @@ import os
 from unittest import TestCase
 from lxml import etree
 import gisdata
-from geonode.catalogue import get_catalogue
+from geonode.core.catalogue import get_catalogue
 
 class GeoNodeCSWTest(TestCase):
-    """Tests geonode.catalogue app/module"""
+    """Tests geonode.core.catalogue app/module"""
 
     def setUp(self):
         #call_command('loaddata', 'sample_admin', verbosity=0)

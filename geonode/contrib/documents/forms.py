@@ -3,8 +3,8 @@ import taggit
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from geonode.people.models import Profile
-from geonode.documents.models import Document
+from geonode.core.people.models import Profile
+from geonode.contrib.documents.models import Document
 
 class DocumentForm(forms.ModelForm):
     date = forms.DateTimeField(widget=forms.SplitDateTimeWidget)

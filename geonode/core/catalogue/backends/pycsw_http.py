@@ -17,7 +17,7 @@
 #
 #########################################################################
 
-from geonode.catalogue.backends.generic import CatalogueBackend \
+from geonode.core.catalogue.backends.generic import CatalogueBackend \
     as GenericCatalogueBackend
 
 

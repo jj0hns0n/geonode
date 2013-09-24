@@ -14,12 +14,12 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 
-from geonode.maps.models import Map
-from geonode.documents.models import Document
-from geonode.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
-import geonode.documents.views
-import geonode.security
-from geonode.search.populate_search_test_data import create_models
+from geonode.core.maps.models import Map
+from geonode.contrib.documents.models import Document
+from geonode.core.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
+import geonode.contrib.documents.views
+import geonode.core.security
+from geonode.core.search.populate_search_test_data import create_models
 
 imgfile = StringIO.StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                                 '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
@@ -124,7 +124,7 @@ class LayersTest(TestCase):
         document = Document.objects.all()[0]
        
         # Set the Permissions
-        geonode.documents.views.document_set_permissions(document, self.perm_spec)
+        geonode.contrib.documents.views.document_set_permissions(document, self.perm_spec)
 
         # Test that the Permissions for ANONYMOUS_USERS and AUTHENTICATED_USERS were set correctly        
         self.assertEqual(document.get_gen_level(ANONYMOUS_USERS), document.LEVEL_NONE) 
@@ -138,7 +138,7 @@ class LayersTest(TestCase):
        
         # Test that the User permissions specified in the perm_spec were applied properly
         for username, level in self.perm_spec['users']:
-            user = geonode.maps.models.User.objects.get(username=username)
+            user = geonode.core.maps.models.User.objects.get(username=username)
             self.assertEqual(document.get_user_level(user), level)    
 
     def test_ajax_document_permissions(self):

@@ -20,7 +20,7 @@
 from django.conf.urls.defaults import patterns, url
 
 
-urlpatterns = patterns('geonode.search.views',
+urlpatterns = patterns('geonode.core.search.views',
     url(r'^$', 'search_page', name='search'),
     url(r'^html$', 'search_page', {'template': 'search/search_content.html'}, name='search_content'),
     url(r'^api$', 'search_api', name='search_api'),
@@ -30,7 +30,7 @@ urlpatterns = patterns('geonode.search.views',
     url(r'^api/authors$', 'author_list', name='search_api_author_list'),
     url(r'^advanced/$', 'advanced_search', name='advanced_search'), 
     # Haystack ones
-    #url(r"^$", "geonode.search.views.search", name="search"),
-    #url(r"^api/$", "geonode.search.views.search_api", name="search_api"),
+    #url(r"^$", "geonode.core.search.views.search", name="search"),
+    #url(r"^api/$", "geonode.core.search.views.search_api", name="search_api"),
     url(r'^form/$', 'advanced_search', name='advanced_search'), 
 )

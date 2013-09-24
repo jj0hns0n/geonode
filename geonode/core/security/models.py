@@ -26,7 +26,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import login
 
-from geonode.security.enumerations import GENERIC_GROUP_NAMES
+from geonode.core.security.enumerations import GENERIC_GROUP_NAMES
 
 class ObjectRoleManager(models.Manager):
     def get_by_natural_key(self, codename, app_label, model):

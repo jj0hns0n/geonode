@@ -23,10 +23,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.template import defaultfilters
 
-from geonode.layers.models import Layer
-from geonode.maps.models import Map
-from geonode.documents.models import Document
-from geonode.search import extension
+from geonode.core.layers.models import Layer
+from geonode.core.maps.models import Map
+from geonode.contrib.documents.models import Document
+from geonode.core.search import extension
 
 from agon_ratings.categories import RATING_CATEGORY_LOOKUP
 from agon_ratings.models import OverallRating

@@ -24,11 +24,11 @@ from datetime import timedelta
 from django.core.serializers import serialize
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from geonode.layers.models import Layer
-from geonode.base.models import TopicCategory
-from geonode.maps.models import Map
-from geonode.documents.models import Document
-from geonode.people.models import Profile
+from geonode.core.layers.models import Layer
+from geonode.core.base.models import TopicCategory
+from geonode.core.maps.models import Map
+from geonode.contrib.documents.models import Document
+from geonode.core.people.models import Profile
 from itertools import cycle
 from taggit.models import Tag
 from taggit.models import TaggedItem

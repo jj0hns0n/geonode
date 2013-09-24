@@ -20,7 +20,7 @@
 
 import taggit
 from django import forms
-from geonode.maps.models import Map
+from geonode.core.maps.models import Map
 from django.utils.translation import ugettext_lazy as _
 
 

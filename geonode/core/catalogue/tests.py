@@ -18,7 +18,7 @@
 #########################################################################
 
 from django.test import TestCase
-from geonode.catalogue import get_catalogue
+from geonode.core.catalogue import get_catalogue
 
 class CatalogueTest(TestCase):
     def test_get_catalog(self):

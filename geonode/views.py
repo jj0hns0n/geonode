@@ -28,7 +28,7 @@ from django.db.models import Q
 from geonode.utils import ogc_server_settings
 
 def index(request, template='index.html'):
-    from geonode.search.views import search_page
+    from geonode.core.search.views import search_page
     post = request.POST.copy()
     post.update({'type': 'layer'})
     request.POST = post

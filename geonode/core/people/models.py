@@ -29,8 +29,8 @@ from django.contrib.auth.models import User, Permission
 
 from taggit.managers import TaggableManager
 
-from geonode.base.enumerations import COUNTRIES
-from geonode.people.enumerations import ROLE_VALUES
+from geonode.core.base.enumerations import COUNTRIES
+from geonode.core.people.enumerations import ROLE_VALUES
 
 class Role(models.Model):
     """

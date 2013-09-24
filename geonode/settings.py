@@ -204,7 +204,7 @@ MIDDLEWARE_CLASSES = (
     'django_hosts.middleware.HostsMiddleware',
     'pagination.middleware.PaginationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'geonode.portals.middleware.FlatpageFallbackMiddleware',
+    'geonode.contrib.portals.middleware.FlatpageFallbackMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'geonode.middleware.PrintProxyMiddleware',
 )
@@ -379,13 +379,13 @@ CATALOGUE = {
     'default': {
         # The underlying CSW implementation
         # default is pycsw in local mode (tied directly to GeoNode Django DB)
-        'ENGINE': 'geonode.catalogue.backends.pycsw_local',
+        'ENGINE': 'geonode.core.catalogue.backends.pycsw_local',
         # pycsw in non-local mode
-        #'ENGINE': 'geonode.catalogue.backends.pycsw_http',
+        #'ENGINE': 'geonode.core.catalogue.backends.pycsw_http',
         # GeoNetwork opensource
-        #'ENGINE': 'geonode.catalogue.backends.geonetwork',
+        #'ENGINE': 'geonode.core.catalogue.backends.geonetwork',
         # deegree and others
-        #'ENGINE': 'geonode.catalogue.backends.generic',
+        #'ENGINE': 'geonode.core.catalogue.backends.generic',
 
         # The FULLY QUALIFIED base url to the CSW instance for this GeoNode
         'URL': '%scatalogue/csw' % SITEURL,
@@ -540,7 +540,7 @@ HAYSTACK_CONNECTIONS = {
 
 # Replacement of default authentication backend in order to support
 # permissions per object.
-AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
+AUTHENTICATION_BACKENDS = ('geonode.core.security.auth.GranularBackend',)
 
 # Require users to authenticate before using Geonode
 LOCKDOWN_GEONODE = False
@@ -549,7 +549,7 @@ LOCKDOWN_GEONODE = False
 AUTH_EXEMPT_URLS = ()
 
 if LOCKDOWN_GEONODE:
-    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('geonode.security.middleware.LoginRequiredMiddleware',)
+    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('geonode.core.security.middleware.LoginRequiredMiddleware',)
 
 # allows/inhibits data download (just display or not the link in layer info page)
 ALLOW_DATA_DOWNLOAD = True

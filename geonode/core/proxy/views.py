@@ -89,7 +89,7 @@ def geoserver_rest_proxy(request, proxy_path, downstream_path):
     if downstream_path == 'rest/styles' and len(request.raw_post_data)>0:
         # for some reason sometime gxp sends a put with empty request
         # need to figure out with Bart
-        from geonode.layers import utils
+        from geonode.core.layers import utils
         utils.style_update(request, url)
 
     return HttpResponse(

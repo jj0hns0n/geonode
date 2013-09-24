@@ -16,10 +16,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
-from geonode.maps.models import Layer
+from geonode.core.maps.models import Layer
 
 from geonode.geoserver.uploader.uploader import NotFound
-from geonode.upload.utils import gs_uploader
+from geonode.core.upload.utils import gs_uploader
 from geonode.utils import ogc_server_settings
 
 from django.conf import settings

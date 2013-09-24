@@ -19,8 +19,8 @@
 #########################################################################
 
 from django.contrib import admin
-from geonode.people.models import Profile, Role
-from geonode.base.models import ContactRole
+from geonode.core.people.models import Profile, Role
+from geonode.core.base.models import ContactRole
 
 class ContactRoleInline(admin.TabularInline):
     model = ContactRole

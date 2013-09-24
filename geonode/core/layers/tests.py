@@ -36,28 +36,28 @@ from django.core.urlresolvers import reverse
 from django.db.models import Count
 from agon_ratings.models import OverallRating
 
-import geonode.layers.utils
-import geonode.layers.views
-import geonode.layers.models
+import geonode.core.layers.utils
+import geonode.core.layers.views
+import geonode.core.layers.models
 
 from geonode import GeoNodeException
-from geonode.layers.models import post_save_layer
-from geonode.layers.models import Layer
+from geonode.core.layers.models import post_save_layer
+from geonode.core.layers.models import Layer
 
-from geonode.layers.models import Layer, Style
-from geonode.layers.forms import JSONField, LayerUploadForm
-from geonode.layers.utils import layer_type, get_files, get_valid_name, \
+from geonode.core.layers.models import Layer, Style
+from geonode.core.layers.forms import JSONField, LayerUploadForm
+from geonode.core.layers.utils import layer_type, get_files, get_valid_name, \
                                 get_valid_layer_name
-from geonode.people.utils import get_valid_user
-from geonode.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
-from geonode.base.models import TopicCategory
-from geonode.search.populate_search_test_data import create_models
+from geonode.core.people.utils import get_valid_user
+from geonode.core.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
+from geonode.core.base.models import TopicCategory
+from geonode.core.search.populate_search_test_data import create_models
 from .populate_layers_data import create_layer_data
 
 from geoserver.resource import FeatureType, Coverage
 
 class LayersTest(TestCase):
-    """Tests geonode.layers app/module
+    """Tests geonode.core.layers app/module
     """
 
     fixtures = ['initial_data.json']
@@ -129,7 +129,7 @@ class LayersTest(TestCase):
 
         # Set the Permissions
 
-        geonode.layers.utils.set_object_permissions(layer, self.perm_spec)
+        geonode.core.layers.utils.set_object_permissions(layer, self.perm_spec)
 
         # Test that the Permissions for ANONYMOUS_USERS and AUTHENTICATED_USERS were set correctly
         self.assertEqual(layer.get_gen_level(ANONYMOUS_USERS), layer.LEVEL_NONE)
@@ -154,7 +154,7 @@ class LayersTest(TestCase):
             try:
                 group = Group.objects.get(name=name)
             except Group.DoesNotExist:
-                user = geonode.maps.models.User.objects.get(username=name)
+                user = geonode.core.maps.models.User.objects.get(username=name)
             if user:
                 self.assertEqual(layer.get_user_level(user), level)
             else:
@@ -261,7 +261,7 @@ class LayersTest(TestCase):
         # belong to group2 which is mentioned as read_only, so robert should have
         # read_only access
         layer = Layer.objects.all()[0]
-        geonode.layers.views.set_object_permissions(layer, self.perm_spec) 
+        geonode.core.layers.views.set_object_permissions(layer, self.perm_spec) 
         c.login(username='robert', password='bob')
         response = c.get(reverse('layer_acls'))
         response_json = json.loads(response.content)
@@ -311,7 +311,7 @@ class LayersTest(TestCase):
         # Test with a Layer object
         layer = Layer.objects.all()[0]
         layer_info = layer.get_all_level_info()
-        info = geonode.security.views._perms_info(layer, geonode.layers.views.LAYER_LEV_NAMES)
+        info = geonode.core.security.views._perms_info(layer, geonode.core.layers.views.LAYER_LEV_NAMES)
 
         # Test that ANONYMOUS_USERS and AUTHENTICATED_USERS are set properly
         self.assertEqual(info[ANONYMOUS_USERS], layer.LEVEL_READ)

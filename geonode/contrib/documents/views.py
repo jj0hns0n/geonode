@@ -15,14 +15,14 @@ from django.core.exceptions import PermissionDenied
 from django_downloadview.response import DownloadResponse
 
 from geonode.utils import resolve_object
-from geonode.maps.views import _perms_info
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.maps.models import Map
-from geonode.layers.models import Layer
-from geonode.people.forms import ProfileForm
+from geonode.core.maps.views import _perms_info
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.maps.models import Map
+from geonode.core.layers.models import Layer
+from geonode.core.people.forms import ProfileForm
 
-from geonode.documents.models import Document
-from geonode.documents.forms import DocumentForm
+from geonode.contrib.documents.models import Document
+from geonode.contrib.documents.forms import DocumentForm
 
 IMGTYPES = ['jpg','jpeg','tif','tiff','png','gif']
 
@@ -50,7 +50,7 @@ def _resolve_document(request, docid, permission='layers.change_layer',
                           permission = permission, permission_msg=msg, **kwargs)
 
 def document_list(request, template='documents/document_list.html'):
-    from geonode.search.views import search_page
+    from geonode.core.search.views import search_page
     post = request.POST.copy()
     post.update({'type': 'document'})
     request.POST = post

@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.utils import simplejson as json
 
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.utils import ogc_server_settings
 
 class PrintProxyMiddleware(object):

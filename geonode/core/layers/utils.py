@@ -38,15 +38,15 @@ from django.conf import settings
 # Geonode functionality
 from geonode import GeoNodeException
 from geonode.utils import check_geonode_is_up
-from geonode.people.utils import get_valid_user
-from geonode.layers.models import Layer, Style
-from geonode.people.models import Profile
+from geonode.core.people.utils import get_valid_user
+from geonode.core.layers.models import Layer, Style
+from geonode.core.people.models import Profile
 from geonode.geoserver.helpers import cascading_delete, get_sld_for, delete_from_postgis
-from geonode.layers.metadata import set_metadata
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.base.models import SpatialRepresentationType
+from geonode.core.layers.metadata import set_metadata
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.base.models import SpatialRepresentationType
 from geonode.utils import ogc_server_settings
-from geonode.upload.files import _clean_string
+from geonode.core.upload.files import _clean_string
 # Geoserver functionality
 import geoserver
 from geoserver.catalog import FailedRequestError, UploadError
@@ -54,7 +54,7 @@ from geoserver.catalog import ConflictingDataError
 from geoserver.resource import FeatureType, Coverage
 from zipfile import ZipFile
 
-logger = logging.getLogger('geonode.layers.utils')
+logger = logging.getLogger('geonode.core.layers.utils')
 
 _separator = '\n' + ('-' * 100) + '\n'
 
@@ -264,8 +264,8 @@ def cleanup(name, uuid):
     logger.warning('Deleting dangling Catalogue record for [%s] '
                    '(no Django record to match)', name)
 
-    if 'geonode.catalogue' in settings.INSTALLED_APPS:
-        from geonode.catalogue import get_catalogue
+    if 'geonode.core.catalogue' in settings.INSTALLED_APPS:
+        from geonode.core.catalogue import get_catalogue
         catalogue = get_catalogue()
         catalogue.remove_record(uuid)
         logger.warning('Finished cleanup after failed Catalogue/Django '
@@ -541,7 +541,7 @@ def save(layer, base_file, user, overwrite=True, title=None,
     except NotImplementedError, e:
         logger.exception('>>> FIXME: Please, if you can write python code, '
                          'implement "verify()" '
-                         'method in geonode.maps.models.Layer')
+                         'method in geonode.core.maps.models.Layer')
     except GeoNodeException, e:
         msg = ('The layer [%s] was not correctly saved to '
                'Catalogue/GeoServer. Error is: %s' % (layer, str(e)))

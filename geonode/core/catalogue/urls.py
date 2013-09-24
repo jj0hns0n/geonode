@@ -20,6 +20,6 @@
 
 from django.conf.urls.defaults import patterns, url
 
-urlpatterns = patterns('geonode.catalogue.views',
+urlpatterns = patterns('geonode.core.catalogue.views',
     url(r'^csw$', 'csw_global_dispatch', name='csw_global_dispatch'),
 )

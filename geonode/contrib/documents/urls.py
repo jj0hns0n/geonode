@@ -21,10 +21,10 @@
 from django.conf.urls.defaults import patterns, url
 
 js_info_dict = {
-    'packages': ('geonode.documents',),
+    'packages': ('geonode.contrib.documents',),
 }
 
-urlpatterns = patterns('geonode.documents.views',
+urlpatterns = patterns('geonode.contrib.documents.views',
     url(r'^$', 'document_list', name='documents_browse'),
     url(r'^tag/(?P<slug>[-\w]+?)/$', 'document_tag', name='document_browse_tag'),
     url(r'^(?P<docid>\d+)/?$', 'document_detail', name='document_detail'),

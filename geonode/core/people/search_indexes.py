@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 
 from haystack import indexes
 
-from geonode.people.models import Contact 
+from geonode.core.people.models import Contact 
 
 class ContactIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)

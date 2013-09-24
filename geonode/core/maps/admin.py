@@ -18,7 +18,7 @@
 #
 #########################################################################
 
-from geonode.maps.models import Map, MapLayer
+from geonode.core.maps.models import Map, MapLayer
 from django.contrib import admin
 
 class MapLayerInline(admin.TabularInline):

@@ -1,5 +1,5 @@
 from modeltranslation.translator import translator, TranslationOptions
-from geonode.base.models import TopicCategory, SpatialRepresentationType, Region, RestrictionCodeType, ResourceBase
+from geonode.core.base.models import TopicCategory, SpatialRepresentationType, Region, RestrictionCodeType, ResourceBase
 
 class TopicCategoryTranslationOptions(TranslationOptions):
     fields = ('description', 'gn_description',)

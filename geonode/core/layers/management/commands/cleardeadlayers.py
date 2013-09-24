@@ -20,7 +20,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models.signals import pre_delete
-from geonode.layers.models import Layer, geoserver_pre_delete
+from geonode.core.layers.models import Layer, geoserver_pre_delete
 
 from urllib2 import URLError
 

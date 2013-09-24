@@ -32,20 +32,20 @@ State is stored in a UploaderSession object stored in the user's session.
 This needs to be made more stateful by adding a model.
 """
 from geonode.geoserver.helpers import get_sld_for
-from geonode.base.models import SpatialRepresentationType
-from geonode.layers.utils import get_valid_layer_name
-from geonode.layers.utils import layer_type
-from geonode.layers.metadata import set_metadata
-from geonode.layers.models import Layer
-from geonode.layers.utils import set_object_permissions 
-from geonode.people.models import Profile 
+from geonode.core.base.models import SpatialRepresentationType
+from geonode.core.layers.utils import get_valid_layer_name
+from geonode.core.layers.utils import layer_type
+from geonode.core.layers.metadata import set_metadata
+from geonode.core.layers.models import Layer
+from geonode.core.layers.utils import set_object_permissions 
+from geonode.core.people.models import Profile 
 from geonode import GeoNodeException
-from geonode.people.utils import get_default_user
-from geonode.upload.models import Upload
-from geonode.upload import signals
-from geonode.upload.utils import create_geoserver_db_featurestore
-from geonode.upload.utils import find_file_re
-from geonode.upload.utils import gs_uploader
+from geonode.core.people.utils import get_default_user
+from geonode.core.upload.models import Upload
+from geonode.core.upload import signals
+from geonode.core.upload.utils import create_geoserver_db_featurestore
+from geonode.core.upload.utils import find_file_re
+from geonode.core.upload.utils import gs_uploader
 from geonode.utils import ogc_server_settings
 
 import geoserver

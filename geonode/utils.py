@@ -33,7 +33,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import simplejson as json
 from owslib.wms import WebMapService
 from django.http import HttpResponse
-from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS, INVALID_PERMISSION_MESSAGE
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS, INVALID_PERMISSION_MESSAGE
 
 
 class ServerDoesNotExist(Exception):
@@ -586,7 +586,7 @@ class GXPLayerBase(object):
 
         The "source" property will be left unset; the layer is not aware of the
         name assigned to its source plugin.  See
-        geonode.maps.models.Map.viewer_json for an example of
+        geonode.core.maps.models.Map.viewer_json for an example of
         generating a full map configuration.
         """
         try:

@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from geonode.maps.models import Layer
+from geonode.core.maps.models import Layer
 from .models import Document, Flatpage, Link, Portal, PortalContextItem, PortalDataset, PortalMap
 
 

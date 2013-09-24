@@ -23,8 +23,8 @@ from django.conf import settings
 from ConfigParser import SafeConfigParser
 from owslib.iso import MD_Metadata
 from pycsw import server
-from geonode.catalogue.backends.generic import CatalogueBackend as GenericCatalogueBackend
-from geonode.catalogue.backends.generic import METADATA_FORMATS
+from geonode.core.catalogue.backends.generic import CatalogueBackend as GenericCatalogueBackend
+from geonode.core.catalogue.backends.generic import METADATA_FORMATS
 
 # pycsw settings that the user shouldn't have to worry about
 CONFIGURATION = {

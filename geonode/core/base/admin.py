@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from geonode.base.models import TopicCategory, ContactRole, ResourceBase, Link, Thumbnail
-from geonode.base.models import (TopicCategory, SpatialRepresentationType,
+from geonode.core.base.models import TopicCategory, ContactRole, ResourceBase, Link, Thumbnail
+from geonode.core.base.models import (TopicCategory, SpatialRepresentationType,
     Region, RestrictionCodeType, ContactRole, ResourceBase, Link)
 
 class ResourceBaseAdmin(admin.ModelAdmin):

@@ -13,8 +13,8 @@ from django.contrib.sites.models import Site
 
 from taggit.managers import TaggableManager
 
-from geonode.layers.models import Layer
-from geonode.maps.models import Map
+from geonode.core.layers.models import Layer
+from geonode.core.maps.models import Map
 
 
 class Group(models.Model):

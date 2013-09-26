@@ -22,23 +22,23 @@ class Service(models.Model, PermissionLevelMixin):
     
     type = models.CharField(max_length=4, choices=SERVICE_TYPES)
     method = models.CharField(max_length=1, choices=SERVICE_METHODS)
-    base_url = models.URLField(verify_exists=False, unique=True) # with service, version and request etc stripped off 
+    base_url = models.URLField(unique=True) # with service, version and request etc stripped off 
     version = models.CharField(max_length=10, null=True, blank=True)
     name = models.CharField(max_length=255, unique=True) #Should force to slug?
     title = models.CharField(max_length=255, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
     abstract = models.TextField(null=True, blank=True)
     keywords = models.TextField(null=True, blank=True)
-    online_resource = models.URLField(verify_exists = False, null=True, blank=True)
+    online_resource = models.URLField(False, null=True, blank=True)
     fees = models.CharField(max_length=1000, null=True, blank=True)
     access_contraints = models.CharField(max_length=255, null=True, blank=True)
     connection_params = models.TextField(null=True, blank=True)
     username = models.CharField(max_length=50, null=True, blank=True)
     password = models.CharField(max_length=50, null=True, blank=True)
     api_key = models.CharField(max_length=255, null=True, blank=True)
-    workspace_ref = models.URLField(verify_exists = False, null=True, blank=True)
-    store_ref = models.URLField(verify_exists = False, null=True, blank=True)
-    resources_ref = models.URLField(verify_exists = False, null = True, blank = True)
+    workspace_ref = models.URLField(False, null=True, blank=True)
+    store_ref = models.URLField(null=True, blank=True)
+    resources_ref = models.URLField(null = True, blank = True)
     contacts = models.ManyToManyField(Contact, through='ServiceContactRole')
     owner = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)

@@ -145,6 +145,9 @@ TEMPLATE_DIRS = (
 # Location of url mappings
 ROOT_URLCONF = 'geonode.urls'
 
+def get_user_url(u):
+    return u.profile.get_absolute_url()
+
 ABSOLUTE_URL_OVERRIDES = {
     'auth.user': get_user_url
 }
@@ -159,9 +162,6 @@ DEFAULT_HOST = 'www'
 
 # Site id in the Django sites framework
 SITE_ID = 1
-
-def get_user_url(u):
-    return u.profile.get_absolute_url()
 
 # Test Settings
 
@@ -232,11 +232,11 @@ INSTALLED_APPS = (
     'django_extensions',
     'friendlytagloader',
     'geoexplorer',
-    'haystack',
-    'leaflet',
-    'modeltranslation',
+    #'haystack',
+    #'leaflet',
+    #'modeltranslation',
     'pagination',
-    'request',
+    #'request',
     'south',
     'taggit',
     'taggit_templatetags',
@@ -527,13 +527,13 @@ CACHE_TIME=0
 DEFAULT_SEARCH_SIZE = 10
 
 # Haystack Search Backend Configuration
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://127.0.0.1:9200/',
-        'INDEX_NAME': 'haystack',
-    },
-}
+#HAYSTACK_CONNECTIONS = {
+#    'default': {
+#        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+#        'URL': 'http://127.0.0.1:9200/',
+#        'INDEX_NAME': 'haystack',
+#    },
+#}
 
 # GeoNode Security Settings
 

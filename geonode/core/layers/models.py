@@ -36,7 +36,7 @@ from django.core.urlresolvers import reverse
 
 from geonode import GeoNodeException
 from geonode.utils import _wms, _user, _password, get_wms, bbox_to_wkt
-from geonode.gs_helpers import cascading_delete
+from geonode.core.geoserver.helpers import cascading_delete
 from geonode.contrib.services.models import Service
 from geonode.core.people.models import Profile, Role
 from geonode.core.security.models import PermissionLevelMixin

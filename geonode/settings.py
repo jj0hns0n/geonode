@@ -274,7 +274,7 @@ INSTALLED_APPS = (
     'geonode.contrib.groups',
     'geonode.contrib.portals',
     'geonode.contrib.printing',
-    #'geonode.contrib.services',
+    'geonode.contrib.services',
 )
 
 # Logging Settings

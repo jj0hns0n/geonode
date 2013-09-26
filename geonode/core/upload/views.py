@@ -40,7 +40,7 @@ from geonode.core.upload.utils import rename_and_prepare, find_sld, get_upload_t
 from geonode.core.upload.forms import UploadFileForm
 from geonode.core.base.enumerations import CHARSETS
 from geonode.utils import ogc_server_settings
-from geonode.geoserver.uploader import uploader
+from geonode.core.geoserver.uploader import uploader
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied

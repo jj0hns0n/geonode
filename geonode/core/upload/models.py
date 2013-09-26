@@ -18,7 +18,7 @@
 #########################################################################
 from geonode.core.maps.models import Layer
 
-from geonode.geoserver.uploader.uploader import NotFound
+from geonode.core.geoserver.uploader.uploader import NotFound
 from geonode.core.upload.utils import gs_uploader
 from geonode.utils import ogc_server_settings
 

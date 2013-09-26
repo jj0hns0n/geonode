@@ -20,7 +20,7 @@
 from django.core.management.base import BaseCommand
 from optparse import make_option
 from geonode.core.people.utils import get_valid_user
-from geonode.geoserver.helpers import gs_slurp
+from geonode.core.geoserver.helpers import gs_slurp
 import traceback
 import datetime
 import sys

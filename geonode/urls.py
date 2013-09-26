@@ -76,7 +76,7 @@ urlpatterns = patterns('',
     (r'^upload/', include('geonode.core.upload.urls')),
 
     # GeoServer Helper Views 
-    (r'^gs/', include('geonode.geoserver.urls')),
+    (r'^gs/', include('geonode.core.geoserver.urls')),
 
     # Social views
     (r"^account/", include("account.urls")),

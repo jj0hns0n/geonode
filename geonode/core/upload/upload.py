@@ -31,7 +31,7 @@ or return response objects.
 State is stored in a UploaderSession object stored in the user's session.
 This needs to be made more stateful by adding a model.
 """
-from geonode.geoserver.helpers import get_sld_for
+from geonode.core.geoserver.helpers import get_sld_for
 from geonode.core.base.models import SpatialRepresentationType
 from geonode.core.layers.utils import get_valid_layer_name
 from geonode.core.layers.utils import layer_type
@@ -51,7 +51,7 @@ from geonode.utils import ogc_server_settings
 import geoserver
 from geoserver.resource import Coverage
 from geoserver.resource import FeatureType
-from geonode.geoserver.uploader.uploader import BadRequest
+from geonode.core.geoserver.uploader.uploader import BadRequest
 
 from django.conf import settings
 from django.contrib.auth.models import User

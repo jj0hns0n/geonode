@@ -41,7 +41,7 @@ from geonode.utils import check_geonode_is_up
 from geonode.core.people.utils import get_valid_user
 from geonode.core.layers.models import Layer, Style
 from geonode.core.people.models import Profile
-from geonode.geoserver.helpers import cascading_delete, get_sld_for, delete_from_postgis
+from geonode.core.geoserver.helpers import cascading_delete, get_sld_for, delete_from_postgis
 from geonode.core.layers.metadata import set_metadata
 from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.core.base.models import SpatialRepresentationType

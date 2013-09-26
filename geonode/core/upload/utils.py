@@ -24,7 +24,7 @@ from zipfile import ZipFile
 
 from django.conf import settings
 
-from geonode.geoserver.uploader.uploader import Uploader
+from geonode.core.geoserver.uploader.uploader import Uploader
 from geonode.core.layers.models import Layer
 from geonode.core.upload.files import _clean_string
 from geonode.utils import _user, _password

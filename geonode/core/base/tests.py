@@ -40,7 +40,7 @@ class UtilsTests(TestCase):
 
         OGC_SERVER = {
             'default': {
-                'BACKEND': 'geonode.geoserver',
+                'BACKEND': 'geonode.core.geoserver',
                 'LOCATION': 'http://localhost:8080/geoserver/',
                 'PUBLIC_LOCATION' : 'http://localhost:8080/geoserver/',
                 'USER': 'admin',
@@ -86,7 +86,7 @@ class UtilsTests(TestCase):
 
         EXPECTATION ={
             'default' : {
-                    'BACKEND' : 'geonode.geoserver',
+                    'BACKEND' : 'geonode.core.geoserver',
                     'LOCATION' : 'http://localhost:8080/geoserver/',
                     'PUBLIC_LOCATION' : 'http://localhost:8080/geoserver/',
                     'USER' : 'admin',

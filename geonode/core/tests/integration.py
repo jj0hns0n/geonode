@@ -50,7 +50,7 @@ from .utils import check_layer, get_web_page
 
 from geonode.core.maps.utils import *
 
-from geonode.geoserver.helpers import cascading_delete, fixup_style
+from geonode.core.geoserver.helpers import cascading_delete, fixup_style
 
 from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
 
@@ -460,7 +460,7 @@ class GeoNodeMapTest(TestCase):
         self.assertRaises(ObjectDoesNotExist,
             lambda: Layer.objects.get(pk=shp_layer_id))
 
-    # geonode.geoserver.helpers
+    # geonode.core.geoserver.helpers
         # If catalogue is installed, then check that it is deleted from there too.
         if 'geonode.core.catalogue' in settings.INSTALLED_APPS:
             from geonode.core.catalogue import get_catalogue

@@ -12,8 +12,8 @@ from django.core.urlresolvers import reverse
 
 from geonode.contrib.services.enumerations import SERVICE_TYPES, SERVICE_METHODS
 from geonode.core.security.models import PermissionLevelMixin
-from geonode.core.security.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
-from geonode.core.people.models import Contact, Role
+from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
+from geonode.core.people.models import Profile, Role
 
 class Service(models.Model, PermissionLevelMixin):
     """
@@ -39,7 +39,7 @@ class Service(models.Model, PermissionLevelMixin):
     workspace_ref = models.URLField(False, null=True, blank=True)
     store_ref = models.URLField(null=True, blank=True)
     resources_ref = models.URLField(null = True, blank = True)
-    contacts = models.ManyToManyField(Contact, through='ServiceContactRole')
+    contacts = models.ManyToManyField(Profile, through='ServiceContactRole')
     owner = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
@@ -90,7 +90,7 @@ class ServiceContactRole(models.Model):
     """
     ServiceContactRole is an intermediate model to bind Contacts and Services and apply roles.
     """
-    contact = models.ForeignKey(Contact)
+    contact = models.ForeignKey(Profile)
     service = models.ForeignKey(Service)
     role = models.ForeignKey(Role)
 

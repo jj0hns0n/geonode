@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from django.conf.urls import patterns
 from django.core.urlresolvers import reverse
-from geonode.geoserver.helpers import cascading_delete
+from geonode.core.geoserver.helpers import cascading_delete
 from geonode.core.layers.models import Layer
 from geonode.core.upload.models import Upload
 from geonode.core.upload.views import _ALLOW_TIME_STEP

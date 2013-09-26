@@ -19,7 +19,7 @@ DATABASES = {
 # OGC (WMS/WFS/WCS) Server Settings
 OGC_SERVER = {
     'default' : {
-        'BACKEND' : 'geonode.geoserver',
+        'BACKEND' : 'geonode.core.geoserver',
         'LOCATION' : GEOSERVER_BASE_URL,
         'USER' : 'admin',
         'PASSWORD' : 'geoserver',

@@ -270,10 +270,10 @@ INSTALLED_APPS = (
     'geonode.core.upload',
 
     # contrib (optional)
-    #'geonode.contrib.documents',
-    #'geonode.contrib.groups',
-    #'geonode.contrib.portals',
-    #'geonode.contrib.printing',
+    'geonode.contrib.documents',
+    'geonode.contrib.groups',
+    'geonode.contrib.portals',
+    'geonode.contrib.printing',
     #'geonode.contrib.services',
 )
 
@@ -346,7 +346,7 @@ LOGGING = {
 # OGC (WMS/WFS/WCS) Server Settings
 OGC_SERVER = {
     'default' : {
-        'BACKEND' : 'geonode.geoserver',
+        'BACKEND' : 'geonode.core.geoserver',
         'LOCATION' : 'http://localhost:8080/geoserver/',
         'PUBLIC_LOCATION' : 'http://localhost:8080/geoserver/',
         'USER' : 'admin',

@@ -206,7 +206,7 @@ MIDDLEWARE_CLASSES = (
     'django_hosts.middleware.HostsMiddleware',
     'pagination.middleware.PaginationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    #'geonode.contrib.portals.middleware.FlatpageFallbackMiddleware',
+    'geonode.contrib.portals.middleware.FlatpageFallbackMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # This middleware allows to print private layers for the users that have 
     # the permissions to view them.
@@ -615,6 +615,8 @@ LOGOUT_URL = '/account/logout/'
 # FIXME(Ariel): I do not know why this setting is needed,
 # it would be best to use the ?next= parameter
 LOGIN_REDIRECT_URL = "/"
+
+APPEND_SLASH = False
 
 # Load more settings from a file called local_settings.py if it exists
 try:

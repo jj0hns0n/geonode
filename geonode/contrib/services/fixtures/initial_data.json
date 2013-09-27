@@ -1,6 +1,6 @@
 [
 {
-    "pk": 7,
+    "pk": 10,
     "model": "security.objectrole",
     "fields": {
         "codename": "service_readonly",
@@ -13,7 +13,7 @@
     }
 },
 {
-    "pk": 8,
+    "pk": 11,
     "model": "security.objectrole",
     "fields": {
         "codename": "service_readwrite",
@@ -28,7 +28,7 @@
 },
 
 {
-    "pk": 9,
+    "pk": 12,
     "model": "security.objectrole",
     "fields": {
         "codename": "service_admin",

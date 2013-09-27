@@ -36,13 +36,15 @@ DATABASES = {
 }
 
 
-GEOSERVER_BASE_URL = SITEURL + 'geoserver/'
+GEOSERVER_URL = SITEURL + 'geoserver/'
 
 # OGC (WMS/WFS/WCS) Server Settings
 OGC_SERVER = {
     'default' : {
         'BACKEND' : 'geonode.core.geoserver',
         'LOCATION' : GEOSERVER_BASE_URL,
+        'BACKEND' : 'geonode.geoserver',
+        'PUBLIC_LOCATION' : GEOSERVER_URL,
         'USER' : 'admin',
         'PASSWORD' : 'geoserver',
         'MAPFISH_PRINT_ENABLED' : True,
@@ -95,7 +97,7 @@ STATICFILES_DIRS = [
 MAP_BASELAYERS = [{
     "source": {
         "ptype": "gxp_wmscsource",
-        "url": GEOSERVER_BASE_URL + "wms",
+        "url": GEOSERVER_URL + "wms",
         "restUrl": "/gs/rest"
      }
   },{

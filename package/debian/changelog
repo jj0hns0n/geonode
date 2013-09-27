@@ -1,3 +1,34 @@
+geonode (2.0.0+beta63) precise; urgency=high
+
+  [ Tyler Garner ]
+  * [3e55e0] Adds the GEOGIT_DATASTORE_DIR settings variable to specify a default location for geogit stores.
+  * [7707c2] Remove PUBLIC_LOCATION from the OGC_SERVER settings test case.
+
+  [ Ariel Nunez ]
+  * [d36d16] GEOSERVER_BASE_URL should point to the public_url
+
+  [ Simone Dalmasso ]
+  * [70192f] put back the PUBLIC_LOCATION to 8080 for dev mode
+
+  [ Ariel Nunez ]
+
+ -- Ariel Nunez <ingenieroariel@gmail.com>  Wed, 25 Sep 2013 14:48:33 +0000
+
+geonode (2.0.0+beta62) precise; urgency=high
+
+  [ Tom Kralidis ]
+  * [c2e4ec] add xsd:double (#1128)
+
+  [ Tyler Garner ]
+  * [7c4fc1] Added missing string formatter.
+
+  [ Ariel Nunez ]
+  * [fd3ff1] Fixed location of geoserver in settings.py
+  * [935125] Fixed geoserver url retrieving in local settings
+  * [59e100] Do not set a default for  PUBLIC_LOCATION, instead the code should default to LOCATION if PUBLIC_LOCATION is not set
+
+ -- Ariel Nunez <ingenieroariel@gmail.com>  Tue, 24 Sep 2013 15:43:04 +0000
+
 geonode (2.0.0+beta61) precise; urgency=high
 
   [ mwengren ]

@@ -8,7 +8,7 @@
 {% if services %}
 <ul>
 {% for service in services %}
-<li><a href='{% url service_detail service.id %}'>{{ service.name }}</a></li>
+<li><a href='{% url "service_detail" service.id %}'>{{ service.name }}</a></li>
 {% endfor %}
 </ul>
 {% else %}

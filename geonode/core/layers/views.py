@@ -175,10 +175,11 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
     layer = _resolve_layer(request, layername, 'layers.view_layer', _PERMISSION_MSG_VIEW)
 
     maplayer = GXPLayer(name = layer.typename, ows_url = ogc_server_settings.public_url + "wms", layer_params=json.dumps( layer.attribute_config()))
+
     if layer.storeType == 'remoteStore':
         maplayer = GXPLayer(name = layer.typename, ows_url = layer.service.base_url)
     else:
-        maplayer = GXPLayer(name = layer.typename, ows_url = settings.GEOSERVER_BASE_URL + "wms", layer_params=json.dumps( layer.attribute_config()))
+        maplayer = GXPLayer(name = layer.typename, ows_url = ogc_server_settings.public_url + "wms", layer_params=json.dumps( layer.attribute_config()))
 
     layer.srid_url = "http://www.spatialreference.org/ref/" + layer.srid.replace(':','/').lower() + "/"
 
@@ -205,7 +206,7 @@ def layer_detail_leaflet(request, layername, template='layers/layer_leaflet_map.
 
     maplayer = { 
         "name": layer.typename, 
-        "ows_url": settings.GEOSERVER_BASE_URL + "wms", 
+        "ows_url": ogc_server_settings.public_url + "wms", 
         "layer_params": layer.attribute_config()
     }
 

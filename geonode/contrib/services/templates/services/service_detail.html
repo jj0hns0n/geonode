@@ -21,11 +21,11 @@ Ext.onReady(function() {
             '_none': '_none'
         },
         renderTo: "permissions_form",
-        userLookup: "{% url geonode.views.ajax_lookup %}",
+        userLookup: "{% url "account_ajax_lookup" %}",
         permissions: {{ permissions_json }},
         listeners: {
             updated: function(perms) {
-                var submitTo = "{% url ajax_service_permissions service.id %}";
+                var submitTo = "{% url "ajax_service_permissions" service.id %}";
                 Ext.Ajax.request({ url: submitTo, jsonData: perms.writePermissions() });
             }
         }

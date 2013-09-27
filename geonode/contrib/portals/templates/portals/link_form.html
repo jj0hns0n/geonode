@@ -6,7 +6,7 @@
 {% block body %}
     <h1>{% if link %}{% trans "Edit Link" %}{% else %}{% trans "Add Link" %}{% endif %}</h1>
 
-    <form action="{% if link %}{% url "portals_edit_link" portal.slug link.pk %}{% else %}{% url portals_add_link portal.slug %}{% endif %}" method="post" id="form-link-form">
+    <form action="{% if link %}{% url "portals_edit_link" portal.slug link.pk %}{% else %}{% url "portals_add_link" portal.slug %}{% endif %}" method="post" id="form-link-form">
         {% csrf_token %}
         {{ form.as_p }}
         <div class="actions">

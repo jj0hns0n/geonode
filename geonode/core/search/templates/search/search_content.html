@@ -13,10 +13,12 @@
     {% with object.o as map %}
       {% include "maps/_map_list_item.html" %}
     {% endwith %}
+  {% comment %}
   {% elif object.o.class_name == 'Document' %}
     {% with object.o as document %}
       {% include "documents/_document_list_item.html" %}
     {% endwith %}
+  {% endcomment %}
   {% elif object.o.class_name == 'Profile' %}
     {% with object as profile %}
       {% include "people/_profile_list_item.html" %}

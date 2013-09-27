@@ -276,11 +276,11 @@ INSTALLED_APPS = (
     'geonode.core.upload',
 
     # contrib (optional)
-    'geonode.contrib.documents',
-    'geonode.contrib.groups',
-    'geonode.contrib.portals',
-    'geonode.contrib.printing',
-    'geonode.contrib.services',
+    #'geonode.contrib.documents',
+    #'geonode.contrib.groups',
+    #'geonode.contrib.portals',
+    #'geonode.contrib.printing',
+    #'geonode.contrib.services',
 )
 
 # Logging Settings

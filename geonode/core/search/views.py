@@ -28,13 +28,13 @@ from django.core.cache import cache
 from geonode.core.maps.views import default_map_config
 from geonode.core.maps.models import Layer
 from geonode.core.maps.models import Map
-from geonode.contrib.documents.models import Document
 from geonode.core.people.models import Profile 
 from geonode.core.search.search import combined_search_results
 from geonode.core.search.util import resolve_extension
 from geonode.core.search.normalizers import apply_normalizers
 from geonode.core.search.query import query_from_request
 from geonode.core.search.query import BadQuery
+#from geonode.contrib.documents.models import Document
 
 from datetime import datetime
 from time import time
@@ -90,7 +90,7 @@ def _get_search_context():
         'layers' : Layer.objects.count(),
         'vector' : Layer.objects.filter(storeType='dataStore').count(),
         'raster' : Layer.objects.filter(storeType='coverageStore').count(),
-        'documents': Document.objects.count(),
+        #'documents': Document.objects.count(),
         'users' : Profile.objects.count()
     }
     topics = Layer.objects.all().values_list('topic_category',flat=True)

@@ -47,6 +47,8 @@ from geonode.core.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_US
 from geonode.core.base.models import SpatialRepresentationType
 from geonode.utils import ogc_server_settings
 from geonode.core.upload.files import _clean_string
+
+from geonode.contrib.groups.models import Group
 # Geoserver functionality
 import geoserver
 from geoserver.catalog import FailedRequestError, UploadError
@@ -69,7 +71,7 @@ def set_object_permissions(obj, perm_spec):
     
     for name, level in perm_spec['users']:
         try:
-            group = Group.objects.get(name=name)
+            group = Group.objects.get(slug=name)
             obj.set_group_level(group, level)
         except Group.DoesNotExist:
             user = User.objects.get(username=name)

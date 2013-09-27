@@ -26,7 +26,7 @@ import tempfile
 from django.conf import settings
 from django.test import TestCase
 from django.test.client import Client
-from django.contrib.auth.models import User, AnonymousUser, Group
+from django.contrib.auth.models import User, AnonymousUser
 from django.utils import simplejson as json
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ValidationError
@@ -50,6 +50,8 @@ from geonode.core.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_US
 from geonode.core.base.models import TopicCategory
 from geonode.core.search.populate_search_test_data import create_models
 from .populate_layers_data import create_layer_data
+
+from geonode.contrib.groups.models import Group
 
 from geoserver.resource import FeatureType, Coverage
 
@@ -145,17 +147,9 @@ class LayersTest(TestCase):
         self.assertEqual(len(levels), 0)
         
         # Test that the users and groups permissions specified in the perm_spec were applied properly
-        for name, level in self.perm_spec['users']:
-            group = None
-            user = None
-            try:
-                group = Group.objects.get(name=name)
-            except Group.DoesNotExist:
-                user = geonode.core.maps.models.User.objects.get(username=name)
-            if user:
-                self.assertEqual(layer.get_user_level(user), level)
-            else:
-                self.assertEqual(layer.get_group_level(group), level)
+        for username, level in self.perm_spec['users']:
+            user = geonode.core.maps.models.User.objects.get(username=username)
+            self.assertEqual(layer.get_user_level(user), level)
 
     def test_ajax_layer_permissions(self):
         """Verify that the ajax_layer_permissions view is behaving as expected
@@ -890,7 +884,6 @@ class LayersTest(TestCase):
         self.assertEquals(Style.objects.count(), 1)
 
     def test_category_counts(self):
-        location = TopicCategory.objects.get(identifier='location')
         topics = TopicCategory.objects.all()
         topics = topics.annotate(**{ 'layer_count': Count('resourcebase__layer__category')})
         location = topics.get(identifier='location')
@@ -899,13 +892,6 @@ class LayersTest(TestCase):
 
         # change the category of one layers_count
         layer = Layer.objects.filter(category=location)[0]
-        elevation = TopicCategory.objects.get(identifier='elevation')
-        layer.category = elevation
-        layer.save()
-        #reload location since it's caching the old count
-        location = TopicCategory.objects.get(identifier='location')
-        self.assertEquals(location.layers_count,2)
-        self.assertEquals(elevation.layers_count,4)
         elevation = topics.get(identifier='elevation')
         layer.category = elevation
         layer.save()
@@ -920,11 +906,6 @@ class LayersTest(TestCase):
         # delete a layer and check the count update
         # use the first since it's the only one which has styles
         layer =  Layer.objects.get(pk=1)
-        elevation = TopicCategory.objects.get(identifier='elevation')
-        self.assertEquals(elevation.layers_count,4)
-        layer.delete()
-        elevation = TopicCategory.objects.get(identifier='elevation')
-        self.assertEquals(elevation.layers_count,3)
         elevation = topics.get(identifier='elevation')
         self.assertEquals(elevation.layer_count,4)
         layer.delete()

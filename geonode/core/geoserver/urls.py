@@ -18,7 +18,7 @@
 #########################################################################
 from django.conf.urls.defaults import *
 
-urlpatterns = patterns('geonode.geoserver.views',
+urlpatterns = patterns('geonode.core.geoserver.views',
     url(r'^rest/stores/(?P<store_type>\w+)/$', 'stores', name="stores"),
     url(r'^updatelayers/$', 'updatelayers', name="updatelayers"),
 )

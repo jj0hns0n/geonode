@@ -128,7 +128,7 @@ class LayersTest(TestCase):
 
         # Set the Permissions
 
-        geonode.core.layers.utils.set_object_permissions(layer, self.perm_spec)
+        geonode.core.layers.utils.layer_set_permissions(layer, self.perm_spec)
 
         # Test that the Permissions for ANONYMOUS_USERS and AUTHENTICATED_USERS were set correctly
         self.assertEqual(layer.get_gen_level(ANONYMOUS_USERS), layer.LEVEL_NONE)
@@ -252,7 +252,7 @@ class LayersTest(TestCase):
         # belong to group2 which is mentioned as read_only, so robert should have
         # read_only access
         layer = Layer.objects.all()[0]
-        geonode.core.layers.views.set_object_permissions(layer, self.perm_spec) 
+        geonode.core.layers.utils.layer_set_permissions(layer, self.perm_spec) 
         c.login(username='robert', password='bob')
         response = c.get(reverse('layer_acls'))
         response_json = json.loads(response.content)

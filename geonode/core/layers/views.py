@@ -50,8 +50,7 @@ from geonode.core.base.models import ContactRole
 from geonode.utils import default_map_config
 from geonode.utils import GXPLayer
 from geonode.utils import GXPMap
-from geonode.core.layers.utils import save
-from geonode.core.layers.utils import set_object_permissions
+from geonode.core.layers.utils import save, layer_set_permissions
 from geonode.utils import resolve_object
 from geonode.core.people.forms import ProfileForm, PocForm
 from geonode.core.security.views import _perms_info_json
@@ -591,7 +590,7 @@ def layer_permissions(request, layername):
             mimetype='text/plain')
 
     permission_spec = json.loads(request.raw_post_data)
-    set_object_permissions(layer, permission_spec)
+    layer_set_permissions(layer, permission_spec)
 
     if request.method == 'POST':
         permission_spec = json.loads(request.raw_post_data)

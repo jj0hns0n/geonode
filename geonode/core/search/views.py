@@ -90,7 +90,8 @@ def _get_search_context():
         'layers' : Layer.objects.count(),
         'vector' : Layer.objects.filter(storeType='dataStore').count(),
         'raster' : Layer.objects.filter(storeType='coverageStore').count(),
-        #'documents': Document.objects.count(),
+        'documents': Document.objects.count() if 'geonode.contrib.documents' 
+            in settings.INSTALLED_APPS else 0,
         'users' : Profile.objects.count()
     }
     topics = Layer.objects.all().values_list('topic_category',flat=True)

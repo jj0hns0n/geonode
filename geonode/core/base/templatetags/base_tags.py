@@ -1,4 +1,5 @@
 from django import template
+from django.conf import settings
 
 from django.db.models import Count
 
@@ -9,7 +10,9 @@ from geonode.core.base.models import TopicCategory
 
 register = template.Library()
 
-counts = ('map','layer','document')
+counts = ['map','layer']
+if 'geonode.contrib.documents' in settings.INSTALLED_APPS:
+    counts.append('document') 
 
 @register.assignment_tag
 def num_ratings(obj):

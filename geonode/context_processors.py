@@ -36,7 +36,7 @@ def resource_urls(request):
         VERSION=get_version(),
         SITE_NAME=site.name,
         SITE_DOMAIN=site.domain,
-        DOCUMENTS_APP = settings.DOCUMENTS_APP,
+        CONTRIB_APPS = filter(lambda app: app.startswith('geonode.contrib'), settings.INSTALLED_APPS),
         UPLOADER_URL = reverse('data_upload') if getattr(settings, 'UPLOADER', dict()).get('BACKEND', 'geonode.rest') == 'geonode.importer' else reverse('layer_upload'),
         GEOGIT_ENABLED = ogc_server_settings.GEOGIT_ENABLED,
         TIME_ENABLED = getattr(settings, 'UPLOADER', dict()).get('OPTIONS', dict()).get('TIME_ENABLED', False),

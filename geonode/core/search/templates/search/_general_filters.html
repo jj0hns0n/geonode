@@ -15,7 +15,11 @@
     {% elif type == 'document' %}
     <span class="badge pull-right">{{ category.document_count }}</span>
     {% else %}
-    <span class="badge pull-right">{{ category.layer_count|add:category.map_count|add:category.document_count }}</span>
+    {% if 'geonode.contrib.documents' in CONTRIB_APPS %}
+      <span class="badge pull-right">{{ category.layer_count|add:category.map_count|add:category.document_count }}</span>
+      {% else %}
+      <span class="badge pull-right">{{ category.layer_count|add:category.map_count }}</span>
+    {% endif %}
     {% endif %}
     </a></li>
     {% endfor %}

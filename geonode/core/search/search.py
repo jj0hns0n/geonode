@@ -22,6 +22,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import backend
 from django.db.models import Q
+from django.conf import settings
 
 from geonode.core.security.models import UserObjectRoleMapping, GenericObjectRoleMapping
 from geonode.core.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
@@ -340,10 +341,11 @@ def combined_search_results(query):
         facets['vector'] = q.filter(storeType='dataStore').count()
         results['layers'] = q
 
-    if None in bytype or u'document' in bytype:
-        q = _get_document_results(query)
-        facets['document'] = q.count()
-        results['documents'] = q
+    if 'geonode.contrib.documents' in settings.INSTALLED_APPS:
+        if None in bytype or u'document' in bytype:
+            q = _get_document_results(query)
+            facets['document'] = q.count()
+            results['documents'] = q
 
     if query.categories and len(query.categories) == TopicCategory.objects.count() or not query.categories:
         if None in bytype or u'user' in bytype:

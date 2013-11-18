@@ -22,6 +22,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.template import defaultfilters
+from django.conf import settings
 
 from geonode.core.layers.models import Layer
 from geonode.core.maps.models import Map
@@ -258,7 +259,9 @@ class OwnerNormalizer(Normalizer):
         doc['detail'] = contact.get_absolute_url()
         doc['layer_cnt'] = Layer.objects.filter(owner = user).count()
         doc['map_cnt'] = Map.objects.filter(owner = user).count()
-        doc['doc_cnt'] = Document.objects.filter(owner = user).count()
         doc['_type'] = 'owner'
         doc['_display_type'] = extension.USER_DISPLAY
+        
+        if 'geonode.contrib.documents' in settings.INSTALLED_APPS:
+            doc['doc_cnt'] = Document.objects.filter(owner = user).count()
         return doc

@@ -276,7 +276,7 @@ INSTALLED_APPS = (
     'geonode.core.upload',
 
     # contrib (optional)
-    #'geonode.contrib.documents',
+    'geonode.contrib.documents',
     #'geonode.contrib.groups',
     #'geonode.contrib.portals',
     #'geonode.contrib.printing',
@@ -702,7 +702,6 @@ ALLOW_METADATA_DOWNLOAD = True
 
 # GeoNode Documents Settings
  
-DOCUMENTS_APP = True
 ALLOWED_DOCUMENT_TYPES = [
     'doc', 'docx', 'xls', 'xslx', 'pdf', 'zip', 'jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif', 'txt'
 ]

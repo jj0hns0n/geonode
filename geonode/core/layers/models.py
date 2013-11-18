@@ -139,14 +139,16 @@ class Layer(ResourceBase):
     styles = models.ManyToManyField(Style, related_name='layer_styles')
 
     def update_thumbnail(self, save=True):
-        self.save_thumbnail(self._thumbnail_url(width=200, height=150), save)
-
+        try:
+            self.save_thumbnail(self._thumbnail_url(width=200, height=150), save)
+        except RuntimeError, e:
+            logger.warn('Could not create thumbnail for %s' % self, e)
 
     def _render_thumbnail(self, spec):
         resp, content = http_client.request(spec)
-        if resp.status < 200 or resp.status > 299:
-            logger.warning('Unable to obtain thumbnail: %s', content)
-            return
+        if 'ServiceException' in content or resp.status < 200 or resp.status > 299:
+            msg = 'Unable to obtain thumbnail: %s' % content
+            raise RuntimeError(msg)
         return content
 
 
@@ -161,12 +163,12 @@ class Layer(ResourceBase):
         if height is not None:
             params['height'] = height
 
-        # Avoid usring urllib.urlencode here because it breaks the url.
+        # Avoid using urllib.urlencode here because it breaks the url.
         # commas and slashes in values get encoded and then cause trouble
         # with the WMS parser.
         p = "&".join("%s=%s"%item for item in params.items())
 
-        return ogc_server_settings.public_url + "wms/reflect?" + p
+        return ogc_server_settings.LOCATION + "wms/reflect?" + p
 
 
     def verify(self):
@@ -246,7 +248,7 @@ class Layer(ResourceBase):
             group = Group.objects.get(name=groupname)
             self.set_group_level(user, self.LEVEL_NONE)
 
-        # assign owner admin privs
+        # assign owner admin privileges
         if self.owner:
             self.set_user_level(self.owner, self.LEVEL_ADMIN)
 
@@ -366,7 +368,7 @@ def post_delete_layer(instance, sender, **kwargs):
     MapLayer.objects.filter(name=instance.typename).delete()
     logger.debug("Going to delete the default style for [%s]", instance.typename.encode('utf-8'))
 
-    if Layer.objects.filter(default_style__id=instance.default_style.id).count() == 0:
+    if instance.default_style and Layer.objects.filter(default_style__id=instance.default_style.id).count() == 0:
         instance.default_style.delete()
 
 def geoserver_pre_save(instance, sender, **kwargs):
@@ -381,7 +383,7 @@ def geoserver_pre_save(instance, sender, **kwargs):
         * Metadata Links,
         * Point of Contact name and url
     """
-    url = ogc_server_settings.rest
+    url = ogc_server_settings.internal_rest
     try:
         gs_catalog = Catalog(url, _user, _password)
         gs_resource = gs_catalog.get_resource(instance.name)
@@ -396,7 +398,7 @@ def geoserver_pre_save(instance, sender, **kwargs):
         return
 
     # If there is no resource returned it could mean one of two things:
-    # a) There is a syncronization problem in geoserver
+    # a) There is a synchronization problem in geoserver
     # b) The unit tests are running and another geoserver is running in the
     # background.
     # For both cases it is sensible to stop processing the layer
@@ -457,10 +459,10 @@ def geoserver_pre_save(instance, sender, **kwargs):
 def geoserver_post_save(instance, sender, **kwargs):
     """Save keywords to GeoServer
 
-       The way keywords are implemented require the layer
+       The way keywords are implemented requires the layer
        to be saved to the database before accessing them.
     """
-    url = ogc_server_settings.rest
+    url = ogc_server_settings.internal_rest
     
     try:
         gs_catalog = Catalog(url, _user, _password)
@@ -475,7 +477,7 @@ def geoserver_post_save(instance, sender, **kwargs):
         return
 
     # If there is no resource returned it could mean one of two things:
-    # a) There is a syncronization problem in geoserver
+    # a) There is a synchronization problem in geoserver
     # b) The unit tests are running and another geoserver is running in the
     # background.
     # For both cases it is sensible to stop processing the layer
@@ -616,7 +618,7 @@ def geoserver_post_save(instance, sender, **kwargs):
 
     for link in instance.link_set.all():
         if not urlparse(settings.SITEURL).hostname == urlparse(link.url).hostname and not \
-                    urlparse(ogc_server_settings.LOCATION).hostname == urlparse(link.url).hostname:
+                    urlparse(ogc_server_settings.public_url).hostname == urlparse(link.url).hostname:
             link.delete()
 
     #Save layer attributes
@@ -639,6 +641,7 @@ def set_styles(layer, gs_catalog):
         style_set.append(save_style(alt_style))
 
     layer.styles = style_set
+    return layer
 
 def save_style(gs_style):
     style, created = Style.objects.get_or_create(name = gs_style.sld_name)
@@ -651,7 +654,7 @@ def save_style(gs_style):
 
 def is_layer_attribute_aggregable(store_type, field_name, field_type):
     """
-    Dechiper whether layer attribute is suitable for statistical derivation
+    Decipher whether layer attribute is suitable for statistical derivation
     """
 
     # must be vector layer
@@ -683,7 +686,7 @@ def get_attribute_statistics(layer_name, field):
         logger.exception('Error generating layer aggregate statistics')
 
 
-def set_attributes(layer):
+def set_attributes(layer, overwrite=False):
     """
     Retrieve layer attribute names & types from Geoserver,
     then store in GeoNode database using Attribute model
@@ -707,7 +710,7 @@ def set_attributes(layer):
 
     attribute_map = []
     if layer.storeType == "dataStore":
-        dft_url = ogc_server_settings.public_url + "wfs?" + urllib.urlencode({
+        dft_url = ogc_server_settings.LOCATION + "wfs?" + urllib.urlencode({
             "service": "wfs",
             "version": "1.0.0",
             "request": "DescribeFeatureType",
@@ -721,7 +724,7 @@ def set_attributes(layer):
         except Exception:
             attribute_map = []
     elif layer.storeType == "coverageStore":
-        dc_url = ogc_server_settings.public_url + "wcs?" + urllib.urlencode({
+        dc_url = ogc_server_settings.LOCATION + "wcs?" + urllib.urlencode({
             "service": "wcs",
             "version": "1.1.0",
             "request": "DescribeCoverage",
@@ -742,7 +745,7 @@ def set_attributes(layer):
         for field, ftype in attribute_map:
             if field == la.attribute:
                 lafound = True
-        if not lafound:
+        if overwrite or not lafound:
             logger.debug("Going to delete [%s] for [%s]", la.attribute, layer.name.encode('utf-8'))
             la.delete()
 

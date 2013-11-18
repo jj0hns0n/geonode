@@ -346,16 +346,151 @@ LOGGING = {
 }
 
 #
+<<<<<<< HEAD
 # GeoNode specific settings
 #
 
+=======
+# Customizations to built in Django settings required by GeoNode
+#
+
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    "django.core.context_processors.tz",
+    'django.core.context_processors.media',
+    "django.core.context_processors.static",
+    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
+    'account.context_processors.account',
+    'pinax_theme_bootstrap_account.context_processors.theme',
+    # The context processor below adds things like SITEURL
+    # and GEOSERVER_BASE_URL to all pages that use a RequestContext
+    'geonode.context_processors.resource_urls',
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    # The setting below makes it possible to serve different languages per
+    # user depending on things like headers in HTTP requests.
+    'django.middleware.locale.LocaleMiddleware',
+    'pagination.middleware.PaginationMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # This middleware allows to print private layers for the users that have 
+    # the permissions to view them.
+    # It sets temporary the involved layers as public before restoring the permissions.
+    # Beware that for few seconds the involved layers are public there could be risks.
+    #'geonode.middleware.PrintProxyMiddleware',
+)
+
+
+# Replacement of default authentication backend in order to support
+# permissions per object.
+AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
+
+def get_user_url(u):
+    return u.profile.get_absolute_url()
+
+
+ABSOLUTE_URL_OVERRIDES = {
+    'auth.user': get_user_url
+}
+
+# Redirects to home page after login
+# FIXME(Ariel): I do not know why this setting is needed,
+# it would be best to use the ?next= parameter
+LOGIN_REDIRECT_URL = "/"
+
+#
+# Settings for default search size
+#
+DEFAULT_SEARCH_SIZE = 10
+
+
+#
+# Settings for third party apps
+#
+
+# Agon Ratings
+AGON_RATINGS_CATEGORY_CHOICES = {
+    "maps.Map": {
+        "map": "How good is this map?"
+    },
+    "layers.Layer": {
+        "layer": "How good is this layer?"
+    },
+    "documents.Document": {
+        "document": "How good is this document?"
+    }
+}
+
+# Activity Stream
+ACTSTREAM_SETTINGS = {
+    'MODELS': ('auth.user', 'layers.layer', 'maps.map', 'dialogos.comment'),
+    'FETCH_RELATIONS': True,
+    'USE_PREFETCH': False,
+    'USE_JSONFIELD': True,
+    'GFK_FETCH_DEPTH': 1,
+}
+
+# For South migrations
+SOUTH_MIGRATION_MODULES = {
+    'avatar': 'geonode.migrations.avatar',
+}
+SOUTH_TESTS_MIGRATE=False
+
+# Settings for Social Apps
+AUTH_PROFILE_MODULE = 'people.Profile'
+REGISTRATION_OPEN = False
+
+# Email for users to contact admins.
+THEME_ACCOUNT_CONTACT_EMAIL = 'admin@example.com'
+
+#
+# Test Settings
+#
+
+# Setting a custom test runner to avoid running the tests for
+# some problematic 3rd party apps
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+# Arguments for the test runner
+NOSE_ARGS = [
+      '--nocapture',
+      '--detailed-errors',
+      ]
+
+#
+# GeoNode specific settings
+#
+
+SITEURL = "http://localhost:8000/"
+
+# Default TopicCategory to be used for resources. Use the slug field here
+DEFAULT_TOPICCATEGORY = 'location'
+
+# Topic Categories list should not be modified (they are ISO). In case you 
+# absolutely need it set to True this variable
+MODIFY_TOPICCATEGORY = False
+
+MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
+
+# Search Snippet Cache Time in Seconds
+CACHE_TIME=0
+
+>>>>>>> 015f6f536b7f5ce91677579e8dedceb5a8488a2e
 # OGC (WMS/WFS/WCS) Server Settings
 OGC_SERVER = {
     'default' : {
         'BACKEND' : 'geonode.core.geoserver',
         'LOCATION' : 'http://localhost:8080/geoserver/',
         # PUBLIC_LOCATION needs to be kept like this because in dev mode
-        # the proxy won't work and the integratin tests will fail
+        # the proxy won't work and the integration tests will fail
         # the entire block has to be overridden in the local_settings
         'PUBLIC_LOCATION' : 'http://localhost:8080/geoserver/',
         'USER' : 'admin',
@@ -366,7 +501,7 @@ OGC_SERVER = {
         'GEOGIT_ENABLED' : False,
         'WMST_ENABLED' : False,
         'BACKEND_WRITE_ENABLED': True,
-        'WPS_ENABLED' : False,
+        'WPS_ENABLED' : True,
         # Set to name of database in DATABASES dictionary to enable
         'DATASTORE': '', #'datastore',
         'PRINT_URL': "rest/printng/render.",
@@ -479,9 +614,9 @@ MAP_BASELAYERS = [{
     "fixed": True,
     "group":"background"
   }, {
-    "source": {"ptype": "gxp_olsource"},
+    "source": {"ptype": "gxp_osmsource"},
     "type":"OpenLayers.Layer.OSM",
-    "args":["OpenStreetMap"],
+    "name":"mapnik",
     "visibility": False,
     "fixed": True,
     "group":"background"

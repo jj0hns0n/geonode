@@ -93,6 +93,21 @@ class OGC_Server(object):
         """
         return self.LOCATION if not self.PUBLIC_LOCATION else self.PUBLIC_LOCATION
 
+    @property
+    def internal_ows(self):
+        """
+        The Open Web Service url for the server used by GeoNode internally.
+        """
+        location = self.LOCATION
+        return location + 'ows'
+
+    @property
+    def internal_rest(self):
+        """
+        The internal REST endpoint for the server.
+        """
+        return self.LOCATION + 'rest'
+
     def __str__(self):
         return self.alias
 
@@ -186,7 +201,7 @@ def check_geonode_is_up():
 
 def get_wms():
     global _wms
-    wms_url = ogc_server_settings.ows + "?service=WMS&request=GetCapabilities&version=1.1.0"
+    wms_url = ogc_server_settings.internal_ows + "?service=WMS&request=GetCapabilities&version=1.1.0"
     netloc = urlparse(wms_url).netloc
     http = httplib2.Http()
     http.add_credentials(_user, _password)
@@ -672,14 +687,14 @@ def _get_viewer_projection_info(srid):
 
 def resolve_object(request, model, query, permission=None,
                    permission_required=True, permission_msg=None):
-    '''Resolve an object using the provided query and check the optional
+    """Resolve an object using the provided query and check the optional
     permission. Model views should wrap this function as a shortcut.
 
     query - a dict to use for querying the model
     permission - an optional permission to check
     permission_required - if False, allow get methods to proceed
     permission_msg - optional message to use in 403
-    '''
+    """
 
     obj = get_object_or_404(model, **query)
     allowed = True

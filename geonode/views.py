@@ -23,8 +23,8 @@ from django.contrib.auth.models import User, Group
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
-from django.conf import settings
 from django.db.models import Q
+from django.template import RequestContext
 from geonode.utils import ogc_server_settings
 
 def index(request, template='index.html'):
@@ -122,8 +122,8 @@ def _fixup_ows_url(thumb_spec):
     #@HACK - for whatever reason, a map's maplayers ows_url contains only /geoserver/wms
     # so rendering of thumbnails fails - replace those uri's with full geoserver URL
     import re
-    gspath = '"/geoserver/wms' # this should be in img src attributes
-    repl = '"' + ogc_server_settings.public_url + "/wms"
+    gspath = '"' + ogc_server_settings.public_url # this should be in img src attributes
+    repl = '"' + ogc_server_settings.LOCATION
     return re.sub(gspath, repl, thumb_spec)
 
 def err403(request):

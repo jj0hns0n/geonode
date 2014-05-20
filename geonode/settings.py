@@ -171,6 +171,7 @@ GEONODE_APPS = (
     'geonode.contrib.services',
     'geonode.contrib.groups',
     #'geonode.contrib.dynamic',
+    'geonode.contrib.certification',
 
     # GeoServer Apps
     # Geoserver needs to come last because

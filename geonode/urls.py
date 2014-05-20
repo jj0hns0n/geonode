@@ -113,6 +113,11 @@ if "geonode.contrib.dynamic" in settings.INSTALLED_APPS:
         (r'^dynamic/', include('geonode.contrib.dynamic.urls')),
     )
 
+if "geonode.contrib.certification" in settings.INSTALLED_APPS:
+    urlpatterns += patterns('',
+        (r'^certification/', include('geonode.contrib.certification.urls')),   
+    )
+
 if 'geonode.geoserver' in settings.INSTALLED_APPS:
     # GeoServer Helper Views
     urlpatterns += patterns('', 

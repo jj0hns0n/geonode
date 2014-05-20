@@ -29,14 +29,16 @@ def uncertify(request, modelid, modeltype):
         certification = Certification.objects.uncertify(request.user,model_obj)
         redirecturl = model_obj.get_absolute_url()
         if modeltype == "maps.Map":
-            redirecturl = model_obj.get_absolute_url() + "/info"
+            redirecturl = model_obj.get_absolute_url()
         return HttpResponseRedirect(redirecturl)
     
 @login_required
 def certify(request, modeltype, modelid):
     ''' Certify a map or layer'''
     model = get_model(*modeltype.split('.',1))
+    print model
     model_obj = model.objects.get(pk=modelid)
+    print model_obj
     
     model_title = modelid
     
@@ -53,7 +55,7 @@ def certify(request, modeltype, modelid):
         certification = Certification.objects.certify(request.user,model_obj)
         redirecturl = model_obj.get_absolute_url()
         if modeltype == "maps.Map":
-            redirecturl = model_obj.get_absolute_url() + "/info"
+            redirecturl = model_obj.get_absolute_url()
         return HttpResponseRedirect(redirecturl)
         
     

@@ -6,6 +6,7 @@
 {% load bootstrap_tags %}
 {% load url from future %}
 {% load base_tags %}
+{% load certified %}
 
 {% block title %}{{ document.title }} — {{ block.super }}{% endblock %}
 
@@ -67,6 +68,7 @@
         <ul class="nav nav-tabs">
           <li class="active"><a href="#info" data-toggle="tab"><i class="icon-info-sign"></i>{% trans "Info" %}</a></li>
           <li><a href="#comments" data-toggle="tab"><i class="icon-comment"></i> {% trans "Comments" %}</a></li>
+          <li><a href="#certification" data-toggle="tab"><i class="icon-comment"></i> {% trans "Certification" %}</a></li>
           <li><a href="#rate" data-toggle="tab"><i class="icon-star"></i>{% trans "Ratings" %}</a></li>
           <li><a href="#share" data-toggle="tab"><i class="icon-share"></i>{% trans "Share" %}</a></li>
           <!-- li><a href="#flag" data-toggle="tab"><i class="icon-flag"></i>{% trans "Flag" %}</a></li -->
@@ -101,6 +103,35 @@
           {% num_ratings document as num_votes %}
           <div class="overall_rating" style="float:left" data-score="{{ document_rating }}"></div> ({{num_votes}})
           <!-- TODO: Add display of who gave what rating based -->
+        </article>
+        <article id="certification" class="tab-pane">
+            {% comment %} TODO Move this to a snippet in certifications app {% endcomment %}
+            {% is_certified user document as certified %}
+            {% object_certifications document as certifications %}
+
+            <h3>Certifications</h3>
+            <ul>
+            {% if certifications %}
+                {% for certification in certifications %}
+                    <li><a href="{% url "profile_detail" certification.certifier.username %}">{{ certification.certifier }}</a></li>
+                {% endfor %}
+            {% else %}
+                    <li>{% trans "This document has not been certified by any users" %}
+            {% endif %}
+            </ul>
+
+            {% comment %} TODO: Allow only people specified by the admin to certify {% endcomment %}
+            {% if user.is_authenticated %}
+                {% if certified %}
+                    <a href="{% url "uncertify" "documents.Document" document.id %}">
+                    {% trans "Uncertify this Document" %}
+                    </a>
+                {% else %}
+                    <a href="{% url "certify" "documents.Document" document.id %}">
+                    {% trans "Certify this Document" %}
+                    </a>
+                {% endif %}
+            {% endif %}
         </article>
       </div>
   </div>

@@ -3,7 +3,7 @@ from django.conf.urls import patterns, url, include
 
 from geonode.proxy.urls import urlpatterns as proxy_urlpatterns
 
-urlpatterns = patterns('geonode.certification.views',
+urlpatterns = patterns('geonode.contrib.certification.views',
     url(r'^(?P<modeltype>[a-zA-Z\.]+)/(?P<modelid>\d+)/certify/?$', 'certify', name="certify"),
     url(r'^(?P<modeltype>[a-zA-Z\.]+)/(?P<modelid>\d+)/uncertify/?$', 'uncertify', name="uncertify"),
 )

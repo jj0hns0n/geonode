@@ -35,6 +35,7 @@ def resource_urls(request):
         SITE_NAME=site.name,
         SITE_DOMAIN=site.domain,
         GROUPS_APP=True if "geonode.contrib.groups" in settings.INSTALLED_APPS else False,
+        CERTIFICATION_APP=True if "geonode.contrib.certification" in settings.INSTALLED_APPS else False,
         DEBUG_STATIC=getattr(settings, "DEBUG_STATIC", False),
         PROXY_URL=getattr(settings, 'PROXY_URL', '/proxy/?url='),
         SOCIAL_BUTTONS=getattr(settings, 'SOCIAL_BUTTONS', True),

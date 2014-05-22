@@ -28,6 +28,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import login
 if "geonode.contrib.groups" in settings.INSTALLED_APPS:
     from geonode.contrib.groups.models import Group
+from geonode.security.views import _create_new_user
 from geonode.security.enumerations import GENERIC_GROUP_NAMES
 from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
  
@@ -361,8 +362,18 @@ class PermissionLevelMixin(object):
         existing = self.get_user_levels().exclude(user__username__in=excluded)
         existing.delete()
         for username, level in perm_spec['users']:
-            user = User.objects.get(username=username)
-            self.set_user_level(user, level)
+            if '@' in username:
+                try:
+                    user = User.objects.get(email=username)
+                except User.DoesNotExist:
+                    try:
+                        user = _create_new_user(username, self)
+                    except:
+                        logger.error("Could not create new user with email address of %s" % username)
+            else:
+                user = User.objects.get(username=username)
+            if user:
+                self.set_user_level(user, level)
 
         if "geonode.contrib.groups" in settings.INSTALLED_APPS:
             #TODO: Should this run in a transaction?

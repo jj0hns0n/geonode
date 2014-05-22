@@ -103,3 +103,52 @@ def resource_permissions(request, type, resource_id):
             'No methods other than get and post are allowed',
             status=401,
             mimetype='text/plain')
+
+
+def _create_new_user(user_email, resource):
+    random_password = User.objects.make_random_password()
+    user_name = re.sub(r'\W', r'', user_email.split('@')[0])
+    user_length = len(user_name)
+    if user_length > 30:
+        user_name = user_name[0:29]
+    while len(User.objects.filter(username=user_name)) > 0:
+        user_name = user_name[0:user_length-4] + User.objects.make_random_password(length=4, allowed_chars='0123456789')
+
+    new_user = RegistrationProfile.objects.create_inactive_user(username=user_name, email=user_email, password=random_password, site = settings.SITE_ID, send_email=False)
+    if new_user:
+        new_profile = Contact(user=new_user, name=new_user.username, email=new_user.email)
+        if settings.USE_CUSTOM_ORG_AUTHORIZATION and new_user.email.endswith(settings.CUSTOM_GROUP_EMAIL_SUFFIX):
+            new_profile.is_org_member = True
+            new_profile.member_expiration_dt = datetime.today() + timedelta(days=365)
+        new_profile.save()
+        try:
+            _send_permissions_email(user_email, resource, random_password)
+        except:
+            logger.debug("An error ocurred when sending the mail")
+    return new_user
+
+def _send_permissions_email(user_email, resource,  password):
+
+    current_site = Site.objects.get_current()
+    user = User.objects.get(email = user_email)
+    profile = RegistrationProfile.objects.get(user=user)
+    owner = resource.owner
+
+    subject = render_to_string('registration/new_user_email_subject.txt',
+            { 'site': current_site,
+              'owner' : (owner.get_profile().name if owner.get_profile().name else owner.email),
+              })
+    # Email subject *must not* contain newlines
+    subject = ''.join(subject.splitlines())
+
+    message = render_to_string('registration/new_user_email.txt',
+            { 'activation_key': profile.activation_key,
+              'expiration_days': settings.ACCOUNT_ACTIVATION_DAYS,
+              'owner': (owner.get_profile().name if owner.get_profile().name else owner.email),
+              'title': resource.title,
+              'url' : resource.get_absolute_url,
+              'site': current_site,
+              'username': user.username,
+              'password' : password })
+
+    send_mail(subject, message, settings.NO_REPLY_EMAIL, [user.email])

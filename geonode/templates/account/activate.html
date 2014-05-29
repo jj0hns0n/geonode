@@ -1,0 +1,21 @@
+{% extends "site_base.html" %}
+
+{% load url from future %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Account Activated" %}{% endblock %}
+
+{% block body %}
+  <div class="row">
+    <div class="col-md-12">
+      <h2 class="page-title">{% trans "Your new account is activated" %}</h2>
+    </div>
+    <p>{% trans "You may login by clicking here" %}</p>
+    <p><a class="btn btn-primary" href="{% url "account_login" %}"></i> {% trans "Login" %}</a>
+    <div class="col-md-4">
+      {% include "account/_login_sidebar.html" %}
+    </div>
+  </div>
+
+{% endblock %}

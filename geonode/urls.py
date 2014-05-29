@@ -80,6 +80,8 @@ urlpatterns = patterns('',
                                        name='account_ajax_lookup'),
     url(r'^security/permissions/(?P<type>[^/]*)/(?P<resource_id>\d+)$', 'geonode.security.views.resource_permissions',
                                        name='resource_permissions'),
+    url(r'^security/activate_registration/(?P<username>\w+)/(?P<activation_key>\w+)$', 'geonode.security.views.activate_registration',
+                                       name='activate_registration'),
 
     # Meta
     url(r'^lang\.js$', TemplateView.as_view(template_name='lang.js', content_type='text/javascript'), name='lang'),

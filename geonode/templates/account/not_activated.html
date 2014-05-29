@@ -1,0 +1,17 @@
+{% extends "site_base.html" %}
+
+{% load url from future %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Account NOT Activated" %}{% endblock %}
+
+{% block body %}
+  <div class="row">
+    <div class="col-md-12">
+      <h2 class="page-title">{% trans "This is an invalid Actication key" %}</h2>
+      <p>{% trans "Please contact the system administrator for assistance" %}</p>
+    </div>
+  </div>
+
+{% endblock %}

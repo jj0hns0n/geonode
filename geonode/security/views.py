@@ -18,17 +18,32 @@
 #
 #########################################################################
 
+import re
+import logging
+import hashlib
+import random
+
 from django.utils.translation import ugettext_lazy as _
 
 from geonode.security.enumerations import ANONYMOUS_USERS, AUTHENTICATED_USERS
 
+from django.conf import settings
 from django.utils import simplejson as json
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth.models import User
+from django.template.loader import render_to_string
+from django.template import RequestContext
+from django.shortcuts import render_to_response
 from geonode.utils import resolve_object
+from django.core.mail import send_mail
 from django.http import HttpResponse, HttpResponseRedirect
 from geonode.layers.models import Layer
 from geonode.maps.models import Map
+from geonode.people.models import Profile
 from geonode.documents.models import Document
+from django.contrib.sites.models import Site
+
+logger = logging.getLogger("geonode.security.views")
 
 def _view_perms_context(obj, level_names):
 
@@ -114,36 +129,39 @@ def _create_new_user(user_email, resource):
     while len(User.objects.filter(username=user_name)) > 0:
         user_name = user_name[0:user_length-4] + User.objects.make_random_password(length=4, allowed_chars='0123456789')
 
-    new_user = RegistrationProfile.objects.create_inactive_user(username=user_name, email=user_email, password=random_password, site = settings.SITE_ID, send_email=False)
-    if new_user:
-        new_profile = Contact(user=new_user, name=new_user.username, email=new_user.email)
-        if settings.USE_CUSTOM_ORG_AUTHORIZATION and new_user.email.endswith(settings.CUSTOM_GROUP_EMAIL_SUFFIX):
-            new_profile.is_org_member = True
-            new_profile.member_expiration_dt = datetime.today() + timedelta(days=365)
+    new_user, created = User.objects.get_or_create(username=user_name, email=user_email, is_active=False)
+    new_user.set_password(random_password)
+    new_user.save()
+
+    if created:
+        salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
+        activation_key = hashlib.sha1(salt+user_email).hexdigest()
+        new_profile, created = Profile.objects.get_or_create(user=new_user, name=new_user.username, email=new_user.email)
+        new_profile.activation_key = activation_key
         new_profile.save()
         try:
             _send_permissions_email(user_email, resource, random_password)
         except:
             logger.debug("An error ocurred when sending the mail")
+            # TODO How should we handle this?
     return new_user
 
 def _send_permissions_email(user_email, resource,  password):
 
     current_site = Site.objects.get_current()
     user = User.objects.get(email = user_email)
-    profile = RegistrationProfile.objects.get(user=user)
+    profile = Profile.objects.get(user=user)
     owner = resource.owner
 
-    subject = render_to_string('registration/new_user_email_subject.txt',
+    subject = render_to_string('account/email/new_user_subject.txt',
             { 'site': current_site,
               'owner' : (owner.get_profile().name if owner.get_profile().name else owner.email),
               })
     # Email subject *must not* contain newlines
     subject = ''.join(subject.splitlines())
 
-    message = render_to_string('registration/new_user_email.txt',
+    message = render_to_string('account/email/new_user_email.txt',
             { 'activation_key': profile.activation_key,
-              'expiration_days': settings.ACCOUNT_ACTIVATION_DAYS,
               'owner': (owner.get_profile().name if owner.get_profile().name else owner.email),
               'title': resource.title,
               'url' : resource.get_absolute_url,
@@ -151,4 +169,18 @@ def _send_permissions_email(user_email, resource,  password):
               'username': user.username,
               'password' : password })
 
-    send_mail(subject, message, settings.NO_REPLY_EMAIL, [user.email])
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+def activate_registration(request, username, activation_key):
+    print request
+    user = User.objects.get(username = username)
+    if activation_key == user.profile.activation_key:
+        user.is_active = True
+        user.profile.activation_key = ""
+        user.save()
+        user.profile.save()
+        return render_to_response('account/activate.html',
+                          context_instance=RequestContext(request))
+    else:
+        return render_to_response('account/not_activated.html',
+                          context_instance=RequestContext(request))

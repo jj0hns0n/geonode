@@ -17,6 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
+import logging
 
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
@@ -28,10 +29,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import login
 if "geonode.contrib.groups" in settings.INSTALLED_APPS:
     from geonode.contrib.groups.models import Group
-from geonode.security.views import _create_new_user
 from geonode.security.enumerations import GENERIC_GROUP_NAMES
 from geonode.security.enumerations import AUTHENTICATED_USERS, ANONYMOUS_USERS
- 
+
+logger = logging.getLogger("geonode.security.models")
+
 class ObjectRoleManager(models.Manager):
     def get_by_natural_key(self, codename, app_label, model):
         return self.get(
@@ -342,7 +344,8 @@ class PermissionLevelMixin(object):
             'anonymous': 'readonly',
             'authenticated': 'readwrite',
             'users': {
-                <username>: 'admin'
+                <username>: 'admin',
+                <email>: 'admin',
                 ...
             }
             'groups': [
@@ -362,14 +365,16 @@ class PermissionLevelMixin(object):
         existing = self.get_user_levels().exclude(user__username__in=excluded)
         existing.delete()
         for username, level in perm_spec['users']:
-            if '@' in username:
+            if '@' in username: #TODO Use regex
                 try:
                     user = User.objects.get(email=username)
                 except User.DoesNotExist:
                     try:
+                        from geonode.security.views import _create_new_user
                         user = _create_new_user(username, self)
                     except:
                         logger.error("Could not create new user with email address of %s" % username)
+                        # TODO Just skip? or should we notify the user?
             else:
                 user = User.objects.get(username=username)
             if user:

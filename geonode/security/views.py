@@ -37,6 +37,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from geonode.utils import resolve_object
 from geonode.layers.models import Layer
 from geonode.maps.models import Map
+from geonode.base.models import ResourceBase
 from geonode.people.models import Profile
 from geonode.documents.models import Document
 

@@ -79,11 +79,10 @@ def ajax_lookup(request):
             mimetype='text/plain'
         )
     keyword = request.POST['query']
-    users = get_user_model().objects.filter(Q(username__startswith=keyword) |
-        Q(profile__name__contains=keyword) | 
-        Q(profile__organization__contains=keyword))
-    groups = Group.objects.filter(Q(title__startswith=keyword) |
-        Q(description__contains=keyword))
+    users = get_user_model().objects.filter(Q(username__startswith=keyword)) 
+       
+    groups = Group.objects.filter(Q(name__startswith=keyword)) 
+        
     json_dict = {
         'users': [({'username': u.username}) for u in users],
         'count': users.count(),

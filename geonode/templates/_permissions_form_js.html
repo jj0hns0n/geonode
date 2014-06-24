@@ -128,7 +128,7 @@
         multiple: true,
         width: '160px',
         ajax: {
-          url: "{% url "account_ajax_lookup" %}",
+          url: "{% url "autocomplete_light_autocomplete" "ProfileAutocomplete" %}",
           dataType: "json",
           type: "POST",
           data: function (term, page) {

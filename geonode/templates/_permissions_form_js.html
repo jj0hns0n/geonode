@@ -35,7 +35,6 @@
         }
       }
 
-      {% if GROUPS_APP %}
       if(data[perm][1] !== ''){
         for (var i=0;i<data[perm][1].split(',').length;i++){
           var group = data[perm][1].split(',')[i];
@@ -46,7 +45,6 @@
           }
         }
       }
-      {% endif %}
     }
 
     return permissions
@@ -86,9 +84,8 @@
             for (var perm in users){
               $('#' + perm + '_users').val(users[perm].join());
             }
-            addSelectUsers();
+            addUsersAutocomplete();
 
-            {% if GROUPS_APP %}
             /*
             * Compile the groups fields after receiving the current permissions status from the server
             */
@@ -107,97 +104,47 @@
             for (var perm in groups){
               $('#' + perm + '_groups').val(groups[perm].join());
             }
-            addSelectGroups();
-            {% endif %}
-
+            addGroupsAutocomplete();
           }
         }
       );
       {% else %}
-      addSelectUsers();
-      {% if GROUPS_APP %}
-      addSelectGroups();
-      {% endif %}
+      addUsersAutocomplete();
+      addGroupsAutocomplete();
       {% endif %}
     });
     
-    function addSelectUsers(){
-      $("input.user-select").select2({
-        placeholder: '{% trans "Choose users..." %}',
-        minimumInputLength: 1,
-        multiple: true,
-        width: '160px',
-        ajax: {
-          url: "{% url "autocomplete_light_autocomplete" "ProfileAutocomplete" %}",
-          dataType: "json",
-          type: "POST",
-          data: function (term, page) {
-            return {
-              query: term,
-            };
-          },
-          results: function (data, page) {
-            return {results: data.users};
-          }
-        },
-        id: userID,
-        formatResult: userFormatResult,
-        formatSelection: userFormatSelection,
-        initSelection: function(element, callback) {
-          var data = [];
-          var val = element.val().split(",");
-          $(element.val().split(",")).each(function (index,value) {
-              data.push({username: value});
-          });
-          callback(data);
-        }
-      });
+    function addUsersAutocomplete(){
+        $('input.user-select').tokenfield();
+        var autocomplete = $('input.user-select').yourlabsAutocomplete({
+            url: '{% url "autocomplete_light_autocomplete" "ProfileAutocomplete" %}',
+            choiceSelector: 'span',
+            hideAfter: 200,
+            minimumCharacters: 1,
+            placeholder: '{% trans 'Choose Users ...' %}',
+            appendAutocomplete: $('#input.user-select'),
+        });
     }
 
-    {% if GROUPS_APP %}
-    function addSelectGroups(){
-      $("input.group-select").select2({
-        placeholder: '{% trans "Choose groups..." %}',
-        minimumInputLength: 1,
-        multiple: true,
-        width: '160px',
-        ajax: {
-          url: "{% url "account_ajax_lookup" %}",
-          dataType: "json",
-          type: "POST",
-          data: function (term, page) {
-            return {
-              query: term,
-            };
-          },
-          results: function (data, page) {
-            return {results: data.groups};
-          }
-        },
-        id: groupID,
-        formatResult: groupFormatResult,
-        formatSelection: groupFormatSelection,
-        initSelection: function(element, callback) {
-          var data = [];
-          var val = element.val().split(",");
-          $(element.val().split(",")).each(function (index,value) {
-              data.push({name: value});
-          });
-          callback(data);
-        }
-      });
+    function addGroupsAutocomplete(){
+        $('input.group-select').tokenfield();
+        var autocomplete = $('input.group-select').yourlabsAutocomplete({
+            url: '{% url "autocomplete_light_autocomplete" "GroupAutocomplete" %}',
+            choiceSelector: 'span',
+            hideAfter: 200,
+            minimumCharacters: 1,
+            placeholder: '{% trans 'Choose Groups ...' %}',
+            appendAutocomplete: $('#input.group-select'),
+        });
     }
-    {% endif %}
     
     function userID(user) {
       return user.username;
     }
 
-    {% if GROUPS_APP %}
     function groupID(group) {
       return group.name;
     }
-    {% endif %} 
 
     function userFormatResult(user) {
       return user.username;
@@ -207,7 +154,6 @@
         return user.username;
     }
 
-    {% if GROUPS_APP %}
     function groupFormatResult(group) {
       return group.name;
     }
@@ -215,8 +161,6 @@
     function groupFormatSelection(group) {
         return group.name;
     }
-    {% endif %}
-
 
     var perms_submit = function() {
       var form = $(this);

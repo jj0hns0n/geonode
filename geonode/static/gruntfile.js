@@ -80,7 +80,8 @@ module.exports = function(grunt) {
             'select2/select2.css', 
             'multi-select/css/multi-select.css',
             'jquery-ui/themes/smoothness/jquery-ui.css',
-            'bootstrap/dist/css/bootstrap.min.css'
+            'bootstrap/dist/css/bootstrap.min.css',
+            'bootstrap-tokenfield/dist/css/bootstrap-tokenfield.css'
           ]
         }, {
           expand: true,
@@ -120,7 +121,9 @@ module.exports = function(grunt) {
             'qunit/qunit/qunit.js',
             'angular/angular.js',
             'angular-leaflet-directive/dist/angular-leaflet-directive.min.js',
-            'bootstrap/dist/js/bootstrap.min.js'
+            'bootstrap/dist/js/bootstrap.min.js',
+            'bootstrap/dist/js/bootstrap.min.js',
+            'bootstrap-tokenfield/dist/bootstrap-tokenfield.min.js'
           ]
         }]
       }

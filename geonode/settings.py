@@ -96,11 +96,7 @@ USE_I18N = True
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 
-MODELTRANSLATION_LANGUAGES = (
-    ('en', 'English'),
-    ('es', 'Español'),
-)
-    
+MODELTRANSLATION_LANGUAGES = ('en', 'es', )
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -655,6 +651,23 @@ LEAFLET_CONFIG = {
         'auto-include': True,
         },
     }
+}
+
+CACHES = {
+    #DUMMY CACHE FOR DEVELOPMENT
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        },
+    #MEMCACHED EXAMPLE
+    # 'default': {
+    #     'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+    #     'LOCATION': '127.0.0.1:11211',
+    #     },
+    #FILECACHE EXAMPLE
+    # 'default': {
+    #     'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+    #     'LOCATION': '/tmp/django_cache',
+    #     }
 }
 
 # Load more settings from a file called local_settings.py if it exists

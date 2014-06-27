@@ -127,9 +127,10 @@ Now if you like to see if all is working so far type:
     $ sudo paver stop
 
 
-This will start GeoNode at http://localhost:8000/.
-But until now, GeoNode is running with the default configurations,
-e.g. it uses Jetty as servlet container and sqlite3 as database.
+This will start GeoNode at http://localhost:8000/ with the default configurations, using Jetty as the servlet container and sqlite3 as the database.
+
+.. note:: If running the paver start command produces an "Address already in use" exception for port 8080, try running the paver stop command and then paver start again.  If the exception still occurs then another web server is already bound to that port.  If this is a fresh Ubuntu install then Tomcat was automatically started when you installed the package and you can safely stop it with ``sudo service tomcat7 stop``.
+
 Also GeoNode won't start without using the command above.
 To change this, the following configurations of the used components have to be done.
 
@@ -544,7 +545,9 @@ Configure GeoServer with the location of the GeoNode site, used for
 authentication (so that GeoServer can recognize logins from the main site).
 This setting defaults to http://localhost:8000/, so if you are running the
 GeoNode Django application on a different port, or on a different server from
-the one running GeoServer, then you will need to change this by adding a block
+the one running GeoServer, then you will need to change this in two places.
+
+Firstly, by adding a block
 of XML to ``WEB-INF/web.xml`` within the unpacked application directory, like
 so:
 
@@ -557,6 +560,19 @@ so:
 
 The ``<param-value>`` tag should enclose the URL to the Django application
 homepage.
+
+And secondly, update the value of the ``baseUrl`` tag in 
+``data/security/auth/geonodeAuthProvider/config.xml``:
+
+.. code-block:: xml
+
+    <org.geonode.security.GeoNodeAuthProviderConfig>
+      <id>-54fbcd7b:1402c24f6bc:-7fe9</id>
+      <name>geonodeAuthProvider</name>
+      <className>org.geonode.security.GeoNodeAuthenticationProvider</className>
+      <baseUrl>http://localhost/</baseUrl>
+    </org.geonode.security.GeoNodeAuthProviderConfig>
+
 
 .. note:: While we intend to provide a detailed, accurate explanation of the
         installation process, if you run into problems with the process

@@ -17,6 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
+import json
 import sys, os
 import urllib
 import logging
@@ -25,6 +26,7 @@ import time
 import errno
 import uuid
 import datetime
+from bs4 import BeautifulSoup
 import geoserver
 import httplib2
 
@@ -262,17 +264,15 @@ def cascading_delete(cat, layer_name):
             
         if store.resource_type == 'dataStore' and 'dbtype' in store.connection_parameters and store.connection_parameters['dbtype'] == 'postgis':
             delete_from_postgis(resource_name)
-
-        # Prevent the entire store from being removed when the store is a GeoGIT repository.
-        if store.type and store.type.lower() == 'geogit':
+        elif store.type and store.type.lower() == 'geogit':
+            # Prevent the entire store from being removed when the store is a GeoGIT repository.
             return
-
         else:
             try:
-                cat.delete(store, recurse=True)
+                if not store.get_resources():
+                    cat.delete(store, recurse=True)
             except FailedRequestError as e:
-                # Trying to delete a shared store will fail 
-                # We'll catch the exception and log it.
+                # Catch the exception and log it.
                 logger.debug(e) 
 
 
@@ -359,19 +359,23 @@ def gs_slurp(ignore_errors=True, verbosity=1, console=None, owner=None, workspac
     start = datetime.datetime.now()
     for i, resource in enumerate(resources):
         name = resource.name
-        store = resource.store
-        workspace = store.workspace
+        the_store = resource.store
+        workspace = the_store.workspace
         try:
             layer, created = Layer.objects.get_or_create(name=name, defaults = {
                 "workspace": workspace.name,
-                "store": store.name,
-                "storeType": store.resource_type,
+                "store": the_store.name,
+                "storeType": the_store.resource_type,
                 "typename": "%s:%s" % (workspace.name.encode('utf-8'), resource.name.encode('utf-8')),
                 "title": resource.title or 'No title provided',
                 "abstract": resource.abstract or 'No abstract provided',
                 "owner": owner,
                 "uuid": str(uuid.uuid4())
             })
+            layer.bbox_x0 = float(resource.native_bbox[0])
+            layer.bbox_x1 = float(resource.native_bbox[1])
+            layer.bbox_y0 = float(resource.native_bbox[2])
+            layer.bbox_y1 = float(resource.native_bbox[3])
             layer.save()
             # recalculate the layer statistics
             set_attributes(layer, overwrite=True)
@@ -492,23 +496,65 @@ def set_attributes(layer, overwrite=False):
     then store in GeoNode database using Attribute model
     """
     attribute_map = []
-    if layer.storeType == "dataStore":
-        dft_url = ogc_server_settings.LOCATION + "wfs?" + urllib.urlencode({
+    server_url = ogc_server_settings.LOCATION if layer.storeType != "remoteStore" else layer.service.base_url
+
+    if layer.storeType == "remoteStore" and layer.service.ptype == "gxp_arcrestsource":
+        dft_url = server_url + ("%s?f=json" % layer.typename)
+        try:
+            # The code below will fail if http_client cannot be imported
+            body = json.loads(http_client.request(dft_url)[1])
+            attribute_map = [[n["name"], _esri_types[n["type"]]] for n in body["fields"]
+                             if n.get("name") and n.get("type")]
+        except Exception:
+            attribute_map = []
+
+    elif layer.storeType in ["dataStore","remoteStore","wmsStore"]:
+        dft_url = re.sub("\/wms\/?$","/", server_url) + "wfs?" + urllib.urlencode({
             "service": "wfs",
             "version": "1.0.0",
             "request": "DescribeFeatureType",
             "typename": layer.typename.encode('utf-8'),
             })
-        # The code below will fail if http_client cannot be imported
-        body = http_client.request(dft_url)[1]
-        doc = etree.fromstring(body)
-        path = ".//{xsd}extension/{xsd}sequence/{xsd}element".format(xsd="{http://www.w3.org/2001/XMLSchema}")
+        try:
+            # The code below will fail if http_client cannot be imported  or WFS not supported
+            body = http_client.request(dft_url)[1]
+            doc = etree.fromstring(body)
+            path = ".//{xsd}extension/{xsd}sequence/{xsd}element".format(xsd="{http://www.w3.org/2001/XMLSchema}")
 
-        attribute_map = [[n.attrib["name"], n.attrib["type"]] for n in doc.findall(path)
+            attribute_map = [[n.attrib["name"], n.attrib["type"]] for n in doc.findall(path)
                          if n.attrib.get("name") and n.attrib.get("type")]
+        except Exception:
+            attribute_map = []
+            #Try WMS instead
+            dft_url = server_url + "?" + urllib.urlencode({
+                "service": "wms",
+                "version": "1.0.0",
+                "request": "GetFeatureInfo",
+                "bbox": ','.join([str(x) for x in layer.bbox]),
+                "LAYERS": layer.typename.encode('utf-8'),
+                "QUERY_LAYERS": layer.typename.encode('utf-8'),
+                "feature_count": 1,
+                "width": 1,
+                "height": 1,
+                "srs": "EPSG:4326",
+                "info_format": "text/html",
+                "x": 1,
+                "y": 1
+                })
+            try:
+                body = http_client.request(dft_url)[1]
+                soup = BeautifulSoup(body)
+                for field in soup.findAll('th'):
+                    if(field.string == None):
+                        field_name = field.contents[0].string
+                    else:
+                        field_name = field.string
+                    attribute_map.append([field_name, "xsd:string"])
+            except Exception, e:
+                attribute_map = []
 
-    elif layer.storeType == "coverageStore":
-        dc_url = ogc_server_settings.LOCATION + "wcs?" + urllib.urlencode({
+    elif layer.storeType in ["coverageStore"]:
+        dc_url = server_url + "wcs?" + urllib.urlencode({
             "service": "wcs",
             "version": "1.1.0",
             "request": "DescribeCoverage",
@@ -1065,6 +1111,10 @@ class OGC_Servers_Handler(object):
         if uploader_backend == 'geonode.importer' and not datastore:
             raise ImproperlyConfigured('The UPLOADER BACKEND is set to geonode.importer but no DATASTORE is specified.')
 
+        if server.has_key('PRINTNG_ENABLED'):
+            server.set('PRINT_NG_ENABLED', server.get('PRINTNG_ENABLED'))
+            logger.info("Using PRINTNG_ENABLED setting, please update to PRINT_NG_ENABLED [%s]", name)
+
 
     def ensure_defaults(self, alias):
         """
@@ -1082,7 +1132,7 @@ class OGC_Servers_Handler(object):
         server.setdefault('DATASTORE', str())
         server.setdefault('GEOGIT_DATASTORE_DIR', str())
 
-        for option in ['MAPFISH_PRINT_ENABLED', 'PRINTING_ENABLED', 'GEONODE_SECURITY_ENABLED', 'BACKEND_WRITE_ENABLED']:
+        for option in ['MAPFISH_PRINT_ENABLED', 'PRINT_NG_ENABLED', 'GEONODE_SECURITY_ENABLED', 'BACKEND_WRITE_ENABLED']:
             server.setdefault(option, True)
 
         for option in ['GEOGIT_ENABLED', 'WMST_ENABLED', 'WPS_ENABLED']:
@@ -1255,3 +1305,10 @@ _backgrounds = ["#880000", "#008800", "#000088", "#888800", "#008888", "#880088"
 _marks = ["square", "circle", "cross", "x", "triangle"]
 _style_contexts = izip(cycle(_foregrounds), cycle(_backgrounds), cycle(_marks))
 _default_style_names = ["point", "line", "polygon", "raster"]
+_esri_types = {"esriFieldTypeDouble": "xsd:double", "esriFieldTypeString": "xsd:string",
+               "esriFieldTypeSmallInteger": "xsd:int", "esriFieldTypeInteger":"xsd:int",
+               "esriFieldTypeDate":"xsd:dateTime", "esriFieldTypeOID":"xsd:long",
+               "esriFieldTypeGeometry":"xsd:geometry", "esriFieldTypeBlob": "xsd:base64Binary",
+               "esriFieldTypeRaster":"raster", "esriFieldTypeGUID": "xsd:string",
+               "esriFieldTypeGlobalID": "xsd:string", "esriFieldTypeXML":"xsd:anyType"}
+

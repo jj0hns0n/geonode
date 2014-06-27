@@ -88,9 +88,15 @@ LANGUAGES = (
     
 )
 
+AUTH_USER_MODEL = 'people.Profile'
+
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+
+MODELTRANSLATION_LANGUAGES = ('en', 'es', )
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -166,10 +172,11 @@ GEONODE_APPS = (
     'geonode.catalogue',
     'geonode.documents',
     'geonode.api',
+    'geonode.groups',
+    'geonode.services',
 
     # GeoNode Contrib Apps
-    'geonode.contrib.services',
-    'geonode.contrib.groups',
+    
     #'geonode.contrib.dynamic',
     'geonode.contrib.certification',
 
@@ -205,6 +212,9 @@ INSTALLED_APPS = (
     'leaflet',
     'django_extensions',
     #'haystack',
+    'autocomplete_light',
+    'mptt',
+    'modeltranslation',
 
     # Theme
     "pinax_theme_bootstrap_account",
@@ -222,6 +232,7 @@ INSTALLED_APPS = (
     'user_messages',
     'tastypie',
     'polymorphic',
+    'guardian',
 
 ) + GEONODE_APPS
 
@@ -312,25 +323,15 @@ MIDDLEWARE_CLASSES = (
     'pagination.middleware.PaginationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # This middleware allows to print private layers for the users that have 
-    # the permissions to view them.
-    # It sets temporary the involved layers as public before restoring the permissions.
-    # Beware that for few seconds the involved layers are public there could be risks.
-    #'geonode.geoserver.middleware.PrintProxyMiddleware',
 )
 
 
 # Replacement of default authentication backend in order to support
 # permissions per object.
-AUTHENTICATION_BACKENDS = ('geonode.security.auth.GranularBackend',)
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend','guardian.backends.ObjectPermissionBackend',)
 
-def get_user_url(u):
-    return u.profile.get_absolute_url()
-
-
-ABSOLUTE_URL_OVERRIDES = {
-    'auth.user': get_user_url
-}
+ANONYMOUS_USER_ID = -1
+GUARDIAN_GET_INIT_ANONYMOUS_USER = 'geonode.people.models.get_anonymous_user_instance'
 
 #
 # Settings for default search size
@@ -357,7 +358,7 @@ AGON_RATINGS_CATEGORY_CHOICES = {
 
 # Activity Stream
 ACTSTREAM_SETTINGS = {
-    'MODELS': ('auth.user', 'layers.layer', 'maps.map', 'dialogos.comment', 'documents.document', 'services.service'),
+    'MODELS': ('people.Profile', 'layers.layer', 'maps.map', 'dialogos.comment', 'documents.document', 'services.service'),
     'FETCH_RELATIONS': True,
     'USE_PREFETCH': False,
     'USE_JSONFIELD': True,
@@ -398,9 +399,6 @@ CASCADE_WORKSPACE = 'geonode'
 
 OGP_URL = "http://geodata.tufts.edu/solr/select"
 
-# Default TopicCategory to be used for resources. Use the slug field here
-DEFAULT_TOPICCATEGORY = 'location'
-
 # Topic Categories list should not be modified (they are ISO). In case you 
 # absolutely need it set to True this variable
 MODIFY_TOPICCATEGORY = False
@@ -423,7 +421,7 @@ OGC_SERVER = {
         'USER' : 'admin',
         'PASSWORD' : 'geoserver',
         'MAPFISH_PRINT_ENABLED' : True,
-        'PRINTNG_ENABLED' : True,
+        'PRINT_NG_ENABLED' : True,
         'GEONODE_SECURITY_ENABLED' : True,
         'GEOGIT_ENABLED' : False,
         'WMST_ENABLED' : False,
@@ -634,7 +632,7 @@ TASTYPIE_DEFAULT_FORMATS = ['json']
 AUTO_GENERATE_AVATAR_SIZES = (20,32,80,100,140,200)
 
 # Number of results per page listed in the GeoNode search pages
-CLIENT_RESULTS_LIMIT = 10
+CLIENT_RESULTS_LIMIT = 100
 
 # Number of items returned by the apis 0 equals no limit
 API_LIMIT_PER_PAGE = 0
@@ -645,8 +643,32 @@ LEAFLET_CONFIG = {
     # http://leaflet-extras.github.io/leaflet-providers/preview/
 
     # Stamen toner lite.
+    ('Watercolor', 'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png', 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'),
     ('Toner Lite', 'http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png', 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'),
-]
+],
+'PLUGINS': {
+    'esri-leaflet': {
+        'js': 'lib/js/esri-leaflet.js',
+        'auto-include': True,
+        },
+    }
+}
+
+CACHES = {
+    #DUMMY CACHE FOR DEVELOPMENT
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        },
+    #MEMCACHED EXAMPLE
+    # 'default': {
+    #     'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+    #     'LOCATION': '127.0.0.1:11211',
+    #     },
+    #FILECACHE EXAMPLE
+    # 'default': {
+    #     'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+    #     'LOCATION': '/tmp/django_cache',
+    #     }
 }
 
 # Load more settings from a file called local_settings.py if it exists

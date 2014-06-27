@@ -157,6 +157,15 @@ Default::
 
 A list of dictionaries that specify the default map layers.
 
+LAYER_PREVIEW_LIBRARY
+---------------------
+Default:  ``"leaflet"``
+
+The library to use for display preview images of layers.  The library choices are:
+
+* ``"leaflet"``
+* ``"geoext"``
+
 OGC_SERVER
 ----------
 Default: ``{}`` (Empty dictionary)
@@ -256,8 +265,8 @@ Default: ``'geoserver'``
 
 The administrative password for the OGC server as a string.
 
-PRINTNG_ENABLED
-...............
+PRINT_NG_ENABLED
+................
 Default: ``True``
 
 A boolean that represents whether printing of maps and layers is enabled.

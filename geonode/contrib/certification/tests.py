@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
-from django.contrib.auth.models import User
+from geonode.people.models import Profile
 
 from geonode.maps.models import Map, Layer
 from geonode.contrib.certification.models import Certification
@@ -12,7 +12,7 @@ class CertificationTest(TestCase):
         """
         Tests creation, removal, and retrieval of map certifications
         """
-        user_obj = User.objects.get(id=1)
+        user_obj = Profile.objects.get(id=1)
         map_obj = Map.objects.get(id=1)
         obj_type = ContentType.objects.get_for_model(map_obj)
         newcert = Certification.objects.certify(user_obj,map_obj)
@@ -33,7 +33,7 @@ class CertificationTest(TestCase):
         self.assertEquals(1, len(Certification.objects.certifications_object(map_obj)))
 
         #Create another certification for this map Verify that certifications_object returns 2 certs.
-        Certification.objects.certify(User.objects.get(id=2),map_obj)
+        Certification.objects.certify(Profile.objects.get(id=2),map_obj)
         self.assertEquals(2, len(Certification.objects.certifications_object(map_obj)))
 
         #Verify that the certifications_user method returns 1 cert.
@@ -46,17 +46,17 @@ class CertificationTest(TestCase):
         self.assertEquals(0, len(Certification.objects.certifications_user(user_obj)))
 
         #Remove user 2 certifications and verify that methods return correct results
-        Certification.objects.uncertify(User.objects.get(id=2),map_obj)
+        Certification.objects.uncertify(Profile.objects.get(id=2),map_obj)
         self.assertEquals(0, len(Certification.objects.certifications_object(map_obj)))
-        self.assertFalse(Certification.objects.is_certified(User.objects.get(id=2),map_obj))
-        self.assertEquals(0, len(Certification.objects.certifications_user(User.objects.get(id=2))))
+        self.assertFalse(Certification.objects.is_certified(Profile.objects.get(id=2),map_obj))
+        self.assertEquals(0, len(Certification.objects.certifications_user(Profile.objects.get(id=2))))
 
 
     def test_certify_layer(self):
         """
         Tests creation, removal, and retrieval of layer certifications
         """
-        user_obj = User.objects.get(id=1)
+        user_obj = Profile.objects.get(id=1)
         layer_obj = Layer.objects.get(id=1)
         obj_type = ContentType.objects.get_for_model(layer_obj)
         newcert = Certification.objects.certify(user_obj,layer_obj)
@@ -77,7 +77,7 @@ class CertificationTest(TestCase):
         self.assertEquals(1, len(Certification.objects.certifications_object(layer_obj)))
 
         #Create another certification for this layer Verify that certifications_object returns 2 certs.
-        Certification.objects.certify(User.objects.get(id=2),layer_obj)
+        Certification.objects.certify(Profile.objects.get(id=2),layer_obj)
         self.assertEquals(2, len(Certification.objects.certifications_object(layer_obj)))
 
         #Verify that the certifications_user method returns 1 cert.
@@ -90,7 +90,7 @@ class CertificationTest(TestCase):
         self.assertEquals(0, len(Certification.objects.certifications_user(user_obj)))
 
         #Remove user 2 certifications and verify that methods return correct results
-        Certification.objects.uncertify(User.objects.get(id=2),layer_obj)
+        Certification.objects.uncertify(Profile.objects.get(id=2),layer_obj)
         self.assertEquals(0, len(Certification.objects.certifications_object(layer_obj)))
-        self.assertFalse(Certification.objects.is_certified(User.objects.get(id=2),layer_obj))
-        self.assertEquals(0, len(Certification.objects.certifications_user(User.objects.get(id=2))))
+        self.assertFalse(Certification.objects.is_certified(Profile.objects.get(id=2),layer_obj))
+        self.assertEquals(0, len(Certification.objects.certifications_user(Profile.objects.get(id=2))))

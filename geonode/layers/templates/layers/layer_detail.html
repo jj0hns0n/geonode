@@ -101,8 +101,8 @@
 
       <article id="certifications" class="tab-pane">
         {% comment %} TODO Move this to a snippet in certifications app {% endcomment %}
-        {% is_certified user layer as certified %} 
-        {% object_certifications layer as certifications %}
+        {% is_certified user resource as certified %} 
+        {% object_certifications resource as certifications %}
 
         <h3>Certifications</h3>
         <ul>
@@ -118,11 +118,11 @@
         {% comment %} TODO: Allow only people specified by the admin to certify {% endcomment %} 
         {% if user.is_authenticated %}
             {% if certified %}
-                <a href="{% url "uncertify" "layers.Layer" layer.id %}">
+                <a href="{% url "uncertify" "layers.Layer" resource.id %}">
                 {% trans "Uncertify this layer" %}
                 </a>
             {% else %}
-                <a href="{% url "certify" "layers.Layer" layer.id %}">
+                <a href="{% url "certify" "layers.Layer" resource.id %}">
                 {% trans "Certify this layer" %}
                 </a>
             {% endif %}

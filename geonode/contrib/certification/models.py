@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.generic import GenericForeignKey
 from geonode.maps.models import Layer, Map
@@ -48,7 +48,7 @@ class CertificationManager(models.Manager):
         
         
 class Certification (models.Model):
-    certifier = models.ForeignKey(User)
+    certifier = models.ForeignKey(settings.AUTH_USER_MODEL)
     object_ct = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     object = GenericForeignKey('object_ct', 'object_id')

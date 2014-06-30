@@ -66,12 +66,12 @@
           <!-- TODO: Move this to a reusable template snippet -->
           {% if request.user.is_authenticated %}
           <h3>{% trans "Rate this document" %}</h3>
-          {% user_rating request.user document "document" as user_document_rating %}
+          {% user_rating request.user resource "document" as user_document_rating %}
           <div id="user_rating" class="category-layer" data-score="{{user_document_rating}}"></div>
           {% endif %}
           <h3>{% trans 'Average Rating' %}</h3>
-          {% overall_rating document "document" as document_rating %}
-          {% num_ratings document as num_votes %}
+          {% overall_rating resource "document" as document_rating %}
+          {% num_ratings resource as num_votes %}
           <div class="overall_rating" style="float:left" data-score="{{ document_rating }}"></div> ({{num_votes}})
           <!-- TODO: Add display of who gave what rating based -->
         </article>

@@ -795,8 +795,10 @@ def _register_arcgis_url(url, username, password, owner=None, parent=None):
     if re.search("\/MapServer\/*(f=json)*", baseurl):
         # This is a MapService
         arcserver = ArcMapService(baseurl)
-        return_json = [
-            _process_arcgis_service(arcserver, owner=owner, parent=parent)]
+        if isinstance(arcserver, ArcMapService) and arcserver.spatialReference.wkid in [102100, 3857, 900913]:
+            return_json = [_process_arcgis_service(arcserver, owner=owner, parent=parent)]
+        else:
+            return_json = [{'msg':  _("Could not find any layers in a compatible projection.")}]
 
     else:
         # This is a Folder
@@ -1268,11 +1270,8 @@ def create_arcgis_links(instance):
     )
 
     # Create thumbnails.
+    bbox = urllib.pathname2url('%s,%s,%s,%s' % (instance.bbox_x0, instance.bbox_y0, instance.bbox_x1, instance.bbox_y1))
 
-    # FIXME(Ariel): Construct the bbox parameter from the above object.
-    # Hardcoding it for now.
-    bbox = '0%2C0%2C10018754.17%2C10018754.17'
-
-    thumbnail_remote_url = instance.ows_url + 'export?LAYERS=show%3A0&TRANSPARENT=true&FORMAT=png&BBOX=' + \
-        bbox + '&SIZE=200%2C150&F=image&BBOXSR=900913&IMAGESR=900913'
+    thumbnail_remote_url = instance.ows_url + 'export?LAYERS=show%3A' + str(instance.typename) + \
+        '&TRANSPARENT=true&FORMAT=png&BBOX=' + bbox + '&SIZE=200%2C150&F=image&BBOXSR=4326&IMAGESR=3857'
     create_thumbnail(instance, thumbnail_remote_url)

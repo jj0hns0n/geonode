@@ -42,7 +42,7 @@
               <a href="{% url "maps_browse" %}">{% trans "Maps" %}</a>
             </li>
             <li id="nav_documents">
-              <a href="{% url "documents_browse" %}">{% trans "Documents" %}</a>
+              <a href="{% url "document_browse" %}">{% trans "Documents" %}</a>
             </li>
             <li id="nav_people">
               <a href="{% url "profile_browse" %}">{% trans "People" %}</a>
@@ -53,7 +53,7 @@
           </ul>
           <form class="col-md-3" id="search" action="{% url "search" %}">
             <div class="input-group">
-              <input type="text" placeholder="Search" class="form-control" name="title__contains">
+              <input type="text" placeholder="{% trans 'Search' %}" class="form-control" name="title__contains">
               <span class="input-group-btn">
                 <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
               </span>

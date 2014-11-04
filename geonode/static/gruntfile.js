@@ -26,8 +26,7 @@ module.exports = function(grunt) {
         files: [
           {
             // includes bootstrap.css
-            'geonode/css/base.css': 'geonode/less/base.less',
-            'geonode/css/activity.css': 'geonode/less/activity.less'
+            'geonode/css/base.css': 'geonode/less/base.less'
           }
         ]
       },
@@ -39,8 +38,7 @@ module.exports = function(grunt) {
         files: [
           {
             // includes bootstrap.css
-            'geonode/css/base.css': 'geonode/less/base.less',
-            'geonode/css/activity.css': 'geonode/less/activity.less'
+            'geonode/css/base.css': 'geonode/less/base.less'
           }
         ]
       }
@@ -80,7 +78,11 @@ module.exports = function(grunt) {
             'select2/select2.css', 
             'multi-select/css/multi-select.css',
             'jquery-ui/themes/smoothness/jquery-ui.css',
-            'bootstrap/dist/css/bootstrap.min.css'
+            'bootstrap/dist/css/bootstrap.min.css',
+            'bootstrap-datepicker/css/datepicker.css',
+            'leaflet-fullscreen/dist/leaflet.fullscreen.css',
+            'leaflet-fullscreen/dist/fullscreen@2x.png',
+            'leaflet-fullscreen/dist/fullscreen.png'
           ]
         }, {
           expand: true,
@@ -123,7 +125,8 @@ module.exports = function(grunt) {
             'angular-leaflet-directive/dist/angular-leaflet-directive.min.js',
             'bootstrap/dist/js/bootstrap.min.js',
             'zeroclipboard/dist/ZeroClipboard.min.js',
-            'moment/min/moment.min.js'
+            'moment/min/moment.min.js',
+            'leaflet-fullscreen/dist/Leaflet.fullscreen.min.js'
           ]
         }]
       }
@@ -175,9 +178,9 @@ module.exports = function(grunt) {
           'lib/css/assets.min.css': [
             'lib/css/jquery.dataTables.css',
             'lib/css/select2.css',
-            'lib/css/multi-select.css',
+            'lib/css/bootstrap.min.css',
             'lib/css/jquery-ui.css',
-            'lib/css/bootstrap.min.css'
+            'lib/css/datepicker.css'
           ]
         }
       }
@@ -244,6 +247,6 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['jshint', 'less:development', 'concat:bootstrap', 'copy', 'replace']);
 
   // build production
-  grunt.registerTask('production', ['jshint', 'less:production', 'concat:bootstrap', 'copy', 'replace', 'cssmin', 'uglify' ]);
+  grunt.registerTask('production', ['jshint', 'less:production', 'concat:bootstrap', 'copy', 'cssmin', 'uglify' ]);
 
 };

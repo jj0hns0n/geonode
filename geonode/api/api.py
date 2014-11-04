@@ -188,13 +188,19 @@ class ProfileResource(ModelResource):
         return email
 
     def dehydrate_layers_count(self, bundle):
-        return bundle.obj.resourcebase_set.instance_of(Layer).count()
+        obj_with_perms = get_objects_for_user(bundle.request.user,
+                                              'base.view_resourcebase').instance_of(Layer)
+        return bundle.obj.resourcebase_set.filter(id__in=obj_with_perms.values_list('id', flat=True)).distinct().count()
 
     def dehydrate_maps_count(self, bundle):
-        return bundle.obj.resourcebase_set.instance_of(Map).count()
+        obj_with_perms = get_objects_for_user(bundle.request.user,
+                                              'base.view_resourcebase').instance_of(Map)
+        return bundle.obj.resourcebase_set.filter(id__in=obj_with_perms.values_list('id', flat=True)).distinct().count()
 
     def dehydrate_documents_count(self, bundle):
-        return bundle.obj.resourcebase_set.instance_of(Document).count()
+        obj_with_perms = get_objects_for_user(bundle.request.user,
+                                              'base.view_resourcebase').instance_of(Document)
+        return bundle.obj.resourcebase_set.filter(id__in=obj_with_perms.values_list('id', flat=True)).distinct().count()
 
     def dehydrate_avatar_100(self, bundle):
         return avatar_url(bundle.obj, 100)
@@ -218,7 +224,7 @@ class ProfileResource(ModelResource):
             return [
                 url(r"^(?P<resource_name>%s)/search%s$" % (
                     self._meta.resource_name, trailing_slash()
-                    ),
+                ),
                     self.wrap_view('get_search'), name="api_get_search"),
             ]
         else:
@@ -228,9 +234,9 @@ class ProfileResource(ModelResource):
         queryset = get_user_model().objects.exclude(username='AnonymousUser')
         resource_name = 'profiles'
         allowed_methods = ['get']
-        ordering = ['name']
+        ordering = ['username', 'date_joined']
         excludes = ['is_staff', 'password', 'is_superuser',
-                    'is_active', 'date_joined', 'last_login']
+                    'is_active', 'last_login']
 
         filtering = {
             'username': ALL,

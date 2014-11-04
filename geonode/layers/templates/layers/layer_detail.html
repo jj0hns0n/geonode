@@ -30,19 +30,6 @@
 </div>
 
 <div class="row">
-    <div class="col-md-8">
-        {% if resource.storeType == "remoteStore" %}
-            <h4>{% trans "External service layer" %}</h4>
-            <ul>
-                <li>{% trans "Source:" %}<a href="/services/{{resource.service.id}}">{{ resource.service.title }}</a></li>
-                <li>{% trans "Type:" %}{{ resource.service.type }}</li>
-            </ul>
-        {% endif %}
-    </div>
-</div>
-
-
-<div class="row">
   <div class="col-md-8">
 
     <div id="embedded_map" class="mrg-btm">
@@ -95,7 +82,9 @@
       </article>
 
       {% block social_links %}
-      {% include "social_links.html" %}
+      {% if SOCIAL_BUTTONS %}
+        {% include "social_links.html" %}
+      {% endif %}
       {% endblock %}
 
       <article id="comments" class="tab-pane">
@@ -154,7 +143,7 @@
             <ul>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
           </div>
         </div>
       </div>
@@ -179,7 +168,7 @@
             <ul>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
           </div>
         </div>
       </div>
@@ -204,14 +193,16 @@
               <li><a href="{% url "layer_metadata" resource.service_typename %}">{% trans "Edit Metadata" %}</a></li>            
               {% if GEOSERVER_BASE_URL %}
               <li><a href="{% url "layer_style_manage" resource.service_typename %}">{% trans "Manage Styles" %}</a></li>
+              {% if preview == 'geoext' %}
               <li><a class="style-edit" href="#">{% trans "Edit Styles" %}</a></li>
+              {% endif %}
               {% endif %}
               <li><a href="{% url "layer_replace" resource.service_typename %}">{% trans "Replace this Layer" %}</a></li>
               <li><a href="{% url "layer_remove" resource.service_typename %}">{% trans "Remove this Layer" %}</a></li>
-            <ul>
+            </ul>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
           </div>
         </div>
       </div>
@@ -229,7 +220,6 @@
       {% endif %}
     </li>
     {% endif %}
-
     <li class="list-group-item">
       <h4>{% trans "Maps using this layer" %}</h4>
       {% if resource.maps %}
@@ -293,13 +283,25 @@
     {% endif %}
     {% endif %}
 
+    <li class="list-group-item">
+        {% if resource.storeType == "remoteStore" %}
+            <h4>{% trans "External service layer" %}</h4>
+            <div>{% trans "Source" %}: <a href="/services/{{resource.service.id}}">{{ resource.service.title }}</a></div>
+            <div>{% trans "Type" %}: {{ resource.service.type }}</div>
+
+        {% endif %}
+    </li>
+
     {% include "base/_resourcebase_contact_snippet.html" %}  
   </ul>
 
 
   {% if GEONODE_SECURITY_ENABLED %}   
-  {% include "_permissions_form.html" %}
+    {% include "_permissions_form.html" %}
   {% endif %}
+
+  </div> <!-- col-md-4 -->
+</div> <!-- row -->
 {% endblock %}
 
 {% block extra_script %}

@@ -36,15 +36,14 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import slugify
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.contrib.gis.gdal import DataSource
 from django.conf import settings
 
 # Geonode functionality
 from geonode import GeoNodeException
 from geonode.people.utils import get_valid_user
 from geonode.layers.models import Layer, UploadSession
-from geonode.base.models import (Link, ResourceBase, Thumbnail, 
-    SpatialRepresentationType, TopicCategory)
+from geonode.base.models import (Link, ResourceBase, Thumbnail,
+                                 SpatialRepresentationType, TopicCategory)
 from geonode.layers.models import shp_exts, csv_exts, vec_exts, cov_exts
 from geonode.utils import http_client
 from geonode.layers.metadata import set_metadata
@@ -257,6 +256,7 @@ def get_resolution(filename):
 
 
 def get_bbox(filename):
+    from django.contrib.gis.gdal import DataSource
     bbox_x0, bbox_y0, bbox_x1, bbox_y1 = None, None, None, None
 
     if is_vector(filename):
@@ -306,11 +306,6 @@ def file_upload(filename, name=None, user=None, title=None, abstract=None,
     # Get all the files uploaded with the layer
     files = get_files(filename)
 
-    # Add them to the upload session (new file fields are created).
-    for type_name, fn in files.items():
-        with open(fn, 'rb') as f:
-            upload_session.layerfile_set.create(name=type_name, file=File(f))
-
     # Set a default title that looks nice ...
     if title is None:
         basename = os.path.splitext(os.path.basename(filename))[0]
@@ -322,6 +317,12 @@ def file_upload(filename, name=None, user=None, title=None, abstract=None,
 
     # Generate a name that is not taken if overwrite is False.
     valid_name = get_valid_layer_name(name, overwrite)
+
+    # Add them to the upload session (new file fields are created).
+    for type_name, fn in files.items():
+        with open(fn, 'rb') as f:
+            upload_session.layerfile_set.create(name=type_name,
+                                                file=File(f, name='%s.%s' % (valid_name, type_name)))
 
     # Get a bounding box
     bbox_x0, bbox_x1, bbox_y0, bbox_y1 = get_bbox(filename)
@@ -494,8 +495,11 @@ def upload(incoming, user=None, overwrite=False,
     return output
 
 
-def create_thumbnail(instance, thumbnail_remote_url):
+def create_thumbnail(instance, thumbnail_remote_url, thumbail_create_url=None):
     BBOX_DIFFERENCE_THRESHOLD = 1e-5
+
+    if not thumbail_create_url:
+        thumbail_create_url = thumbnail_remote_url
 
     # Check if the bbox is invalid
     valid_x = (
@@ -523,7 +527,7 @@ def create_thumbnail(instance, thumbnail_remote_url):
         )
 
         # Download thumbnail and save it locally.
-        resp, image = http_client.request(thumbnail_remote_url)
+        resp, image = http_client.request(thumbail_create_url)
         if 'ServiceException' in image or resp.status < 200 or resp.status > 299:
             msg = 'Unable to obtain thumbnail: %s' % image
             logger.debug(msg)
@@ -531,21 +535,22 @@ def create_thumbnail(instance, thumbnail_remote_url):
             image = None
 
     if image is not None:
+        # first delete thumbnail file on disk to prevent duplicates:
         if instance.has_thumbnail():
-            instance.thumbnail.thumb_file.delete()
-        else:
-            instance.thumbnail = Thumbnail()
-
-        instance.thumbnail.thumb_file.save(
+            instance.thumbnail_set.get().thumb_file.delete()
+        # update database and save new thumbnail file on disk:
+        instance.thumbnail_set.all().delete()
+        thumbnail = Thumbnail(thumb_spec=thumbnail_remote_url)
+        instance.thumbnail_set.add(thumbnail)
+        thumbnail.thumb_file.save(
             'layer-%s-thumb.png' %
             instance.id,
             ContentFile(image))
-        instance.thumbnail.thumb_spec = thumbnail_remote_url
-        instance.thumbnail.save()
+        thumbnail.save()
 
         thumbnail_url = urljoin(
             settings.SITEURL,
-            instance.thumbnail.thumb_file.url)
+            instance.thumbnail_set.get().thumb_file.url)
 
         Link.objects.get_or_create(resource=instance.resourcebase_ptr,
                                    url=thumbnail_url,

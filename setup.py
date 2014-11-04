@@ -81,7 +81,7 @@ setup(name='GeoNode',
         # native dependencies
         "pillow", # python-pillow
         "lxml", # python-lxml
-        "psycopg2==2.4.5", # python-psycopg2
+        # "psycopg2==2.4.5", # python-psycopg2
         "Django >=1.6.1, <=1.6.5", # python-django
 
         # Other
@@ -100,7 +100,7 @@ setup(name='GeoNode',
         "django-taggit==0.12", # python-django-taggit
         "django-mptt==0.6.1", # django-mptt
         "django-guardian==1.2.0", #django-guardian
-        #"django-admin-bootstrapped==1.6.5", #django-admin-bootstrapped
+        # "django-admin-bootstrapped==1.6.5", #django-admin-bootstrapped
 
         ## Apps with packages provided in GeoNode's PPA on Launchpad.
         "pinax-theme-bootstrap==3.0a11",
@@ -114,19 +114,19 @@ setup(name='GeoNode',
         "django-polymorphic==0.5.3",
         "django-leaflet==0.13.2",
         "django-autocomplete-light==1.4.13",
-        "django-modeltranslation==0.7.3",
+        "django-modeltranslation",
 
         # GeoNode org maintained apps.
         "django-geoexplorer==4.0.4",
         "geonode-user-messages==0.1.1",
         "geonode-avatar==2.1.3",
-        "geonode-announcements==1.0.2",
+        "geonode-announcements==1.0.3",
         "geonode-agon-ratings==0.3.1",
-        "geonode-user-accounts==1.0.2",
+        "geonode-user-accounts==1.0.5",
         "geonode-arcrest==10.2",
         "geonode-notification==1.1.1",
         "geonode-dialogos==0.4",
-        "gsconfig==0.6.9",
+        "gsconfig==0.6.10",
         "gsimporter==0.1",
         "gisdata==0.5.4",
 

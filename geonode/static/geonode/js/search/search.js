@@ -2,8 +2,11 @@
 
 (function(){
 
-  var module = angular.module('main_search', ['leaflet-directive'], function($locationProvider) {
-      $locationProvider.html5Mode(true);
+  var module = angular.module('geonode_main_search', [], function($locationProvider) {
+      $locationProvider.html5Mode({
+        enabled: true,
+        requireBase: false
+      });
 
       // make sure that angular doesn't intercept the page links
       angular.element("a").prop("target", "_self");
@@ -113,7 +116,7 @@
   * Load data from api and defines the multiple and single choice handlers
   * Syncs the browser url with the selections
   */
-  module.controller('MainController', function($scope, $location, $http, Configs, leafletData){
+  module.controller('geonode_search_controller', function($injector, $scope, $location, $http, Configs){
     $scope.query = $location.search();
     $scope.query.limit = $scope.query.limit || CLIENT_RESULTS_LIMIT;
     $scope.query.offset = $scope.query.offset || 0;
@@ -127,9 +130,13 @@
         $scope.total_counts = data.meta.total_count;
         $scope.$root.query_data = data;
         if (HAYSTACK_SEARCH) {
-            $scope.text_query = $location.search()['q'].replace(/\+/g," ")
+          if ($location.search().hasOwnProperty('q')){
+            $scope.text_query = $location.search()['q'].replace(/\+/g," ");
+          }
         } else {
-            $scope.text_query = $location.search()['title__contains'].replace(/\+/g," ")
+          if ($location.search().hasOwnProperty('title__contains')){
+            $scope.text_query = $location.search()['title__contains'].replace(/\+/g," ");
+          }
         }
 
         //Update facet/keyword/category counts from search results
@@ -192,11 +199,13 @@
     * End pagination
     */
 
-    
-    // Keep in sync the page location with the query object
-    $scope.$watch('query', function(){
-      $location.search($scope.query);
-    }, true);
+
+    if (!Configs.hasOwnProperty("disableQuerySync")) {
+        // Keep in sync the page location with the query object
+        $scope.$watch('query', function(){
+          $location.search($scope.query);
+        }, true);
+    }
 
     /*
     * Add the selection behavior to the element, it adds/removes the 'active' class
@@ -283,7 +292,8 @@
           choiceSelector: 'span',
           hideAfter: 200,
           minimumCharacters: 1,
-          appendAutocomplete: $('#text_search_input')
+          appendAutocomplete: $('#text_search_input'),
+          placeholder: gettext('Enter your text here ...')
     });
     $('#text_search_input').bind('selectChoice', function(e, choice, text_autocomplete) {
           if(choice[0].children[0] == undefined) {
@@ -301,7 +311,18 @@
     });
 
 
-
+    $scope.feature_select = function($event){
+      var element = $($event.target);
+      var article = $(element.parents('article')[0]);
+      if (article.hasClass('resource_selected')){
+        element.html('Select');
+        article.removeClass('resource_selected');
+      }
+      else{
+        element.html('Deselect');
+        article.addClass('resource_selected');
+      } 
+    };
 
     /*
     * Date management
@@ -311,7 +332,7 @@
       'date__gte': '',
       'date__lte': ''
     };
-
+    var init_date = true;
     $scope.$watch('date_query', function(){
       if($scope.date_query.date__gte != '' && $scope.date_query.date__lte != ''){
         $scope.query['date__range'] = $scope.date_query.date__gte + ',' + $scope.date_query.date__lte;
@@ -330,13 +351,18 @@
         delete $scope.query['date__gte'];
         delete $scope.query['date__lte'];
       }
-      query_api($scope.query);
+      if (!init_date){
+        query_api($scope.query);
+      }else{
+        init_date = false;
+      }
+      
     }, true);
 
     /*
     * Spatial search
     */
-    if($('.leaflet_map').length > 0){
+    if ($('.leaflet_map').length > 0) {
       angular.extend($scope, {
         layers: {
           baselayers: {
@@ -362,7 +388,8 @@
         }
       });
 
-      var map = leafletData.getMap();
+      var leafletData = $injector.get('leafletData'),
+          map = leafletData.getMap();
 
       map.then(function(map){
         map.on('moveend', function(){

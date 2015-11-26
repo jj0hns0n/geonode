@@ -4,16 +4,21 @@ from geonode.people.models import Profile
 
 from geonode.maps.models import Map, Layer
 from geonode.contrib.certification.models import Certification
+from geonode.base.populate_test_data import create_models
+
 
 class CertificationTest(TestCase):
-    fixtures = ['certification_data.json']
+
+    def setUp(self):
+        create_models(type='layer')
+        create_models(type='map')
 
     def test_certify_map(self):
         """
         Tests creation, removal, and retrieval of map certifications
         """
         user_obj = Profile.objects.get(id=1)
-        map_obj = Map.objects.get(id=1)
+        map_obj = Map.objects.all()[0]
         obj_type = ContentType.objects.get_for_model(map_obj)
         newcert = Certification.objects.certify(user_obj,map_obj)
 
@@ -57,7 +62,7 @@ class CertificationTest(TestCase):
         Tests creation, removal, and retrieval of layer certifications
         """
         user_obj = Profile.objects.get(id=1)
-        layer_obj = Layer.objects.get(id=1)
+        layer_obj = Layer.objects.all()[0]
         obj_type = ContentType.objects.get_for_model(layer_obj)
         newcert = Certification.objects.certify(user_obj,layer_obj)
 

@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 from __future__ import unicode_literals
 
 import keyword
@@ -16,7 +36,8 @@ from geonode.geoserver.helpers import ogc_server_settings
 
 from .postgis import file2pgtable
 
-DYNAMIC_DATASTORE = 'datastore'
+datastore_name = settings.OGC_SERVER['default']['DATASTORE']
+DYNAMIC_DATASTORE = datastore_name if datastore_name != '' else 'datastore'
 
 has_datastore = True if len(ogc_server_settings.datastore_db.keys()) > 0 else False
 
@@ -131,7 +152,10 @@ def create_model(
     setattr(Meta, 'verbose_name_plural', name)
 
     # Set up a dictionary to simulate declarations within a class
-    attrs = {'__module__': module, 'Meta': Meta, 'objects': models.GeoManager()}
+    geomanager = models.GeoManager()
+    geomanager._db = DYNAMIC_DATASTORE
+
+    attrs = {'__module__': module, 'Meta': Meta, 'objects': geomanager}
 
     # Add in any fields that were provided
     if fields:

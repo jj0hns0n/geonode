@@ -1,12 +1,28 @@
-import datetime
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
 
 from django.core.urlresolvers import reverse
 from tastypie.test import ResourceTestCase
 
 from geonode.base.populate_test_data import create_models, all_public
 from geonode.layers.models import Layer
-
-from .resourcebase_api import LayerResource, MapResource, DocumentResource, ResourceBaseResource
 
 
 class PermissionsApiTests(ResourceTestCase):
@@ -18,13 +34,17 @@ class PermissionsApiTests(ResourceTestCase):
 
         self.user = 'admin'
         self.passwd = 'admin'
-        self.list_url = reverse('api_dispatch_list', kwargs={'api_name':'api', 'resource_name':'layers'})
+        self.list_url = reverse(
+            'api_dispatch_list',
+            kwargs={
+                'api_name': 'api',
+                'resource_name': 'layers'})
         create_models(type='layer')
         all_public()
         self.perm_spec = {"users": {}, "groups": {}}
 
     def test_layer_get_list_unauth_all_public(self):
-        """ 
+        """
         Test that the correct number of layers are returned when the
         client is not logged in and all are public
         """
@@ -60,12 +80,10 @@ class PermissionsApiTests(ResourceTestCase):
 
     def test_layer_get_list_layer_private_to_one_user(self):
         """
-        Test that if a layer is only visible by admin, then does not appear in the
-        unauthenticated list nor in the list when logged is as bobby
+        Test that if a layer is only visible by admin, then does not appear
+        in the unauthenticated list nor in the list when logged is as bobby
         """
-        perm_spec = {"users":{
-                "admin": ['view_resourcebase']
-            }, "groups":{}}
+        perm_spec = {"users": {"admin": ['view_resourcebase']}, "groups": {}}
         layer = Layer.objects.all()[0]
         layer.set_permissions(perm_spec)
         resp = self.api_client.get(self.list_url)
@@ -89,11 +107,23 @@ class PermissionsApiTests(ResourceTestCase):
             self.list_url + str(layer.id) + '/'))
 
         self.api_client.client.login(username=self.user, password=self.passwd)
-        resp = self.api_client.get(self.list_url + str(layer.id) +'/')
+        resp = self.api_client.get(self.list_url + str(layer.id) + '/')
         self.assertValidJSONResponse(resp)
+
+    def test_new_user_has_access_to_old_layers(self):
+        """Test that a new user can access the public available layers"""
+        from geonode.people.models import Profile
+        Profile.objects.create(username='imnew',
+                               password='pbkdf2_sha256$12000$UE4gAxckVj4Z$N\
+            6NbOXIQWWblfInIoq/Ta34FdRiPhawCIZ+sOO3YQs=')
+        self.api_client.client.login(username='imnew', password='thepwd')
+        resp = self.api_client.get(self.list_url)
+        self.assertValidJSONResponse(resp)
+        self.assertEquals(len(self.deserialize(resp)['objects']), 8)
 
 
 class SearchApiTests(ResourceTestCase):
+
     """Test the search"""
 
     fixtures = ['initial_data.json', 'bobby']
@@ -101,20 +131,27 @@ class SearchApiTests(ResourceTestCase):
     def setUp(self):
         super(SearchApiTests, self).setUp()
 
-        self.list_url = reverse('api_dispatch_list', kwargs={'api_name':'api', 'resource_name':'layers'})
+        self.list_url = reverse(
+            'api_dispatch_list',
+            kwargs={
+                'api_name': 'api',
+                'resource_name': 'layers'})
         create_models(type='layer')
         all_public()
 
     def test_category_filters(self):
         """Test category filtering"""
 
+        # check we get the correct layers number returnered filtering on one
+        # and then two different categories
         filter_url = self.list_url + '?category__identifier=location'
 
         resp = self.api_client.get(filter_url)
         self.assertValidJSONResponse(resp)
         self.assertEquals(len(self.deserialize(resp)['objects']), 3)
 
-        filter_url = self.list_url + '?category__identifier__in=location&category__identifier__in=biota'
+        filter_url = self.list_url + \
+            '?category__identifier__in=location&category__identifier__in=biota'
 
         resp = self.api_client.get(filter_url)
         self.assertValidJSONResponse(resp)
@@ -123,13 +160,16 @@ class SearchApiTests(ResourceTestCase):
     def test_tag_filters(self):
         """Test keywords filtering"""
 
+        # check we get the correct layers number returnered filtering on one
+        # and then two different keywords
         filter_url = self.list_url + '?keywords__slug=layertagunique'
 
         resp = self.api_client.get(filter_url)
         self.assertValidJSONResponse(resp)
         self.assertEquals(len(self.deserialize(resp)['objects']), 1)
 
-        filter_url = self.list_url + '?keywords__slug__in=layertagunique&keywords__slug__in=populartag'
+        filter_url = self.list_url + \
+            '?keywords__slug__in=layertagunique&keywords__slug__in=populartag'
 
         resp = self.api_client.get(filter_url)
         self.assertValidJSONResponse(resp)
@@ -138,13 +178,16 @@ class SearchApiTests(ResourceTestCase):
     def test_owner_filters(self):
         """Test owner filtering"""
 
+        # check we get the correct layers number returnered filtering on one
+        # and then two different owners
         filter_url = self.list_url + '?owner__username=user1'
 
         resp = self.api_client.get(filter_url)
         self.assertValidJSONResponse(resp)
         self.assertEquals(len(self.deserialize(resp)['objects']), 2)
 
-        filter_url = self.list_url + '?owner__username__in=user1&owner__username__in=foo'
+        filter_url = self.list_url + \
+            '?owner__username__in=user1&owner__username__in=foo'
 
         resp = self.api_client.get(filter_url)
         self.assertValidJSONResponse(resp)
@@ -153,16 +196,19 @@ class SearchApiTests(ResourceTestCase):
     def test_title_filter(self):
         """Test title filtering"""
 
+        # check we get the correct layers number returnered filtering on the
+        # title
         filter_url = self.list_url + '?title=layer2'
 
         resp = self.api_client.get(filter_url)
         self.assertValidJSONResponse(resp)
         self.assertEquals(len(self.deserialize(resp)['objects']), 1)
 
-
     def test_date_filter(self):
         """Test date filtering"""
 
+        # check we get the correct layers number returnered filtering on the
+        # title
         filter_url = self.list_url + '?date__exact=1985-01-01'
 
         resp = self.api_client.get(filter_url)

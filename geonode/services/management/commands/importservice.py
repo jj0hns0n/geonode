@@ -1,12 +1,32 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 from django.core.management.base import BaseCommand
 from optparse import make_option
 from geonode.services.models import Service
 from geonode.services.views import _register_cascaded_service, _register_indexed_service, \
-    _register_harvested_service,_register_cascaded_layers,_register_indexed_layers
+    _register_harvested_service, _register_cascaded_layers, _register_indexed_layers
 import json
 from geonode.people.utils import get_valid_user
-import traceback
 import sys
+
 
 class Command(BaseCommand):
 
@@ -14,9 +34,9 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
 
         make_option('-o', '--owner', dest="owner", default=None,
-                help="Name of the user account which should own the imported layers"),
+                    help="Name of the user account which should own the imported layers"),
         make_option('-r', '--registerlayers', dest="registerlayers", default=False,
-                help="Register all layers found in the service"),
+                    help="Register all layers found in the service"),
         make_option('-u', '--username', dest="username", default=None,
                     help="Username required to login to this service if any"),
         make_option('-p', '--password', dest="password", default=None,
@@ -79,7 +99,7 @@ class Command(BaseCommand):
             print register_layers
 
         if service and register_layers:
-            layers=[]
+            layers = []
             for layer in service.layer_set.all():
                 layers.append(layer.typename)
             if service.method == 'C':
@@ -94,4 +114,3 @@ class Command(BaseCommand):
                 print('Invalid Service Type')
 
         print response.content
-

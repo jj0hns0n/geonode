@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +20,7 @@
 
 import json
 
+
 def _layer_json(layers, sources):
     """
     return a list of layer config for the provided layer
@@ -35,27 +37,31 @@ def _layer_json(layers, sources):
         """
         results = []
         for x in seq:
-            if x not in results: results.append(x)
+            if x not in results:
+                results.append(x)
         return results
 
     configs = [l.source_config() for l in layers]
 
     i = 0
     for source in uniqify(configs):
-        while str(i) in sources: i = i + 1
-        sources[str(i)] = source 
+        while str(i) in sources:
+            i = i + 1
+        sources[str(i)] = source
         server_lookup[json.dumps(source)] = str(i)
 
     def source_lookup(source):
         for k, v in sources.iteritems():
-            if v == source: return k
+            if v == source:
+                return k
         return None
 
-    def layer_config(l,user=None):
+    def layer_config(l, user=None):
         cfg = l.layer_config(user=user)
         src_cfg = l.source_config()
         source = source_lookup(src_cfg)
-        if source: cfg["source"] = source
+        if source:
+            cfg["source"] = source
         return cfg
-    
-    return [layer_config(l,user=None) for l in layers]
+
+    return [layer_config(l, user=None) for l in layers]

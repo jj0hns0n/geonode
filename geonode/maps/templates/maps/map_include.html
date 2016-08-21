@@ -17,12 +17,16 @@ Ext.onReady(function() {
         {% if PROXY_URL %}
         proxy: '{{ PROXY_URL }}',
         {% endif %}
+        {% if MAPFISH_PRINT_ENABLED %}
+        printService: "{{GEOSERVER_BASE_URL}}pdf/",
+        {% else %}
         printService: "",
+        {% endif %} 
         rest: "/maps/",
 
         // tell the map viewer where and how to be rendered
         portalConfig: {
-            height: 400,
+            height: 600,
             renderTo: "the_map"
         }
     }, {{ config }});

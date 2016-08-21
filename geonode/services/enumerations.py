@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,12 +41,10 @@ SERVICE_METHODS = (
 
 
 GXP_PTYPES = {
-    'OWS' : 'gxp_wmscsource',
+    'OWS': 'gxp_wmscsource',
     'WMS': 'gxp_wmscsource',
     'WFS': 'gxp_wmscsource',
     'WCS': 'gxp_wmscsource',
     'REST': 'gxp_arcrestsource',
     'HGL': 'gxp_hglsource',
 }
-
-

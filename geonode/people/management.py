@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,9 +28,25 @@ if "notification" in settings.INSTALLED_APPS:
     import notification
 
     def create_notice_types(app, created_models, verbosity, **kwargs):
-        notification.models.NoticeType.create("user_follow", _("User following you"), _("another user has started following you"))
+        notification.models.NoticeType.create(
+            "user_follow",
+            _("User following you"),
+            _("Another user has started following you"))
+        notification.models.NoticeType.create(
+            "account_approve",
+            _("User requested access"),
+            _("A new user has requested access to the site"))
+        notification.models.NoticeType.create(
+            "account_active",
+            _("Account activated"),
+            _("This account is now active and can log in the site"))
 
-    signals.post_syncdb.connect(create_notice_types, sender=notification.models)
-    logger.info("Notifications Configured for geonode.people.managment.commands")
+    signals.post_syncdb.connect(
+        create_notice_types,
+        sender=notification.models)
+    logger.info(
+        "Notifications Configured for geonode.people.managment.commands")
 else:
-    logger.info("Skipping creation of NoticeTypes for geonode.people.management.commands, since notification app was not found.")
+    logger.info(
+        "Skipping creation of NoticeTypes for geonode.people.management.commands, \
+        since notification app was not found.")

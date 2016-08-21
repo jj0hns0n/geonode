@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,9 +22,10 @@ from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
 
 urlpatterns = patterns('geonode.people.views',
-    url(r'^$', TemplateView.as_view(template_name='people/profile_list.html') , name='profile_browse'),
-    url(r"^edit/$", "profile_edit", name="profile_edit"),
-    url(r"^edit/(?P<username>[^/]*)$", "profile_edit", name="profile_edit"),
-    url(r"^profile/(?P<username>[^/]*)/$", "profile_detail", name="profile_detail"),
-    url(r'^forgotname','forgot_username',name='forgot_username'),
-)
+                       url(r'^$', TemplateView.as_view(template_name='people/profile_list.html'),
+                           name='profile_browse'),
+                       url(r"^edit/$", "profile_edit", name="profile_edit"),
+                       url(r"^edit/(?P<username>[^/]*)$", "profile_edit", name="profile_edit"),
+                       url(r"^profile/(?P<username>[^/]*)/$", "profile_detail", name="profile_detail"),
+                       url(r'^forgotname', 'forgot_username', name='forgot_username'),
+                       )

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +19,6 @@
 #########################################################################
 
 import os
-import sys
 from lxml import etree
 from django.conf import settings
 from ConfigParser import SafeConfigParser
@@ -36,12 +36,12 @@ CONFIGURATION = {
         'encoding': 'UTF-8',
         'language': settings.LANGUAGE_CODE,
         'maxrecords': '10',
-        #'loglevel': 'DEBUG',
-        #'logfile': '/tmp/pycsw.log',
-        #'federatedcatalogues': 'http://geo.data.gov/geoportal/csw/discovery',
-        #'pretty_print': 'true',
-        #'domainquerytype': 'range',
-        #'domaincounts': 'true',
+        #  'loglevel': 'DEBUG',
+        #  'logfile': '/tmp/pycsw.log',
+        #  'federatedcatalogues': 'http://geo.data.gov/geoportal/csw/discovery',
+        #  'pretty_print': 'true',
+        #  'domainquerytype': 'range',
+        'domaincounts': 'true',
         'profiles': 'apiso,ebrim',
     },
     'repository': {
@@ -54,7 +54,7 @@ CONFIGURATION = {
 class CatalogueBackend(GenericCatalogueBackend):
     def __init__(self, *args, **kwargs):
         super(CatalogueBackend, self).__init__(*args, **kwargs)
-        self.catalogue.formats = ['Atom', 'DIF', 'Dublin Core', 'ebRIM', 'FGDC', 'TC211']
+        self.catalogue.formats = ['Atom', 'DIF', 'Dublin Core', 'ebRIM', 'FGDC', 'ISO']
         self.catalogue.local = True
 
     def remove_record(self, uuid):
@@ -89,19 +89,21 @@ class CatalogueBackend(GenericCatalogueBackend):
             lresults = self._csw_local_dispatch(keywords, keywords, start+1, limit, bbox)
             # serialize XML
             e = etree.fromstring(lresults)
-            self.catalogue.records = [MD_Metadata(x) for x in e.findall('//{http://www.isotc211.org/2005/gmd}MD_Metadata')]
+
+            self.catalogue.records = \
+                [MD_Metadata(x) for x in e.findall('//{http://www.isotc211.org/2005/gmd}MD_Metadata')]
 
             # build results into JSON for API
             results = [self.catalogue.metadatarecord2dict(doc) for v, doc in self.catalogue.records.iteritems()]
 
-            result = {
-                      'rows': results,
-                      'total': e.find('{http://www.opengis.net/cat/csw/2.0.2}SearchResults').attrib.get('numberOfRecordsMatched'),
-                      'next_page': e.find('{http://www.opengis.net/cat/csw/2.0.2}SearchResults').attrib.get('nextRecord')
+            result = {'rows': results,
+                      'total': e.find('{http://www.opengis.net/cat/csw/2.0.2}SearchResults').attrib.get(
+                          'numberOfRecordsMatched'),
+                      'next_page': e.find('{http://www.opengis.net/cat/csw/2.0.2}SearchResults').attrib.get(
+                          'nextRecord')
                       }
 
             return result
-
 
     def _csw_local_dispatch(self, keywords=None, start=0, limit=10, bbox=None, identifier=None):
         """
@@ -111,22 +113,25 @@ class CatalogueBackend(GenericCatalogueBackend):
         # serialize pycsw settings into SafeConfigParser
         # object for interaction with pycsw
         mdict = dict(settings.PYCSW['CONFIGURATION'], **CONFIGURATION)
+        if 'server' in settings.PYCSW['CONFIGURATION']:
+            # override server system defaults with user specified directives
+            mdict['server'].update(settings.PYCSW['CONFIGURATION']['server'])
         config = SafeConfigParser()
-    
+
         for section, options in mdict.iteritems():
             config.add_section(section)
             for option, value in options.iteritems():
                 config.set(section, option, value)
-    
+
         # fake HTTP environment variable
         os.environ['QUERY_STRING'] = ''
-    
+
         # init pycsw
-        csw = server.Csw(config)
-    
+        csw = server.Csw(config, version='2.0.2')
+
         # fake HTTP method
-        csw.requesttype = 'POST'
-    
+        csw.requesttype = 'GET'
+
         # fake HTTP request parameters
         if identifier is None:  # it's a GetRecords request
             formats = []
@@ -134,6 +139,8 @@ class CatalogueBackend(GenericCatalogueBackend):
                 formats.append(METADATA_FORMATS[f][0])
 
             csw.kvp = {
+                'service': 'CSW',
+                'version': '2.0.2',
                 'elementsetname': 'full',
                 'typenames': formats,
                 'resulttype': 'results',
@@ -147,15 +154,21 @@ class CatalogueBackend(GenericCatalogueBackend):
             response = csw.getrecords()
         else:  # it's a GetRecordById request
             csw.kvp = {
-                'id': [identifier],
+                'service': 'CSW',
+                'version': '2.0.2',
+                'request': 'GetRecordById',
+                'id': identifier,
                 'outputschema': 'http://www.isotc211.org/2005/gmd',
             }
-            #FIXME(Ariel): Remove this try/except block when pycsw deals with
+            # FIXME(Ariel): Remove this try/except block when pycsw deals with
             # empty geometry fields better.
             # https://gist.github.com/ingenieroariel/717bb720a201030e9b3a
             try:
-                response = csw.getrecordbyid()
+                response = csw.dispatch()
             except ReadingError:
                 return []
 
-        return etree.tostring(response)
+        if isinstance(response, list):  # pycsw 2.0+
+            response = response[1]
+
+        return response

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +19,8 @@
 #########################################################################
 
 from django.contrib.sitemaps import Sitemap
-from geonode.maps.models import Layer, Map 
+from geonode.maps.models import Layer, Map
+
 
 class LayerSitemap(Sitemap):
     changefreq = "never"
@@ -29,6 +31,7 @@ class LayerSitemap(Sitemap):
 
     def lastmod(self, obj):
         return obj.date
+
 
 class MapSitemap(Sitemap):
     changefreq = "never"

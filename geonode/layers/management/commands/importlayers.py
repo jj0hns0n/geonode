@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,62 +21,164 @@
 from django.core.management.base import BaseCommand
 from optparse import make_option
 from geonode.layers.utils import upload
+from geonode.people.utils import get_valid_user
 import traceback
 import datetime
-import sys
+
 
 class Command(BaseCommand):
     help = ("Brings a data file or a directory full of data files into a"
-            "GeoNode site.  Layers are added to the Django database, the"
-            "GeoServer configuration, and the GeoNetwork metadata index.")
+            " GeoNode site.  Layers are added to the Django database, the"
+            " GeoServer configuration, and the pycsw metadata index.")
 
     args = 'path [path...]'
 
     option_list = BaseCommand.option_list + (
-            make_option('-u', '--user', dest="user", default=None,
-                help="Name of the user account which should own the imported layers"),
-            make_option('-i', '--ignore-errors',
-                action='store_true',
-                dest='ignore_errors',
-                default=False,
-                help='Stop after any errors are encountered.'),
-            make_option('-o', '--overwrite', dest='overwrite', default=False, action="store_true",
-                help="Overwrite existing layers if discovered (defaults False)"),
-            make_option('-k', '--keywords', dest='keywords', default="",
-                help="""The default keywords, separated by comma, for the 
-                    imported layer(s). Will be the same for all imported layers 
-                    if multiple imports are done in one command""")
+        make_option(
+            '-u',
+            '--user',
+            dest="user",
+            default=None,
+            help="Name of the user account which should own the imported layers"),
+        make_option(
+            '-i',
+            '--ignore-errors',
+            action='store_true',
+            dest='ignore_errors',
+            default=False,
+            help='Stop after any errors are encountered.'),
+        make_option(
+            '-o',
+            '--overwrite',
+            dest='overwrite',
+            default=False,
+            action="store_true",
+            help="Overwrite existing layers if discovered (defaults False)"),
+        make_option(
+            '-k',
+            '--keywords',
+            dest='keywords',
+            default="",
+            help="""The default keywords, separated by comma, for the
+                    imported layer(s). Will be the same for all imported layers
+                    if multiple imports are done in one command"""
+        ),
+        make_option(
+            '-c',
+            '--category',
+            dest='category',
+            default=None,
+            help="""The category for the
+                    imported layer(s). Will be the same for all imported layers
+                    if multiple imports are done in one command"""
+        ),
+        make_option(
+            '-r',
+            '--regions',
+            dest='regions',
+            default="",
+            help="""The default regions, separated by comma, for the
+                    imported layer(s). Will be the same for all imported layers
+                    if multiple imports are done in one command"""
+        ),
+        make_option(
+            '-t',
+            '--title',
+            dest='title',
+            default=None,
+            help="""The title for the
+                    imported layer(s). Will be the same for all imported layers
+                    if multiple imports are done in one command"""
+        ),
+        make_option(
+            '-d',
+            '--date',
+            dest='date',
+            default=None,
+            help=('The date and time for the imported layer(s). Will be the '
+                  'same for all imported layers if multiple imports are done '
+                  'in one command. Use quotes to specify both the date and '
+                  'time in the format \'YYYY-MM-DD HH:MM:SS\'.')
+        ),
+        make_option(
+            '-p',
+            '--private',
+            dest='private',
+            default=False,
+            action="store_true",
+            help="Make layer viewable only to owner"
+        ),
+        make_option(
+            '-m',
+            '--metadata_uploaded_preserve',
+            dest='metadata_uploaded_preserve',
+            default=False,
+            action="store_true",
+            help="Force metadata XML to be preserved"
         )
+    )
 
     def handle(self, *args, **options):
         verbosity = int(options.get('verbosity'))
-        ignore_errors = options.get('ignore_errors')
-        user = options.get('user')
+        # ignore_errors = options.get('ignore_errors')
+        username = options.get('user')
+        user = get_valid_user(username)
         overwrite = options.get('overwrite')
+        category = options.get('category', None)
+        private = options.get('private', False)
+        title = options.get('title', None)
+        date = options.get('date', None)
+        metadata_uploaded_preserve = options.get('metadata_uploaded_preserve',
+                                                 False)
 
         if verbosity > 0:
-            console = sys.stdout
+            console = self.stdout
         else:
             console = None
 
-        if overwrite == True:
+        if overwrite:
             skip = False
         else:
             skip = True
 
         keywords = options.get('keywords').split(',')
-        if len(keywords) == 1 and keywords[0] == '': keywords = []
+        if len(keywords) == 1 and keywords[0] == '':
+            keywords = []
+        else:
+            keywords = map(str.strip, keywords)
+        regions = options.get('regions').split(',')
+        if len(regions) == 1 and regions[0] == '':
+            regions = []
+        else:
+            regions = map(str.strip, regions)
         start = datetime.datetime.now()
         output = []
         for path in args:
-            out = upload(path, user=user, overwrite=overwrite, skip=skip,
-                    keywords=keywords, verbosity=verbosity, console=console)
+            out = upload(
+                path,
+                user=user,
+                overwrite=overwrite,
+                skip=skip,
+                keywords=keywords,
+                verbosity=verbosity,
+                console=console,
+                category=category,
+                regions=regions,
+                title=title,
+                date=date,
+                private=private,
+                metadata_uploaded_preserve=metadata_uploaded_preserve)
+
             output.extend(out)
 
-        updated = [dict_['file'] for dict_ in output if dict_['status']=='updated']
-        created = [dict_['file'] for dict_ in output if dict_['status']=='created']
-        skipped = [dict_['file'] for dict_ in output if dict_['status']=='skipped']
-        failed = [dict_['file'] for dict_ in output if dict_['status']=='failed']
+        updated = [dict_['file']
+                   for dict_ in output if dict_['status'] == 'updated']
+        created = [dict_['file']
+                   for dict_ in output if dict_['status'] == 'created']
+        skipped = [dict_['file']
+                   for dict_ in output if dict_['status'] == 'skipped']
+        failed = [dict_['file']
+                  for dict_ in output if dict_['status'] == 'failed']
 
         finish = datetime.datetime.now()
         td = finish - start
@@ -93,7 +196,7 @@ class Command(BaseCommand):
 
         if verbosity > 0:
             print "\n\nFinished processing %d layers in %s seconds.\n" % (
-                                              len(output), duration_rounded)
+                len(output), duration_rounded)
             print "%d Created layers" % len(created)
             print "%d Updated layers" % len(updated)
             print "%d Skipped layers" % len(skipped)

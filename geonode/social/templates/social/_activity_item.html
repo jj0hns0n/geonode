@@ -4,7 +4,7 @@
     <p>
       <span class="icon-activity {{ activity_class|default:'activity' }}"></span>
       {% if object %}
-      <span class="thumb-activity"><img src="/uploaded/{{ object.thumbnail.thumb_file }}"></span>
+      <span class="thumb-activity"><img src="{{ object.thumbnail_url }}"></span>
       {% endif %}
       <a href="{{ actor.get_absolute_url }}">{{ username }}</a>
 
@@ -21,7 +21,11 @@
 
       {% if target %}
         {{ preposition|default:"to" }}
-        <a href="{{ target.get_absolute_url }}">{{ target }}</a>
+        {% if fragment %}
+          <a href="{{ target.get_absolute_url }}#{{ fragment }}">{{ target }}</a>
+        {% else %}
+          <a href="{{ target.get_absolute_url }}">{{ target }}</a>
+        {% endif %}
       {% endif %}
     </p>
     <p class="activity-timestamp">{{ timestamp|timesince }} {% trans "ago" %}</p>

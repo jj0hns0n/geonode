@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,24 +32,29 @@ from os import path
 
 
 class UploadManager(models.Manager):
+
     def __init__(self):
         models.Manager.__init__(self)
-        
+
     def update_from_session(self, upload_session):
-        self.get(import_id=upload_session.import_session.id).update_from_session(upload_session)
-        
+        self.get(import_id=upload_session.import_session.id).update_from_session(
+            upload_session)
+
     def create_from_session(self, user, import_session):
         return self.create(user=user,
                            import_id=import_session.id,
                            state=import_session.state)
-            
+
     def get_incomplete_uploads(self, user):
-        return self.filter(user=user, complete=False).exclude(state=Upload.STATE_INVALID)
-    
-        
+        return self.filter(
+            user=user,
+            complete=False).exclude(
+            state=Upload.STATE_INVALID)
+
+
 class Upload(models.Model):
     objects = UploadManager()
-    
+
     import_id = models.BigIntegerField(null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
     # hold importer state or internal state (STATE_)
@@ -62,16 +68,26 @@ class Upload(models.Model):
     session = models.TextField(null=True)
     # hold a dict of any intermediate Layer metadata - not used for now
     metadata = models.TextField(null=True)
-    
+
+    mosaic = models.BooleanField(default=False),
+    append_to_mosaic_opts = models.BooleanField(default=False),
+    append_to_mosaic_name = models.CharField(max_length=128, null=True),
+
+    mosaic_time_regex = models.CharField(max_length=128, null=True)
+    mosaic_time_value = models.CharField(max_length=128, null=True)
+
+    mosaic_elev_regex = models.CharField(max_length=128, null=True)
+    mosaic_elev_value = models.CharField(max_length=128, null=True)
+
     class Meta:
         ordering = ['-date']
-    
+
     STATE_INVALID = 'INVALID'
-    
+
     def get_session(self):
         if self.session:
             return pickle.loads(str(self.session))
-        
+
     def update_from_session(self, upload_session):
         self.state = upload_session.import_session.state
         self.date = datetime.now()
@@ -84,16 +100,17 @@ class Upload(models.Model):
             self.upload_dir = path.dirname(upload_session.base_file)
             self.name = upload_session.layer_title or upload_session.name
         self.save()
-        
+
     def get_resume_url(self):
         return reverse('data_upload') + "?id=%s" % self.import_id
-    
+
     def get_delete_url(self):
         return reverse('data_upload_delete', args=[self.import_id])
-        
+
     def get_import_url(self):
-        return "%srest/imports/%s" % (ogc_server_settings.LOCATION, self.import_id)
-    
+        return "%srest/imports/%s" % (
+            ogc_server_settings.LOCATION, self.import_id)
+
     def delete(self, cascade=True):
         models.Model.delete(self)
         if cascade:
@@ -108,9 +125,12 @@ class Upload(models.Model):
                     logging.exception('error deleting upload session')
             if self.upload_dir and path.exists(self.upload_dir):
                 shutil.rmtree(self.upload_dir)
-                
+
     def __unicode__(self):
-        return 'Upload [%s] gs%s - %s, %s' % (self.pk, self.import_id, self.name, self.user)
+        return 'Upload [%s] gs%s - %s, %s' % (self.pk,
+                                              self.import_id,
+                                              self.name,
+                                              self.user)
 
 
 class UploadFile(models.Model):

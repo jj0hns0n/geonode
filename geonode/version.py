@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -60,8 +61,8 @@ def get_git_changeset():
     """
     repo_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     git_show = subprocess.Popen('git show --pretty=format:%ct --quiet HEAD',
-                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                   shell=True, cwd=repo_dir, universal_newlines=True)
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                shell=True, cwd=repo_dir, universal_newlines=True)
     timestamp = git_show.communicate()[0].partition('\n')[0]
     try:
         timestamp = datetime.datetime.utcfromtimestamp(int(timestamp))

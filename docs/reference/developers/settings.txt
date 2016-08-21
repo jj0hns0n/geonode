@@ -28,7 +28,7 @@ Default: ``2``
 
 Metadata settings
 =================
-  
+
 CATALOGUE
 ---------
 A dict with the following keys:
@@ -46,9 +46,10 @@ PYCSW
   A dict with pycsw's configuration.  Of note are the sections
   ``metadata:main`` to set CSW server metadata and ``metadata:inspire``
   to set INSPIRE options.  Setting ``metadata:inspire['enabled']`` to ``true``
-  will enable INSPIRE support.  See http://pycsw.org/docs/configuration.html
+  will enable INSPIRE support.   Server level configurations can be overridden
+  in the ``server`` section.  See http://docs.pycsw.org/en/latest/configuration.html
   for full pycsw configuration details.
-  
+
 DEFAULT_TOPICCATEGORY
 ---------------------
 Default: ``'location'``
@@ -61,10 +62,10 @@ MODIFY_TOPICCATEGORY
 Default: ``False``
 
 Metadata Topic Categories list should not be modified, as it is strictly defined
-by ISO (See: http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml 
+by ISO (See: http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml
 and check the <CodeListDictionary gml:id="MD_MD_TopicCategoryCode"> element).
 
-Some customisation it is still possible changing the is_choice and the GeoNode 
+Some customisation it is still possible changing the is_choice and the GeoNode
 description fields.
 
 In case it is absolutely necessary to add/delete/update categories, it is
@@ -127,12 +128,6 @@ Default::
         "name":"naip",
         "group":"background",
         "visibility": False
-      }, {
-        "source": {"ptype": "gxp_bingsource"},
-        "name": "AerialWithLabels",
-        "fixed": True,
-        "visibility": False,
-        "group":"background"
       },{
         "source": {"ptype": "gxp_mapboxsource"},
       }, {
@@ -156,6 +151,16 @@ Default::
     }]
 
 A list of dictionaries that specify the default map layers.
+
+Specific settings for map API providers (if they are not set those base maps will not be available):
+
+* ALT_OSM_BASEMAPS set this variable to True if you want additional osm basemaps
+* CARTODB_BASEMAPS set this variable to True if you want cartodb basemaps
+* STAMEN_BASEMAPS set this variable to True if you want stamen basemaps
+* THUNDERFOREST_BASEMAPS set this variable to True if you want thunderforest basemaps
+* MAPBOX_ACCESS_TOKEN set this variable to your MapBox public token
+* BING_API_KEY set this variable to your BING Map Key value
+
 
 LAYER_PREVIEW_LIBRARY
 ---------------------
@@ -231,11 +236,11 @@ entry for the datastore in the ``DATABASES`` dictionary with the same name.  Exa
    }
   }
 
-GEOGIT_ENABLED
+GEOGIG_ENABLED
 ..............
 Default: ``False``
 
-A boolean that represents whether the OGC server supports GeoGit datastores.
+A boolean that represents whether the OGC server supports GeoGig datastores.
 
 GEONODE_SECURITY_ENABLED
 ........................
@@ -264,6 +269,12 @@ PASSWORD
 Default: ``'geoserver'``
 
 The administrative password for the OGC server as a string.
+
+PG_GEOGIG
+.........
+Default: ``False``
+
+A boolean that represents whether GeoNode will use a postgres database as a backend for geogig stores. When set to true, the ``DATASTORE`` field must be set to a postgres database which will be used.
 
 PRINT_NG_ENABLED
 ................
@@ -341,6 +352,21 @@ Default: ``10``
 
 An integer that specifies the default search size when using ``geonode.search`` for querying data.
 
+API settings
+============
+
+API_LIMIT_PER_PAGE
+------------------
+Default: ``0``
+
+Number of items returned by the API. 0 equals no limit
+
+API_INCLUDE_REGIONS_COUNT
+-------------------------
+Default: ``False``
+
+Specifies if to include facets count for regions.
+
 Security settings
 =================
 
@@ -360,6 +386,16 @@ Default: ``False``
 By default, the GeoNode application allows visitors to view most pages without being authenticated. If this is set to ``True``
 users must be authenticated before accessing URL routes not included in ``AUTH_EXEMPT_URLS``.
 
+RESOURCE_PUBLISHING
+-------------------
+Default: ``True``
+
+By default, the GeoNode application allows GeoNode staff members to
+publish/unpublish resources.
+By default resources are published when created. When this settings is set to
+True the staff members will be able to unpublish a resource (and eventually
+publish it back).
+
 Social settings
 ===============
 
@@ -369,15 +405,75 @@ Default: ``True``
 
 A boolean which specifies whether the social media icons and javascript should be rendered in GeoNode.
 
+SOCIAL_ORIGINS
+--------------
+Default::
+
+    SOCIAL_ORIGINS = [{
+        "label":"Email",
+        "url":"mailto:?subject={name}&body={url}",
+        "css_class":"email"
+    }, {
+        "label":"Facebook",
+        "url":"http://www.facebook.com/sharer.php?u={url}",
+        "css_class":"fb"
+    }, {
+        "label":"Twitter",
+        "url":"https://twitter.com/share?url={url}",
+        "css_class":"tw"
+    }, {
+        "label":"Google +",
+        "url":"https://plus.google.com/share?url={url}",
+        "css_class":"gp"
+    }]
+
+A list of dictionaries that is used to generate the social links displayed in the Share tab.  For each origin, the name and and url format parameters are replaced by the actual values of the ResourceBase object (layer, map, document).
+
+CKAN_ORIGINS
+------------
+Default::
+
+    CKAN_ORIGINS = [{
+        "label":"Humanitarian Data Exchange (HDX)",
+        "url":"https://data.hdx.rwlabs.org/dataset/new?title={name}&notes={abstract}",
+        "css_class":"hdx"
+    }]
+
+A list of dictionaries that is used to generate the links to CKAN instances displayed in the Share tab.  For each origin, the name and and abstract format parameters are replaced by the actual values of the ResourceBase object (layer, map, document).  This is not enabled by default.  To enabled, uncomment the following line: SOCIAL_ORIGINS.extend(CKAN_ORIGINS).
+
+TWITTER_CARD
+------------
+Default:: ``True``
+
+A boolean that specifies whether Twitter cards are enabled.
+
+TWITTER_SITE
+------------
+Default:: ``'@GeoNode'``
+
+A string that specifies the site to for the twitter:site meta tag for Twitter Cards.
+
+TWITTER_HASHTAGS
+----------------
+Default:: ``['geonode']``
+
+A list that specifies the hastags to use when sharing a resource when clicking on a social link.
+
+OPENGRAPH_ENABLED
+-----------------
+Default:: ``True``
+
+A boolean that specifies whether Open Graph is enabled.  Open Graph is used by Facebook and Slack.
+
 Upload settings
 ===============
 
-GEOGIT_DATASTORE_NAME
+GEOGIG_DATASTORE_NAME
 ---------------------
 Default: ``None``
 
-A string with the default GeoGit datastore name.  This value is only used if no GeoGit datastore name is provided
-when data is uploaded but it must be populated if your deployment supports GeoGit.
+A string with the default GeoGig datastore name.  This value is only used if no GeoGig datastore name is provided
+when data is uploaded but it must be populated if your deployment supports GeoGig.
 
 UPLOADER
 --------
@@ -387,14 +483,14 @@ Default::
         'BACKEND' : 'geonode.rest',
         'OPTIONS' : {
             'TIME_ENABLED': False,
-            'GEOGIT_ENABLED': False,
+            'GEOGIG_ENABLED': False,
         }
     }
 
 A dictionary of Uploader settings and and their values.
 
 BACKEND
-.......
+-------
 Default: ``'geonode.rest'``
 
 The uploader backend to use.  The backend choices are:
@@ -403,7 +499,7 @@ The uploader backend to use.  The backend choices are:
 * ``'geonode.rest'``
 
 The importer backend requires the Geoserver importer extension to be enabled and is required for uploading data into
-GeoGit datastores.
+GeoGig datastores.
 
 OPTIONS
 -------
@@ -411,20 +507,20 @@ Default::
 
     'OPTIONS' : {
         'TIME_ENABLED': False,
-        'GEOGIT_ENABLED': False,
+        'GEOGIG_ENABLED': False,
     }
 
-TIME_ENABED
-...........
+TIME_ENABLED
+------------
 Default: ``False``
 
 A boolean that specifies whether the upload should allow the user to enable time support when uploading data.
 
-GEOGIT_ENABED
-.............
+GEOGIG_ENABLED
+--------------
 Default: ``False``
 
-A boolean that specifies whether the uploader should allow the user to upload data into a GeoGit datastore.
+A boolean that specifies whether the uploader should allow the user to upload data into a GeoGig datastore.
 
 User Account settings
 =====================
@@ -447,30 +543,30 @@ Download settings
 DOWNLOAD_FORMATS_METADATA
 -------------------------
 
-Specifies which metadata formats are available for users to download. 
+Specifies which metadata formats are available for users to download.
 
 Default::
 
     DOWNLOAD_FORMATS_METADATA = [
-        'Atom', 'DIF', 'Dublin Core', 'ebRIM', 'FGDC', 'TC211',
+        'Atom', 'DIF', 'Dublin Core', 'ebRIM', 'FGDC', 'ISO',
     ]
-    
-DOWNLOAD_FORMATS_VECTOR
--------------------------
 
-Specifies which formats for vector data are available for users to download. 
+DOWNLOAD_FORMATS_VECTOR
+-----------------------
+
+Specifies which formats for vector data are available for users to download.
 
 Default::
 
     DOWNLOAD_FORMATS_VECTOR = [
-        'JPEG', 'PDF', 'PNG', 'Zipped Shapefile', 'GML 2.0', 'GML 3.1.1', 'CSV', 
+        'JPEG', 'PDF', 'PNG', 'Zipped Shapefile', 'GML 2.0', 'GML 3.1.1', 'CSV',
         'Excel', 'GeoJSON', 'KML', 'View in Google Earth', 'Tiles',
     ]
-    
-DOWNLOAD_FORMATS_RASTER
--------------------------
 
-Specifies which formats for raster data are available for users to download. 
+DOWNLOAD_FORMATS_RASTER
+-----------------------
+
+Specifies which formats for raster data are available for users to download.
 
 Default::
 
@@ -478,4 +574,93 @@ Default::
         'JPEG', 'PDF', 'PNG' 'Tiles',
     ]
 
+Contrib settings
+================
 
+EXIF_ENABLED
+------------
+Default: ``False``
+
+A boolean that specifies whether the Exif contrib app is enabled.  If enabled, metadata is generated from Exif tags when documents are uploaded.
+
+NLP_ENABLED
+-----------
+Default: ``False``
+
+A boolean that specifies whether the NLP (Natural Language Processing) contrib app is enabled.  If enabled, NLP (specifically MITIE) is used to infer additional metadata from uploaded documents to help fill metadata gaps.
+
+NLP_LOCATION_THRESHOLD
+----------------------
+Default: ``1.0``
+
+A float that specifies the threshold for location matches.
+
+NLP_LIBRARY_PATH
+----------------
+Default:: ``'/opt/MITIE/mitielib'``
+
+A string that specifies the location of the MITIE library
+
+NLP_MODEL_PATH
+--------------
+Default:: ``'/opt/MITIE/MITIE-models/english/ner_model.dat'``
+
+A string that specifies the location of the NER (Named Entity Resolver).  MITIE comes with English and Spanish NER models.  Other models can be trained.
+
+SLACK_ENABLED
+-------------
+Default: ``False``
+
+A boolean that specifies whether the Slack contrib app is enabled.  If enabled, GeoNode will send messages to the slack channels specified in SLACK_WEBHOOK_URLS when a document is uploaded, metadata is updated, etc.  Coverage of events is still incomplete.
+
+SLACK_WEBHOOK_URLS
+------------------
+
+A list that specifies the urls to post Slack messages to.  Each url is for a different channel.  The default url should be replaced when slack integration is enabled.
+
+Default::
+
+    SLACK_WEBHOOK_URLS = [
+        "https://hooks.slack.com/services/T000/B000/XX"
+    ]
+
+Amazon Web Services Settings
+============================
+
+S3_STATIC_ENABLED
+-----------------
+Default: ``False``
+
+A boolean that specifies whether GeoNode's static files will be served through an S3 bucket. Set through the environment variable ``S3_STATIC_ENABLED``.
+
+S3_MEDIA_ENABLED
+----------------
+Default: ``False``
+
+A boolean that specifies whether GeoNode's media files will be served through an S3 bucket. Set through the environment variable ``S3_MEDIA_ENABLED``.
+
+AWS_BUCKET_NAME
+---------------
+
+The name of the S3 bucket GeoNode will pull static and/or media files from. Set through the environment variable ``S3_BUCKET_NAME``.
+
+AWS_STORAGE_BUCKET_NAME
+-----------------------
+
+The name of the S3 bucket GeoNode will pull static and/or media files from. Set through the environment variable ``S3_BUCKET_NAME``.
+
+AWS_ACCESS_KEY_ID
+-----------------
+
+The access key for the S3 bucket GeoNode will pull static and/or media files from. Set through the environment variable ``AWS_ACCESS_KEY_ID``.
+
+AWS_SECRET_ACCESS_KEY
+---------------------
+
+The secret access key for the S3 bucket GeoNode will pull static and/or media files from. Set through the environment variable ``AWS_SECRET_ACCESS_KEY``.
+
+AWS_QUERYSTRING_AUTH
+--------------------
+Default: ``False``
+
+Generate S3 auth querystring.

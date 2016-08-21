@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,12 +27,34 @@ logger = logging.getLogger(__name__)
 if "notification" in settings.INSTALLED_APPS:
     import notification
 
-    def create_notice_types(app, created_models, verbosity, **kwargs):
-        notification.models.NoticeType.create("map_created", _("Map Created"), _("A Map was created"))
-        notification.models.NoticeType.create("map_comment", _("Comment on Map"), _("A map was commented on"))
-        notification.models.NoticeType.create("map_rated", _("Rating for Map"), _("A rating was given to a map"))
+    if hasattr(notification, 'models'):
+        def create_notice_types(app, created_models, verbosity, **kwargs):
+            notification.models.NoticeType.create(
+                "map_created",
+                _("Map Created"),
+                _("A Map was created"))
+            notification.models.NoticeType.create(
+                "map_updated",
+                _("Map Updated"),
+                _("A Map was updated"))
+            notification.models.NoticeType.create(
+                "map_deleted",
+                _("Map Deleted"),
+                _("A Map was deleted"))
+            notification.models.NoticeType.create(
+                "map_comment",
+                _("Comment on Map"),
+                _("A map was commented on"))
+            notification.models.NoticeType.create(
+                "map_rated",
+                _("Rating for Map"),
+                _("A rating was given to a map"))
 
-    signals.post_syncdb.connect(create_notice_types, sender=notification.models)
-    logger.info("Notifications Configured for geonode.maps.management.commands")
+        signals.post_syncdb.connect(
+            create_notice_types,
+            sender=notification.models)
+        logger.info(
+            "Notifications Configured for geonode.maps.management.commands")
 else:
-    logger.info("Skipping creation of NoticeTypes for geonode.maps.management.commands, since notification app was not found.")
+    logger.info(
+        "Skipping creation of NoticeTypes for geonode.maps.management.commands, since notification app was not found.")

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,4 +35,5 @@ if "notification" in settings.INSTALLED_APPS:
     signals.post_syncdb.connect(create_notice_types, sender=notification)
     logger.info("Notifications Configured for geonode.layers.managment.commands")
 else:
-    logger.info("Skipping creation of NoticeTypes for geonode.layers.management.commands, since notification app was not found.")
+    logger.info("Skipping creation of NoticeTypes for geonode.layers.management.commands, since notification app was \
+        not found.")

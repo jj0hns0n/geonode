@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,7 +26,8 @@ from geonode import GeoNodeException
 def get_default_user():
     """Create a default user
     """
-    superusers = get_user_model().objects.filter(is_superuser=True).order_by('id')
+    superusers = get_user_model().objects.filter(
+        is_superuser=True).order_by('id')
     if superusers.count() > 0:
         # Return the first created superuser
         return superusers[0]
@@ -48,7 +50,55 @@ def get_valid_user(user=None):
     else:
         theuser = user
 
-    #FIXME: Pass a user in the unit tests that is not yet saved ;)
+    # FIXME: Pass a user in the unit tests that is not yet saved ;)
     assert isinstance(theuser, get_user_model())
 
     return theuser
+
+
+def format_address(street=None, zipcode=None, city=None, area=None, country=None):
+
+    if country is not None and country == "USA":
+        address = ""
+        if city and area:
+            if street:
+                address += street+", "
+            address += city+", "+area
+            if zipcode:
+                address += " "+zipcode
+        elif (not city) and area:
+            if street:
+                address += street+", "
+            address += area
+            if zipcode:
+                address += " "+zipcode
+        elif city and (not area):
+            if street:
+                address += street+", "
+            address += city
+            if zipcode:
+                address += " "+zipcode
+        else:
+            if street:
+                address += ", "+street
+            if zipcode:
+                address += " "+zipcode
+
+        if address:
+            address += ", United States"
+        else:
+            address += "United States"
+
+        return address
+    else:
+        address = []
+        if street:
+            address.append(street)
+        if zipcode:
+            address.append(zipcode)
+        if city:
+            address.append(city)
+        if area:
+            address.append(area)
+        address.append(country)
+        return " ".join(address)

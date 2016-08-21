@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
+
 import uuid
 import logging
 
@@ -29,37 +30,57 @@ from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.files.storage import FileSystemStorage
 
-from geonode.base.models import ResourceBase, ResourceBaseManager, Link
-from geonode.base.models import SpatialRepresentationType, TopicCategory
-from geonode.base.models import Thumbnail
+from geonode.base.models import ResourceBase, ResourceBaseManager, resourcebase_post_save
 from geonode.people.utils import get_valid_user
-from geonode.layers.metadata import set_metadata
 from agon_ratings.models import OverallRating
+from geonode.utils import check_shp_columnnames
+from geonode.security.models import remove_object_permissions
 
 logger = logging.getLogger("geonode.layers.models")
 
-shp_exts = ['.shp',]
+shp_exts = ['.shp', ]
 csv_exts = ['.csv']
 kml_exts = ['.kml']
 vec_exts = shp_exts + csv_exts + kml_exts
 
 cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif']
 
+TIME_REGEX = (
+    ('[0-9]{8}', _('YYYYMMDD')),
+    ('[0-9]{8}T[0-9]{6}', _("YYYYMMDD'T'hhmmss")),
+    ('[0-9]{8}T[0-9]{6}Z', _("YYYYMMDD'T'hhmmss'Z'")),
+)
+
+TIME_REGEX_FORMAT = {
+    '[0-9]{8}': '%Y%m%d',
+    '[0-9]{8}T[0-9]{6}': '%Y%m%dT%H%M%S',
+    '[0-9]{8}T[0-9]{6}Z': '%Y%m%dT%H%M%SZ'
+}
+
 
 class Style(models.Model):
+
     """Model for storing styles.
     """
     name = models.CharField(_('style name'), max_length=255, unique=True)
     sld_title = models.CharField(max_length=255, null=True, blank=True)
     sld_body = models.TextField(_('sld text'), null=True, blank=True)
-    sld_version = models.CharField(_('sld version'), max_length=12, null=True, blank=True)
-    sld_url = models.CharField(_('sld url'), null = True, max_length=1000)
+    sld_version = models.CharField(
+        _('sld version'),
+        max_length=12,
+        null=True,
+        blank=True)
+    sld_url = models.CharField(_('sld url'), null=True, max_length=1000)
     workspace = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return "%s" % self.name.encode('utf-8')
+
+    def absolute_url(self):
+        return self.sld_url.split(settings.OGC_SERVER['default']['LOCATION'], 1)[1]
+
 
 class LayerManager(ResourceBaseManager):
 
@@ -68,6 +89,7 @@ class LayerManager(ResourceBaseManager):
 
 
 class Layer(ResourceBase):
+
     """
     Layer (inherits ResourceBase fields)
     """
@@ -80,14 +102,28 @@ class Layer(ResourceBase):
     name = models.CharField(max_length=128)
     typename = models.CharField(max_length=128, null=True, blank=True)
 
-    default_style = models.ForeignKey(Style, related_name='layer_default_style', null=True, blank=True)
+    is_mosaic = models.BooleanField(default=False)
+    has_time = models.BooleanField(default=False)
+    has_elevation = models.BooleanField(default=False)
+    time_regex = models.CharField(max_length=128, null=True, blank=True, choices=TIME_REGEX)
+    elevation_regex = models.CharField(max_length=128, null=True, blank=True)
+
+    default_style = models.ForeignKey(
+        Style,
+        related_name='layer_default_style',
+        null=True,
+        blank=True)
     styles = models.ManyToManyField(Style, related_name='layer_styles')
 
     charset = models.CharField(max_length=255, default='UTF-8')
 
     upload_session = models.ForeignKey('UploadSession', blank=True, null=True)
 
-    service = models.ForeignKey('services.Service', null=True, blank=True, related_name='layer_set')
+    service = models.ForeignKey(
+        'services.Service',
+        null=True,
+        blank=True,
+        related_name='layer_set')
 
     def is_vector(self):
         return self.storeType == 'dataStore'
@@ -95,7 +131,7 @@ class Layer(ResourceBase):
     @property
     def display_type(self):
         return ({
-            "dataStore" : "Vector Data",
+            "dataStore": "Vector Data",
             "coverageStore": "Raster Data",
         }).get(self.storeType, "Data")
 
@@ -127,8 +163,7 @@ class Layer(ResourceBase):
         if self.storeType == "remoteStore":
             return self.service.base_url
         else:
-            return settings.OGC_SERVER['default']['LOCATION'] + "wms"
-
+            return settings.OGC_SERVER['default']['PUBLIC_LOCATION'] + "wms"
 
     @property
     def ptype(self):
@@ -144,41 +179,56 @@ class Layer(ResourceBase):
         else:
             return self.typename
 
+    @property
+    def attributes(self):
+        return self.attribute_set.exclude(attribute='the_geom')
+
     def get_base_file(self):
         """Get the shp or geotiff file for this layer.
         """
+
         # If there was no upload_session return None
         if self.upload_session is None:
-            return None
+            return None, None
 
-        base_exts = [x.replace('.','') for x in cov_exts + vec_exts]
-        base_files = self.upload_session.layerfile_set.filter(name__in=base_exts)
+        base_exts = [x.replace('.', '') for x in cov_exts + vec_exts]
+        base_files = self.upload_session.layerfile_set.filter(
+            name__in=base_exts)
         base_files_count = base_files.count()
 
         # If there are no files in the upload_session return None
         if base_files_count == 0:
-            return None
+            return None, None
 
-        msg = 'There should only be one main file (.shp or .geotiff), found %s'  % base_files_count
+        msg = 'There should only be one main file (.shp or .geotiff), found %s' % base_files_count
         assert base_files_count == 1, msg
 
-        return base_files.get()
+        # we need to check, for shapefile, if column names are valid
+        list_col = None
+        if self.storeType == 'dataStore':
+            valid_shp, wrong_column_name, list_col = check_shp_columnnames(self)
+            if wrong_column_name:
+                msg = 'Shapefile has an invalid column name: %s' % wrong_column_name
+            else:
+                msg = _('File cannot be opened, maybe check the encoding')
+            assert valid_shp, msg
 
+        # no error, let's return the base files
+        return base_files.get(), list_col
 
     def get_absolute_url(self):
         return reverse('layer_detail', args=(self.service_typename,))
 
-
     def attribute_config(self):
-        #Get custom attribute sort order and labels if any
-            cfg = {}
-            visible_attributes =  self.attribute_set.visible()
-            if (visible_attributes.count() > 0):
-                cfg["getFeatureInfo"] = {
-                    "fields":  [l.attribute for l in visible_attributes],
-                    "propertyNames":   dict([(l.attribute,l.attribute_label) for l in visible_attributes])
-                }
-            return cfg
+        # Get custom attribute sort order and labels if any
+        cfg = {}
+        visible_attributes = self.attribute_set.visible()
+        if (visible_attributes.count() > 0):
+            cfg["getFeatureInfo"] = {
+                "fields": [l.attribute for l in visible_attributes],
+                "propertyNames": dict([(l.attribute, l.attribute_label) for l in visible_attributes])
+            }
+        return cfg
 
     def __str__(self):
         if self.typename is not None:
@@ -188,33 +238,36 @@ class Layer(ResourceBase):
         else:
             return "Unamed Layer"
 
-
     class Meta:
         # custom permissions,
-        # change and delete are standard in django
-        permissions = (('view_layer', 'Can view'),
-                       ('change_layer_permissions', "Can change permissions"), )
+        # change and delete are standard in django-guardian
+        permissions = (
+            ('change_layer_data', 'Can edit layer data'),
+            ('change_layer_style', 'Can change layer style'),
+        )
 
     # Permission Level Constants
     # LEVEL_NONE inherited
-    LEVEL_READ  = 'layer_readonly'
+    LEVEL_READ = 'layer_readonly'
     LEVEL_WRITE = 'layer_readwrite'
     LEVEL_ADMIN = 'layer_admin'
 
     def maps(self):
         from geonode.maps.models import MapLayer
-        return  MapLayer.objects.filter(name=self.typename)
+        return MapLayer.objects.filter(name=self.typename)
 
     @property
     def class_name(self):
         return self.__class__.__name__
 
-class Layer_Styles(models.Model):
+
+class LayerStyles(models.Model):
     layer = models.ForeignKey(Layer)
     style = models.ForeignKey(Style)
 
 
 class UploadSession(models.Model):
+
     """Helper class to keep track of uploads.
     """
     date = models.DateTimeField(auto_now=True)
@@ -222,29 +275,35 @@ class UploadSession(models.Model):
     processed = models.BooleanField(default=False)
     error = models.TextField(blank=True, null=True)
     traceback = models.TextField(blank=True, null=True)
+    context = models.TextField(blank=True, null=True)
 
     def successful(self):
         return self.processed and self.errors is None
 
 
 class LayerFile(models.Model):
+
     """Helper class to store original files.
     """
     upload_session = models.ForeignKey(UploadSession)
     name = models.CharField(max_length=255)
     base = models.BooleanField(default=False)
-    file = models.FileField(upload_to='layers', max_length=255)
+    file = models.FileField(upload_to='layers',
+                            storage=FileSystemStorage(base_url=settings.LOCAL_MEDIA_URL),  max_length=255)
 
 
 class AttributeManager(models.Manager):
+
     """Helper class to access filtered attributes
     """
 
     def visible(self):
-       return self.get_query_set().filter(visible=True).order_by('display_order')
+        return self.get_queryset().filter(
+            visible=True).order_by('display_order')
 
 
 class Attribute(models.Model):
+
     """
         Auxiliary model for storing layer attributes.
 
@@ -252,32 +311,121 @@ class Attribute(models.Model):
        to other servers, and lets users customize attribute titles,
        sort order, and visibility.
     """
-    layer = models.ForeignKey(Layer, blank=False, null=False, unique=False, related_name='attribute_set')
-    attribute = models.CharField(_('attribute name'), help_text=_('name of attribute as stored in shapefile/spatial database'), max_length=255, blank=False, null=True, unique=False)
-    description = models.CharField(_('attribute description'), help_text=_('description of attribute to be used in metadata'), max_length=255, blank=True, null=True)
-    attribute_label = models.CharField(_('attribute label'), help_text=_('title of attribute as displayed in GeoNode'), max_length=255, blank=False, null=True, unique=False)
-    attribute_type = models.CharField(_('attribute type'), help_text=_('the data type of the attribute (integer, string, geometry, etc)'), max_length=50, blank=False, null=False, default='xsd:string', unique=False)
-    visible = models.BooleanField(_('visible?'), help_text=_('specifies if the attribute should be displayed in identify results'), default=True)
-    display_order = models.IntegerField(_('display order'), help_text=_('specifies the order in which attribute should be displayed in identify results'), default=1)
+    layer = models.ForeignKey(
+        Layer,
+        blank=False,
+        null=False,
+        unique=False,
+        related_name='attribute_set')
+    attribute = models.CharField(
+        _('attribute name'),
+        help_text=_('name of attribute as stored in shapefile/spatial database'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False)
+    description = models.CharField(
+        _('attribute description'),
+        help_text=_('description of attribute to be used in metadata'),
+        max_length=255,
+        blank=True,
+        null=True)
+    attribute_label = models.CharField(
+        _('attribute label'),
+        help_text=_('title of attribute as displayed in GeoNode'),
+        max_length=255,
+        blank=True,
+        null=True,
+        unique=False)
+    attribute_type = models.CharField(
+        _('attribute type'),
+        help_text=_('the data type of the attribute (integer, string, geometry, etc)'),
+        max_length=50,
+        blank=False,
+        null=False,
+        default='xsd:string',
+        unique=False)
+    visible = models.BooleanField(
+        _('visible?'),
+        help_text=_('specifies if the attribute should be displayed in identify results'),
+        default=True)
+    display_order = models.IntegerField(
+        _('display order'),
+        help_text=_('specifies the order in which attribute should be displayed in identify results'),
+        default=1)
 
     # statistical derivations
-    count = models.IntegerField(_('count'), help_text=_('count value for this field'), default=1)
-    min = models.CharField(_('min'), help_text=_('minimum value for this field'), max_length=255, blank=False, null=True, unique=False, default='NA')
-    max = models.CharField(_('max'), help_text=_('maximum value for this field'), max_length=255, blank=False, null=True, unique=False, default='NA')
-    average = models.CharField(_('average'), help_text=_('average value for this field'), max_length=255, blank=False, null=True, unique=False, default='NA')
-    median = models.CharField(_('median'), help_text=_('median value for this field'), max_length=255, blank=False, null=True, unique=False, default='NA')
-    stddev = models.CharField(_('standard deviation'), help_text=_('standard deviation for this field'), max_length=255, blank=False, null=True, unique=False, default='NA')
-    sum = models.CharField(_('sum'), help_text=_('sum value for this field'), max_length=255, blank=False, null=True, unique=False, default='NA')
-    unique_values = models.TextField(_('unique values for this field'), null=True, blank=True, default='NA')
-    last_stats_updated = models.DateTimeField(_('last modified'), default=datetime.now, help_text=_('date when attribute statistics were last updated')) # passing the method itself, not
+    count = models.IntegerField(
+        _('count'),
+        help_text=_('count value for this field'),
+        default=1)
+    min = models.CharField(
+        _('min'),
+        help_text=_('minimum value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    max = models.CharField(
+        _('max'),
+        help_text=_('maximum value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    average = models.CharField(
+        _('average'),
+        help_text=_('average value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    median = models.CharField(
+        _('median'),
+        help_text=_('median value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    stddev = models.CharField(
+        _('standard deviation'),
+        help_text=_('standard deviation for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    sum = models.CharField(
+        _('sum'),
+        help_text=_('sum value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    unique_values = models.TextField(
+        _('unique values for this field'),
+        null=True,
+        blank=True,
+        default='NA')
+    last_stats_updated = models.DateTimeField(
+        _('last modified'),
+        default=datetime.now,
+        help_text=_('date when attribute statistics were last updated'))  # passing the method itself, not
 
     objects = AttributeManager()
 
     def __str__(self):
-        return "%s" % self.attribute_label.encode("utf-8") if self.attribute_label else self.attribute.encode("utf-8")
+        return "%s" % self.attribute_label.encode(
+            "utf-8") if self.attribute_label else self.attribute.encode("utf-8")
 
     def unique_values_as_list(self):
         return self.unique_values.split(',')
+
 
 def pre_save_layer(instance, sender, **kwargs):
     if kwargs.get('raw', False):
@@ -289,7 +437,7 @@ def pre_save_layer(instance, sender, **kwargs):
         instance.bbox_y1 = instance.resourcebase_ptr.bbox_y1
 
     if instance.abstract == '' or instance.abstract is None:
-        instance.abstract = 'No abstract provided'
+        instance.abstract = unicode(_('No abstract provided'))
     if instance.title == '' or instance.title is None:
         instance.title = instance.name
 
@@ -304,7 +452,10 @@ def pre_save_layer(instance, sender, **kwargs):
         # Set a sensible default for the typename
         instance.typename = 'geonode:%s' % instance.name
 
-    base_file = instance.get_base_file()
+    base_file, info = instance.get_base_file()
+
+    if info:
+        instance.info = info
 
     if base_file is not None:
         extension = '.%s' % base_file.name
@@ -326,14 +477,13 @@ def pre_save_layer(instance, sender, **kwargs):
     if instance.bbox_y1 is None:
         instance.bbox_y1 = 90
 
-    bbox = [instance.bbox_x0, instance.bbox_x1, instance.bbox_y0, instance.bbox_y1]
+    bbox = [
+        instance.bbox_x0,
+        instance.bbox_x1,
+        instance.bbox_y0,
+        instance.bbox_y1]
 
     instance.set_bounds_from_bbox(bbox)
-
-    try:
-        instance.thumbnail, created = Thumbnail.objects.get_or_create(resourcebase__id=instance.id)
-    except MultipleObjectsReturned:
-        instance.thumbnail = Thumbnail.objects.filter(resourcebase__id=instance.id)[0]
 
 
 def pre_delete_layer(instance, sender, **kwargs):
@@ -343,14 +493,22 @@ def pre_delete_layer(instance, sender, **kwargs):
     """
     if instance.service:
         return
-    logger.debug("Going to delete the styles associated for [%s]", instance.typename.encode('utf-8'))
+    logger.debug(
+        "Going to delete the styles associated for [%s]",
+        instance.typename.encode('utf-8'))
     ct = ContentType.objects.get_for_model(instance)
-    OverallRating.objects.filter(content_type = ct, object_id = instance.id).delete()
+    OverallRating.objects.filter(
+        content_type=ct,
+        object_id=instance.id).delete()
     default_style = instance.default_style
     for style in instance.styles.all():
-        if style.layer_styles.all().count()==1:
+        if style.layer_styles.all().count() == 1:
             if style != default_style:
                 style.delete()
+
+    # Delete object permissions
+    remove_object_permissions(instance)
+
 
 def post_delete_layer(instance, sender, **kwargs):
     """
@@ -358,26 +516,34 @@ def post_delete_layer(instance, sender, **kwargs):
     Remove the layer default style.
     """
     from geonode.maps.models import MapLayer
-    logger.debug("Going to delete associated maplayers for [%s]", instance.typename.encode('utf-8'))
-    MapLayer.objects.filter(name=instance.typename,ows_url=instance.ows_url).delete()
+    if instance.typename:
+        logger.debug(
+            "Going to delete associated maplayers for [%s]",
+            instance.typename.encode('utf-8'))
+        MapLayer.objects.filter(
+            name=instance.typename,
+            ows_url=instance.ows_url).delete()
 
     if instance.service:
         return
-    logger.debug("Going to delete the default style for [%s]", instance.typename.encode('utf-8'))
+    if instance.typename:
+        logger.debug(
+            "Going to delete the default style for [%s]",
+            instance.typename.encode('utf-8'))
 
-    if instance.default_style and Layer.objects.filter(default_style__id=instance.default_style.id).count() == 0:
+    if instance.default_style and Layer.objects.filter(
+            default_style__id=instance.default_style.id).count() == 0:
         instance.default_style.delete()
 
-
-def post_save_layer(instance, sender, **kwargs):
-    """Set missing default values.
-    """
-    instance.set_missing_info()
-    ResourceBase.objects.filter(id=instance.id).update(
-        absolute_url=instance.get_absolute_url())
+    try:
+        if instance.upload_session:
+            for lf in instance.upload_session.layerfile_set.all():
+                lf.file.delete()
+    except UploadSession.DoesNotExist:
+        pass
 
 
 signals.pre_save.connect(pre_save_layer, sender=Layer)
-signals.post_save.connect(post_save_layer, sender=Layer)
+signals.post_save.connect(resourcebase_post_save, sender=Layer)
 signals.pre_delete.connect(pre_delete_layer, sender=Layer)
 signals.post_delete.connect(post_delete_layer, sender=Layer)

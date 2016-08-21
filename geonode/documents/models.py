@@ -1,21 +1,43 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 import logging
 import os
 import uuid
+from urlparse import urlparse
 
 from django.db import models
 from django.db.models import signals
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.core.files.base import ContentFile
 from django.contrib.contenttypes import generic
 from django.contrib.staticfiles import finders
 from django.utils.translation import ugettext_lazy as _
 
 from geonode.layers.models import Layer
-from geonode.base.models import ResourceBase, Thumbnail, Link, resourcebase_post_save
+from geonode.base.models import ResourceBase, resourcebase_post_save, Link
+from geonode.documents.enumerations import DOCUMENT_TYPE_MAP, DOCUMENT_MIMETYPE_MAP
 from geonode.maps.signals import map_changed_signal
 from geonode.maps.models import Map
+from geonode.security.models import remove_object_permissions
 
 IMGTYPES = ['jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif']
 
@@ -36,6 +58,7 @@ class Document(ResourceBase):
     doc_file = models.FileField(upload_to='documents',
                                 null=True,
                                 blank=True,
+                                max_length=255,
                                 verbose_name=_('File'))
 
     extension = models.CharField(max_length=128, blank=True, null=True)
@@ -45,6 +68,7 @@ class Document(ResourceBase):
     doc_url = models.URLField(
         blank=True,
         null=True,
+        max_length=255,
         help_text=_('The URL of the document if it is external.'),
         verbose_name=_('URL'))
 
@@ -85,13 +109,16 @@ class Document(ResourceBase):
         if wand_available and self.extension and self.extension.lower(
         ) == 'pdf' and self.doc_file:
             logger.debug(
-                'Generating a thumbnail for document: {0}'.format(
+                u'Generating a thumbnail for document: {0}'.format(
                     self.title))
-            with image.Image(filename=self.doc_file.path) as img:
-                img.sample(*size)
-                return img.make_blob('png')
-        elif self.extension and self.extension.lower() in IMGTYPES and self.doc_file:
-
+            try:
+                with image.Image(filename=self.doc_file.path) as img:
+                    img.sample(*size)
+                    return img.make_blob('png')
+            except:
+                logger.debug('Error generating the thumbnail with Wand, cascading to a default image...')
+        # if we are still here, we use a default image thumb
+        if self.extension and self.extension.lower() in IMGTYPES and self.doc_file:
             img = Image.open(self.doc_file.path)
             img = ImageOps.fit(img, size, Image.ANTIALIAS)
         else:
@@ -129,19 +156,17 @@ def pre_save_document(instance, sender, **kwargs):
     if instance.doc_file:
         base_name, extension = os.path.splitext(instance.doc_file.name)
         instance.extension = extension[1:]
-        doc_type_map = settings.DOCUMENT_TYPE_MAP
+        doc_type_map = DOCUMENT_TYPE_MAP
+        doc_type_map.update(getattr(settings, 'DOCUMENT_TYPE_MAP', {}))
         if doc_type_map is None:
             doc_type = 'other'
         else:
-            if instance.extension in doc_type_map:
-                doc_type = doc_type_map[''+instance.extension]
-            else:
-                doc_type = 'other'
+            doc_type = doc_type_map.get(instance.extension, 'other')
         instance.doc_type = doc_type
 
     elif instance.doc_url:
-        if len(instance.doc_url) > 4 and instance.doc_url[-4] == '.':
-            instance.extension = instance.doc_url[-3:]
+        if '.' in urlparse(instance.doc_url).path:
+            instance.extension = urlparse(instance.doc_url).path.rsplit('.')[-1]
 
     if not instance.uuid:
         instance.uuid = str(uuid.uuid1())
@@ -167,31 +192,40 @@ def pre_save_document(instance, sender, **kwargs):
         instance.bbox_y1 = 90
 
 
+def post_save_document(instance, *args, **kwargs):
+
+    name = None
+    ext = instance.extension
+    mime_type_map = DOCUMENT_MIMETYPE_MAP
+    mime_type_map.update(getattr(settings, 'DOCUMENT_MIMETYPE_MAP', {}))
+    mime = mime_type_map.get(ext, 'text/plain')
+    url = None
+
+    if instance.doc_file:
+        name = "Hosted Document"
+        url = '%s%s' % (
+            settings.SITEURL[:-1],
+            reverse('document_download', args=(instance.id,)))
+    elif instance.doc_url:
+        name = "External Document"
+        url = instance.doc_url
+
+    if name and url:
+        Link.objects.get_or_create(
+            resource=instance.resourcebase_ptr,
+            url=url,
+            defaults=dict(
+                extension=ext,
+                name=name,
+                mime=mime,
+                url=url,
+                link_type='data',))
+
+
 def create_thumbnail(sender, instance, created, **kwargs):
-    if not created:
-        return
+    from geonode.tasks.update import create_document_thumbnail
 
-    if instance.has_thumbnail():
-        instance.thumbnail_set.get().thumb_file.delete()
-    else:
-        instance.thumbnail_set.add(Thumbnail())
-
-    image = instance._render_thumbnail()
-
-    instance.thumbnail_set.get().thumb_file.save(
-        'doc-%s-thumb.png' %
-        instance.id,
-        ContentFile(image))
-    instance.thumbnail_set.get().thumb_spec = 'Rendered'
-    instance.thumbnail_set.get().save()
-    Link.objects.get_or_create(
-        resource=instance.get_self_resource(),
-        url=instance.thumbnail_set.get().thumb_file.url,
-        defaults=dict(
-            name=('Thumbnail'),
-            extension='png',
-            mime='image/png',
-            link_type='image',))
+    create_document_thumbnail.delay(object_id=instance.id)
 
 
 def update_documents_extent(sender, **kwargs):
@@ -201,7 +235,13 @@ def update_documents_extent(sender, **kwargs):
         document.save()
 
 
+def pre_delete_document(instance, sender, **kwargs):
+    remove_object_permissions(instance.get_self_resource())
+
+
 signals.pre_save.connect(pre_save_document, sender=Document)
 signals.post_save.connect(create_thumbnail, sender=Document)
+signals.post_save.connect(post_save_document, sender=Document)
 signals.post_save.connect(resourcebase_post_save, sender=Document)
+signals.pre_delete.connect(pre_delete_document, sender=Document)
 map_changed_signal.connect(update_documents_extent)

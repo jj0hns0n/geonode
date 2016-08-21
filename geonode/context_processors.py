@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,6 +34,8 @@ def resource_urls(request):
         VERSION=get_version(),
         SITE_NAME=site.name,
         SITE_DOMAIN=site.domain,
+        RESOURCE_PUBLISHING=settings.RESOURCE_PUBLISHING,
+        THEME_ACCOUNT_CONTACT_EMAIL=settings.THEME_ACCOUNT_CONTACT_EMAIL,
         DEBUG_STATIC=getattr(
             settings,
             "DEBUG_STATIC",
@@ -44,7 +47,23 @@ def resource_urls(request):
         SOCIAL_BUTTONS=getattr(
             settings,
             'SOCIAL_BUTTONS',
-            True),
+            False),
+        TWITTER_CARD=getattr(
+            settings,
+            'TWITTER_CARD',
+            False),
+        TWITTER_SITE=getattr(
+            settings,
+            'TWITTER_SITE',
+            '@GeoNode'),
+        TWITTER_HASHTAGS=getattr(
+            settings,
+            'TWITTER_HASHTAGS',
+            []),
+        OPENGRAPH_ENABLED=getattr(
+            settings,
+            'OPENGRAPH_ENABLED',
+            False),
         HAYSTACK_SEARCH=getattr(
             settings,
             'HAYSTACK_SEARCH',
@@ -61,6 +80,12 @@ def resource_urls(request):
             settings,
             'CLIENT_RESULTS_LIMIT',
             10),
+        SRID_DETAIL=getattr(
+            settings,
+            'SRID',
+            dict()).get(
+            'DETAIL',
+            'never'),
         LICENSES_ENABLED=getattr(
             settings,
             'LICENSES',
@@ -79,6 +104,22 @@ def resource_urls(request):
             dict()).get(
             'METADATA',
             'never'),
+        USE_NOTIFICATIONS=('notification' in settings.INSTALLED_APPS),
+        DEFAULT_ANONYMOUS_VIEW_PERMISSION=getattr(settings, 'DEFAULT_ANONYMOUS_VIEW_PERMISSION', False),
+        DEFAULT_ANONYMOUS_DOWNLOAD_PERMISSION=getattr(settings, 'DEFAULT_ANONYMOUS_DOWNLOAD_PERMISSION', False),
+        EXIF_ENABLED=getattr(
+            settings,
+            "EXIF_ENABLED",
+            False),
+        NLP_ENABLED=getattr(
+            settings,
+            "NLP_ENABLED",
+            False),
+        SEARCH_FILTERS=getattr(
+            settings,
+            'SEARCH_FILTERS',
+            False
+        ),
     )
 
     return defaults

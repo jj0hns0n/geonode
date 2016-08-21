@@ -3,13 +3,15 @@
 (function(){
 
   var module = angular.module('geonode_main_search', [], function($locationProvider) {
-      $locationProvider.html5Mode({
-        enabled: true,
-        requireBase: false
-      });
+      if (window.navigator.userAgent.indexOf("MSIE") == -1){
+          $locationProvider.html5Mode({
+            enabled: true,
+            requireBase: false
+          });
 
-      // make sure that angular doesn't intercept the page links
-      angular.element("a").prop("target", "_self");
+          // make sure that angular doesn't intercept the page links
+          angular.element("a").prop("target", "_self");
+      }
     });
 
     // Used to set the class of the filters based on the url parameters
@@ -24,9 +26,12 @@
         return data;
     }
 
-  // Load categories and keywords
+  // Load categories, keywords, and regions
   module.load_categories = function ($http, $rootScope, $location){
         var params = typeof FILTER_TYPE == 'undefined' ? {} : {'type': FILTER_TYPE};
+        if ($location.search().hasOwnProperty('title__icontains')){
+          params['title__icontains'] = $location.search()['title__icontains'];
+        }
         $http.get(CATEGORIES_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('category__identifier__in')){
                 data.objects = module.set_initial_filters_from_query(data.objects,
@@ -37,13 +42,53 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+    }
 
+  module.load_keywords = function ($http, $rootScope, $location){
+        var params = typeof FILTER_TYPE == 'undefined' ? {} : {'type': FILTER_TYPE};
+        if ($location.search().hasOwnProperty('title__icontains')){
+          params['title__icontains'] = $location.search()['title__icontains'];
+        }
         $http.get(KEYWORDS_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('keywords__slug__in')){
                 data.objects = module.set_initial_filters_from_query(data.objects,
                     $location.search()['keywords__slug__in'], 'slug');
             }
             $rootScope.keywords = data.objects;
+            if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+                module.haystack_facets($http, $rootScope, $location);
+            }
+        });
+    }
+
+  module.load_regions = function ($http, $rootScope, $location){
+        var params = typeof FILTER_TYPE == 'undefined' ? {} : {'type': FILTER_TYPE};
+        if ($location.search().hasOwnProperty('title__icontains')){
+          params['title__icontains'] = $location.search()['title__icontains'];
+        }
+        $http.get(REGIONS_ENDPOINT, {params: params}).success(function(data){
+            if($location.search().hasOwnProperty('regions__name__in')){
+                data.objects = module.set_initial_filters_from_query(data.objects,
+                    $location.search()['regions__name__in'], 'name');
+            }
+            $rootScope.regions = data.objects;
+            if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+                module.haystack_facets($http, $rootScope, $location);
+            }
+        });
+    }
+
+    module.load_owners = function ($http, $rootScope, $location){
+        var params = typeof FILTER_TYPE == 'undefined' ? {} : {'type': FILTER_TYPE};
+        if ($location.search().hasOwnProperty('title__icontains')){
+            params['title__icontains'] = $location.search()['title__icontains'];
+        }
+        $http.get(OWNERS_ENDPOINT, {params: params}).success(function(data){
+            if($location.search().hasOwnProperty('owner__username__in')){
+                data.objects = module.set_initial_filters_from_query(data.objects,
+                    $location.search()['owner__username__in'], 'identifier');
+            }
+            $rootScope.owners = data.objects;
             if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
                 module.haystack_facets($http, $rootScope, $location);
             }
@@ -76,6 +121,30 @@
               }
           }
       }
+
+      if ("regions" in $rootScope) {
+          $rootScope.regions_counts = data.meta.facets.regions;
+          for (var id in $rootScope.regions) {
+              var region = $rootScope.regions[id];
+              if (region.name in $rootScope.region_counts) {
+                  region.count = $rootScope.region_counts[region.name]
+              } else {
+                  region.count = 0;
+              }
+          }
+      }
+
+      if ("owners" in $rootScope) {
+          $rootScope.owner_counts = data.meta.facets.owners;
+          for (var id in $rootScope.owners) {
+              var owner = $rootScope.owners[id];
+              if (owner.name in $rootScope.owner_counts) {
+                  owner.count = $rootScope.owner_counts[owner.name]
+              } else {
+                  owner.count = 0;
+              }
+          }
+      }
   }
 
   /*
@@ -89,6 +158,16 @@
     if ($('#categories').length > 0){
        module.load_categories($http, $rootScope, $location);
     }
+    if ($('#keywords').length > 0){
+       module.load_keywords($http, $rootScope, $location);
+    }
+    if ($('#regions').length > 0){
+       module.load_regions($http, $rootScope, $location);
+    }
+    if ($('#owners').length > 0){
+       module.load_owners($http, $rootScope, $location);
+    }
+
 
     // Activate the type filters if in the url
     if($location.search().hasOwnProperty('type__in')){
@@ -121,8 +200,7 @@
     $scope.query.limit = $scope.query.limit || CLIENT_RESULTS_LIMIT;
     $scope.query.offset = $scope.query.offset || 0;
     $scope.page = Math.round(($scope.query.offset / $scope.query.limit) + 1);
-
-
+   
     //Get data from apis and make them available to the page
     function query_api(data){
       $http.get(Configs.url, {params: data || {}}).success(function(data){
@@ -134,8 +212,8 @@
             $scope.text_query = $location.search()['q'].replace(/\+/g," ");
           }
         } else {
-          if ($location.search().hasOwnProperty('title__contains')){
-            $scope.text_query = $location.search()['title__contains'].replace(/\+/g," ");
+          if ($location.search().hasOwnProperty('title__icontains')){
+            $scope.text_query = $location.search()['title__icontains'].replace(/\+/g," ");
           }
         }
 
@@ -159,7 +237,7 @@
 
 
     /*
-    * Pagination 
+    * Pagination
     */
     // Control what happens when the total results change
     $scope.$watch('total_counts', function(){
@@ -167,8 +245,8 @@
         ($scope.total_counts / $scope.query.limit) + 0.49
       );
 
-      // In case the user is viewing a page > 1 and a 
-      // subsequent query returns less pages, then 
+      // In case the user is viewing a page > 1 and a
+      // subsequent query returns less pages, then
       // reset the page to one and search again.
       if($scope.numpages < $scope.page){
         $scope.page = 1;
@@ -185,7 +263,7 @@
         $scope.page -= 1;
         $scope.query.offset =  $scope.query.limit * ($scope.page - 1);
         query_api($scope.query);
-      }   
+      }
     }
 
     $scope.paginate_up = function(){
@@ -211,13 +289,13 @@
     * Add the selection behavior to the element, it adds/removes the 'active' class
     * and pushes/removes the value of the element from the query object
     */
-    $scope.multiple_choice_listener = function($event){    
+    $scope.multiple_choice_listener = function($event){
       var element = $($event.target);
       var query_entry = [];
       var data_filter = element.attr('data-filter');
       var value = element.attr('data-value');
 
-      // If the query object has the record then grab it 
+      // If the query object has the record then grab it
       if ($scope.query.hasOwnProperty(data_filter)){
 
         // When in the location are passed two filters of the same
@@ -226,7 +304,7 @@
           query_entry = $scope.query[data_filter];
         }else{
           query_entry.push($scope.query[data_filter]);
-        }     
+        }
       }
 
       // If the element is active active then deactivate it
@@ -235,15 +313,15 @@
         element.removeClass('active');
 
         // Remove the entry from the correct query in scope
-        
+
         query_entry.splice(query_entry.indexOf(value), 1);
       }
       // if is not active then activate it
       else if(!element.hasClass('active')){
         // Add the entry in the correct query
         if (query_entry.indexOf(value) == -1){
-          query_entry.push(value);  
-        }         
+          query_entry.push(value);
+        }
         element.addClass('active');
       }
 
@@ -263,7 +341,7 @@
       var data_filter = element.attr('data-filter');
       var value = element.attr('data-value');
 
-      // If the query object has the record then grab it 
+      // If the query object has the record then grab it
       if ($scope.query.hasOwnProperty(data_filter)){
         query_entry = $scope.query[data_filter];
       }
@@ -281,23 +359,31 @@
         $scope.query[data_filter] = query_entry;
 
         query_api($scope.query);
-      }     
+      }
     }
 
     /*
     * Text search management
     */
     var text_autocomplete = $('#text_search_input').yourlabsAutocomplete({
-          url: AUTOCOMPLETE_URL,
+          url: AUTOCOMPLETE_URL_RESOURCEBASE,
           choiceSelector: 'span',
           hideAfter: 200,
           minimumCharacters: 1,
-          appendAutocomplete: $('#text_search_input'),
-          placeholder: gettext('Enter your text here ...')
+          placeholder: gettext('Enter your text here ...'),
+          autoHilightFirst: false
     });
+
+    $('#text_search_input').keypress(function(e) {
+      if(e.which == 13) {
+        $('#text_search_btn').click();
+        $('.yourlabs-autocomplete').hide();
+      }
+    });
+
     $('#text_search_input').bind('selectChoice', function(e, choice, text_autocomplete) {
           if(choice[0].children[0] == undefined) {
-              $('#text_search_input').val(choice[0].innerHTML);
+              $('#text_search_input').val($(choice[0]).text());
               $('#text_search_btn').click();
           }
     });
@@ -306,10 +392,32 @@
         if (HAYSTACK_SEARCH)
             $scope.query['q'] = $('#text_search_input').val();
         else
-            $scope.query['title__contains'] = $('#text_search_input').val();
+            $scope.query['title__icontains'] = $('#text_search_input').val();
         query_api($scope.query);
     });
 
+    /*
+    * Region search management
+    */
+    var region_autocomplete = $('#region_search_input').yourlabsAutocomplete({
+          url: AUTOCOMPLETE_URL_REGION,
+          choiceSelector: 'span',
+          hideAfter: 200,
+          minimumCharacters: 1,
+          appendAutocomplete: $('#region_search_input'),
+          placeholder: gettext('Enter your region here ...')
+    });
+    $('#region_search_input').bind('selectChoice', function(e, choice, region_autocomplete) {
+          if(choice[0].children[0] == undefined) {
+              $('#region_search_input').val(choice[0].innerHTML);
+              $('#region_search_btn').click();
+          }
+    });
+
+    $('#region_search_btn').click(function(){
+        $scope.query['regions__name__in'] = $('#region_search_input').val();
+        query_api($scope.query);
+    });
 
     $scope.feature_select = function($event){
       var element = $($event.target);
@@ -321,7 +429,7 @@
       else{
         element.html('Deselect');
         article.addClass('resource_selected');
-      } 
+      }
     };
 
     /*
@@ -356,7 +464,7 @@
       }else{
         init_date = false;
       }
-      
+
     }, true);
 
     /*
@@ -381,21 +489,32 @@
         map_center: {
           lat: 5.6,
           lng: 3.9,
-          zoom: 1
+          zoom: 0
         },
         defaults: {
           zoomControl: false
         }
       });
 
+			
       var leafletData = $injector.get('leafletData'),
-          map = leafletData.getMap();
+          map = leafletData.getMap('filter-map');
 
       map.then(function(map){
         map.on('moveend', function(){
           $scope.query['extent'] = map.getBounds().toBBoxString();
           query_api($scope.query);
         });
+      });
+    
+      var showMap = false;
+      $('#_extent_filter').click(function(evt) {
+     	  showMap = !showMap
+        if (showMap){
+          leafletData.getMap().then(function(map) {
+            map.invalidateSize();
+          });
+        } 
       });
     }
   });

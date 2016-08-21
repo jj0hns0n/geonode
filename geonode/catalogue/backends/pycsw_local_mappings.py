@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,14 +37,14 @@ MD_CORE_MODEL = {
         'pycsw:Format': 'spatial_representation_type_string',
         'pycsw:Source': 'source',
         'pycsw:Date': 'date',
-        'pycsw:Modified': 'last_modified',
+        'pycsw:Modified': 'date',
         'pycsw:Type': 'csw_type',
         'pycsw:BoundingBox': 'csw_wkt_geometry',
         'pycsw:CRS': 'crs',
         'pycsw:AlternateTitle': 'title_alternate',
-        'pycsw:RevisionDate': 'date_revision',
-        'pycsw:CreationDate': 'last_modified',
-        'pycsw:PublicationDate': 'date_publication',
+        'pycsw:RevisionDate': 'date',
+        'pycsw:CreationDate': 'date',
+        'pycsw:PublicationDate': 'date',
         'pycsw:OrganizationName': 'uuid',
         'pycsw:SecurityConstraints': 'securityconstraints',
         'pycsw:ParentIdentifier': 'parentidentifier',

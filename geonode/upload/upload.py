@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
+
 """
 Provide views and business logic of doing an upload.
 
@@ -31,7 +33,7 @@ or return response objects.
 State is stored in a UploaderSession object stored in the user's session.
 This needs to be made more stateful by adding a model.
 """
-from geonode.layers.utils import get_valid_layer_name
+from geonode.layers.utils import get_valid_layer_name, resolve_regions
 from geonode.layers.metadata import set_metadata
 from geonode.layers.models import Layer
 from geonode import GeoNodeException
@@ -40,6 +42,7 @@ from geonode.upload.models import Upload
 from geonode.upload import signals
 from geonode.upload.utils import create_geoserver_db_featurestore
 from geonode.geoserver.helpers import gs_catalog, gs_uploader, ogc_server_settings
+from geonode.geoserver.helpers import mosaic_delete_first_granule, set_time_dimension, set_time_info
 
 import geoserver
 from geoserver.resource import Coverage
@@ -51,7 +54,6 @@ from django.db.models import Max
 from django.contrib.auth import get_user_model
 
 import shutil
-import time
 import os.path
 import logging
 import uuid
@@ -68,6 +70,10 @@ class UploadException(Exception):
         args = [msg]
         args.extend(ex.args)
         return UploadException(*args)
+
+
+class LayerNotReady(Exception):
+    pass
 
 
 class UploaderSession(object):
@@ -99,11 +105,11 @@ class UploaderSession(object):
     # defaults to REPLACE if not provided. Accepts APPEND, too
     update_mode = None
 
-    # Import to GeoGit repository
-    geogit = None
+    # Import to GeoGig repository
+    geogig = None
 
-    # GeoGit Repository to import to
-    geogit_store = None
+    # GeoGig Repository to import to
+    geogig_store = None
 
     # Configure Time for this Layer
     time = None
@@ -123,6 +129,16 @@ class UploaderSession(object):
     # time related info - need to store here until geoserver layer exists
     time_info = None
 
+    # whether the user has selected a time dimension for ImageMosaic granules or not
+    mosaic = None
+    append_to_mosaic_opts = None
+    append_to_mosaic_name = None
+    mosaic_time_regex = None
+    mosaic_time_value = None
+
+    # the user who started this upload session
+    user = None
+
     def __init__(self, **kw):
         for k, v in kw.items():
             if hasattr(self, k):
@@ -141,14 +157,25 @@ def upload(name, base_file,
            end_time_attribute=None, end_time_transform_type=None,
            presentation_strategy=None, precision_value=None,
            precision_step=None, use_big_date=False,
-           overwrite=False):
+           overwrite=False,
+           mosaic=False,
+           append_to_mosaic_opts=None, append_to_mosaic_name=None,
+           mosaic_time_regex=None, mosaic_time_value=None,
+           time_presentation=None, time_presentation_res=None,
+           time_presentation_default_value=None, time_presentation_reference_value=None):
 
     if user is None:
         user = get_default_user()
     if isinstance(user, basestring):
         user = get_user_model().objects.get(username=user)
 
-    import_session = save_step(user, name, base_file, overwrite)
+    import_session = save_step(user, name, base_file, overwrite,
+                               mosaic=mosaic,
+                               append_to_mosaic_opts=append_to_mosaic_opts, append_to_mosaic_name=append_to_mosaic_name,
+                               mosaic_time_regex=mosaic_time_regex, mosaic_time_value=mosaic_time_value,
+                               time_presentation=time_presentation, time_presentation_res=time_presentation_res,
+                               time_presentation_default_value=time_presentation_default_value,
+                               time_presentation_reference_value=time_presentation_reference_value)
 
     upload_session = UploaderSession(
         base_file=base_file,
@@ -156,7 +183,12 @@ def upload(name, base_file,
         import_session=import_session,
         layer_abstract="",
         layer_title=name,
-        permissions=None
+        permissions=None,
+        mosaic=mosaic,
+        append_to_mosaic_opts=append_to_mosaic_opts,
+        append_to_mosaic_name=append_to_mosaic_name,
+        mosaic_time_regex=mosaic_time_regex,
+        mosaic_time_value=mosaic_time_value
     )
 
     time_step(upload_session,
@@ -167,6 +199,7 @@ def upload(name, base_file,
               time_format=None, srs=None, use_big_date=use_big_date)
 
     run_import(upload_session, async=False)
+
     final_step(upload_session, user)
 
 
@@ -174,7 +207,12 @@ def _log(msg, *args):
     logger.info(msg, *args)
 
 
-def save_step(user, layer, spatial_files, overwrite=True):
+def save_step(user, layer, spatial_files, overwrite=True,
+              mosaic=False,
+              append_to_mosaic_opts=None, append_to_mosaic_name=None,
+              mosaic_time_regex=None, mosaic_time_value=None,
+              time_presentation=None, time_presentation_res=None,
+              time_presentation_default_value=None, time_presentation_reference_value=None):
     _log('Uploading layer: [%s], files [%s]', layer, spatial_files)
 
     if len(spatial_files) > 1:
@@ -243,8 +281,14 @@ def save_step(user, layer, spatial_files, overwrite=True):
     try:
         # importer tracks ids by autoincrement but is prone to corruption
         # which potentially may reset the id - hopefully prevent this...
-        next_id = Upload.objects.all().aggregate(Max('import_id')).values()[0]
-        next_id = next_id + 1 if next_id else 1
+        upload_next_id = Upload.objects.all().aggregate(Max('import_id')).values()[0]
+        upload_next_id = upload_next_id if upload_next_id else 0
+        # next_id = next_id + 1 if next_id else 1
+        importer_sessions = gs_uploader.get_sessions()
+
+        last_importer_session = importer_sessions[len(importer_sessions)-1].id if importer_sessions else 0
+        next_id = max(int(last_importer_session), int(upload_next_id)) + 1
+        next_id = max(int(last_importer_session), int(upload_next_id)) + 1
 
         # save record of this whether valid or not - will help w/ debugging
         upload = Upload.objects.create(
@@ -255,11 +299,36 @@ def save_step(user, layer, spatial_files, overwrite=True):
 
         # @todo settings for use_url or auto detection if geoserver is
         # on same host
-        import_session = gs_uploader.upload_files(
-            spatial_files.all_files(),
-            use_url=False,
-            import_id=next_id,
-            mosaic=len(spatial_files) > 1)
+
+        # Is it a regular file or an ImageMosaic?
+        # if mosaic_time_regex and mosaic_time_value:
+        if mosaic:
+            # we want to ingest as ImageMosaic
+            target_store = import_imagemosaic_granules(spatial_files, append_to_mosaic_opts, append_to_mosaic_name,
+                                                       mosaic_time_regex, mosaic_time_value, time_presentation,
+                                                       time_presentation_res, time_presentation_default_value,
+                                                       time_presentation_reference_value)
+
+            # moving forward with a regular Importer session
+            import_session = gs_uploader.upload_files(
+                spatial_files.all_files(),
+                use_url=False,
+                import_id=next_id,
+                mosaic=len(spatial_files) > 1,
+                target_store=target_store)
+
+            upload.moasic = mosaic
+            upload.append_to_mosaic_opts = append_to_mosaic_opts
+            upload.append_to_mosaic_name = append_to_mosaic_name
+            upload.mosaic_time_regex = mosaic_time_regex
+            upload.mosaic_time_value = mosaic_time_value
+        else:
+            # moving forward with a regular Importer session
+            import_session = gs_uploader.upload_files(
+                spatial_files.all_files(),
+                use_url=False,
+                import_id=next_id,
+                mosaic=len(spatial_files) > 1)
 
         upload.import_id = import_session.id
         upload.save()
@@ -317,16 +386,24 @@ def run_import(upload_session, async):
     if import_session.state == 'INCOMPLETE':
         if task.state != 'ERROR':
             raise Exception('unknown item state: %s' % task.state)
+    elif import_session.state == 'PENDING' and task.target.store_type == 'coverageStore':
+        if task.state == 'READY':
+            import_session.commit(async)
+
+    elif import_session.state == 'PENDING' and task.target.store_type == 'coverageStore':
+        if task.state == 'READY':
+            import_session.commit(async)
 
     # if a target datastore is configured, ensure the datastore exists
     # in geoserver and set the uploader target appropriately
 
-    if ogc_server_settings.GEOGIT_ENABLED and upload_session.geogit is True \
+    if ogc_server_settings.GEOGIG_ENABLED and upload_session.geogig is True \
             and task.target.store_type != 'coverageStore':
-
         target = create_geoserver_db_featurestore(
-            store_type='geogit',
-            store_name=upload_session.geogit_store)
+            store_type='geogig',
+            store_name=upload_session.geogig_store,
+            author_name=upload_session.user.username,
+            author_email=upload_session.user.email)
         _log(
             'setting target datastore %s %s',
             target.name,
@@ -361,8 +438,7 @@ def time_step(upload_session, time_attribute, time_transform_type,
               end_time_attribute=None,
               end_time_transform_type=None,
               end_time_format=None,
-              time_format=None,
-              use_big_date=None):
+              time_format=None):
     '''
     time_attribute - name of attribute to use as time
 
@@ -393,11 +469,9 @@ def time_step(upload_session, time_attribute, time_transform_type,
         return {'type': 'AttributeRemapTransform',
                 'field': att,
                 'target': 'org.geotools.data.postgis.PostGISDialect$XDate'}
-    if use_big_date is None:
-        try:
-            use_big_date = settings.USE_BIG_DATE
-        except:
-            use_big_date = False
+
+    use_big_date = getattr(settings, 'USE_BIG_DATE', False) and not upload_session.geogig
+
     if time_attribute:
         if time_transform_type:
 
@@ -432,10 +506,13 @@ def time_step(upload_session, time_attribute, time_transform_type,
             'type': 'CreateIndexTransform',
             'field': time_attribute
         })
+        # the time_info will be used in the last step to configure the
+        # layer in geoserver - the dict matches the arguments of the
+        # set_time_info helper function
         upload_session.time_info = dict(
-            time_attribute=time_attribute,
-            end_time_attribute=end_time_attribute,
-            presentation_strategy=presentation_strategy,
+            attribute=time_attribute,
+            end_attribute=end_time_attribute,
+            presentation=presentation_strategy,
             precision_value=precision_value,
             precision_step=precision_step
         )
@@ -452,6 +529,7 @@ def time_step(upload_session, time_attribute, time_transform_type,
             upload_session.time_transforms = transforms
         except BadRequest as br:
             raise UploadException.from_exc('Error configuring time:', br)
+        upload_session.import_session.tasks[0].save_transforms()
 
 
 def csv_step(upload_session, lat_field, lng_field):
@@ -500,18 +578,17 @@ def final_step(upload_session, user):
     name = task.layer.name
 
     _log('Getting from catalog [%s]', name)
-    publishing = None
-    for i in xrange(60):
-        publishing = cat.get_layer(name)
-        if publishing:
-            break
-        time.sleep(.5)
+    publishing = cat.get_layer(name)
+
+    if import_session.state == 'INCOMPLETE':
+        if task.state != 'ERROR':
+            raise Exception('unknown item state: %s' % task.state)
+    elif import_session.state == 'PENDING':
+        if task.state == 'READY' and task.data.format != 'Shapefile':
+            import_session.commit()
 
     if not publishing:
-        raise Exception(
-            "Expected to find layer named '%s' in geoserver, tried %s times" %
-            (name, i))
-    _log('Had to try %s times to get layer from catalog' % (i + 1))
+        raise LayerNotReady("Expected to find layer named '%s' in geoserver" % name)
 
     _log('Creating style for [%s]', name)
     # get_files will not find the sld if it doesn't match the base name
@@ -555,20 +632,72 @@ def final_step(upload_session, user):
     # delete hook on layer should fix this?)
     cat._cache.clear()
 
-    defaults = dict(store=target.name,
-                    storeType=target.store_type,
-                    typename=typename,
-                    workspace=target.workspace_name,
-                    title=title,
-                    uuid=layer_uuid,
-                    abstract=abstract or '',
-                    owner=user,)
+    # Is it a regular file or an ImageMosaic?
+    # if upload_session.mosaic_time_regex and upload_session.mosaic_time_value:
+    if upload_session.mosaic:
 
-    _log('record defaults: %s', defaults)
-    saved_layer, created = Layer.objects.get_or_create(
-        name=task.layer.name,
-        defaults=defaults
-    )
+        import pytz
+        import datetime
+        from geonode.layers.models import TIME_REGEX_FORMAT
+
+        # llbbox = publishing.resource.latlon_bbox
+        start = None
+        end = None
+        if upload_session.mosaic_time_regex and upload_session.mosaic_time_value:
+            has_time = True
+            start = datetime.datetime.strptime(upload_session.mosaic_time_value,
+                                               TIME_REGEX_FORMAT[upload_session.mosaic_time_regex])
+            start = pytz.utc.localize(start, is_dst=False)
+            end = start
+        else:
+            has_time = False
+
+        if not upload_session.append_to_mosaic_opts:
+            saved_layer, created = Layer.objects.get_or_create(
+                name=task.layer.name,
+                defaults=dict(store=target.name,
+                              storeType=target.store_type,
+                              typename=typename,
+                              workspace=target.workspace_name,
+                              title=title,
+                              uuid=layer_uuid,
+                              abstract=abstract or '',
+                              owner=user,),
+                temporal_extent_start=start,
+                temporal_extent_end=end,
+                is_mosaic=True,
+                has_time=has_time,
+                has_elevation=False,
+                time_regex=upload_session.mosaic_time_regex
+            )
+        else:
+            # saved_layer = Layer.objects.filter(name=upload_session.append_to_mosaic_name)
+            # created = False
+            saved_layer, created = Layer.objects.get_or_create(name=upload_session.append_to_mosaic_name)
+            try:
+                if saved_layer.temporal_extent_start and end:
+                    if pytz.utc.localize(saved_layer.temporal_extent_start, is_dst=False) < end:
+                        saved_layer.temporal_extent_end = end
+                        Layer.objects.filter(name=upload_session.append_to_mosaic_name).update(
+                            temporal_extent_end=end)
+                    else:
+                        saved_layer.temporal_extent_start = end
+                        Layer.objects.filter(name=upload_session.append_to_mosaic_name).update(
+                            temporal_extent_start=end)
+            except Exception as e:
+                _log('There was an error updating the mosaic temporal extent: ' + str(e))
+    else:
+        saved_layer, created = Layer.objects.get_or_create(
+            name=task.layer.name,
+            defaults=dict(store=target.name,
+                          storeType=target.store_type,
+                          typename=typename,
+                          workspace=target.workspace_name,
+                          title=title,
+                          uuid=layer_uuid,
+                          abstract=abstract or '',
+                          owner=user,)
+        )
 
     # Should we throw a clearer error here?
     assert saved_layer is not None
@@ -591,9 +720,19 @@ def final_step(upload_session, user):
     if xml_file:
         saved_layer.metadata_uploaded = True
         # get model properties from XML
-        vals, keywords = set_metadata(open(xml_file[0]).read())
+        identifier, vals, regions, keywords = set_metadata(open(xml_file[0]).read())
+
+        regions_resolved, regions_unresolved = resolve_regions(regions)
+        keywords.extend(regions_unresolved)
+
+        # set regions
+        regions_resolved = list(set(regions_resolved))
+        if regions:
+            if len(regions) > 0:
+                saved_layer.regions.add(*regions_resolved)
 
         # set taggit keywords
+        keywords = list(set(keywords))
         saved_layer.keywords.add(*keywords)
 
         # set model properties
@@ -610,29 +749,9 @@ def final_step(upload_session, user):
     # FIXME: Do this as part of the post_save hook
 
     permissions = upload_session.permissions
-    _log('Setting default permissions for [%s]', name)
-    if permissions is not None:
+    if created and permissions is not None:
+        _log('Setting default permissions for [%s]', name)
         saved_layer.set_permissions(permissions)
-
-    _log('Verifying the layer [%s] was created correctly' % name)
-
-    # Verify the object was saved to the Django database
-    # @revisit - this should always work since we just created it above and the
-    # message is confusing
-    try:
-        saved_layer = Layer.objects.get(name=name)
-    except Layer.DoesNotExist as e:
-        msg = (
-            'There was a problem saving the layer %s to GeoNetwork/Django. Error is: %s' %
-            (name, str(e)))
-        logger.exception(msg)
-        logger.debug(
-            'Attempting to clean up after failed save for layer [%s]',
-            name)
-        # Since the layer creation was not successful, we need to clean up
-        # @todo implement/test cleanup
-        # cleanup(name, layer_uuid)
-        raise GeoNodeException(msg)
 
     if upload_session.tempdir and os.path.exists(upload_session.tempdir):
         shutil.rmtree(upload_session.tempdir)
@@ -643,8 +762,132 @@ def final_step(upload_session, user):
     upload.save()
 
     if upload_session.time_info:
-        saved_layer.set_time_info(**upload_session.time_info)
+        set_time_info(saved_layer, **upload_session.time_info)
 
     signals.upload_complete.send(sender=final_step, layer=saved_layer)
 
     return saved_layer
+
+
+def import_imagemosaic_granules(spatial_files, append_to_mosaic_opts, append_to_mosaic_name,
+                                mosaic_time_regex, mosaic_time_value, time_presentation,
+                                time_presentation_res, time_presentation_default_value,
+                                time_presentation_reference_value):
+
+    # The very first step is to rename the granule by adding the selected regex
+    #  matching value to the filename.
+
+    f = spatial_files[0].base_file
+    dirname = os.path.dirname(f)
+    basename = os.path.basename(f)
+
+    head, tail = os.path.splitext(basename)
+    dst_file = os.path.join(dirname, head.replace("_", "-") + "_" + mosaic_time_value + tail)
+    os.rename(f, dst_file)
+    spatial_files[0].base_file = dst_file
+
+    # We use the GeoServer REST APIs in order to create the ImageMosaic
+    #  and later add the granule through the GeoServer Importer.
+
+    # 1. Create a zip file containing the ImageMosaic .properties files
+    db = ogc_server_settings.datastore_db
+    db_engine = 'postgis' if \
+        'postgis' in db['ENGINE'] else db['ENGINE']
+
+    if not db_engine == 'postgis':
+        raise UploadException("Unsupported DataBase for Mosaics!")
+
+    context = {
+        "abs_path_flag": "True",
+        "time_attr":  "time",
+        "aux_metadata_flag":  "False",
+        "mosaic_time_regex": mosaic_time_regex,
+        "db_host": db['HOST'],
+        "db_port": db['PORT'],
+        "db_name": db['NAME'],
+        "db_user": db['USER'],
+        "db_password": db['PASSWORD'],
+        "db_conn_timeout": db['CONN_TOUT'] or "10",
+        "db_conn_min": db['CONN_MIN'] or "1",
+        "db_conn_max": db['CONN_MAX'] or "5",
+        "db_conn_validate": db['CONN_VALIDATE'] or "true",
+    }
+
+    if mosaic_time_regex:
+        indexer_template = """AbsolutePath={abs_path_flag}
+TimeAttribute={time_attr}
+Schema= the_geom:Polygon,location:String,{time_attr}:java.util.Date
+PropertyCollectors=TimestampFileNameExtractorSPI[timeregex]({time_attr})
+CheckAuxiliaryMetadata={aux_metadata_flag}
+SuggestedSPI=it.geosolutions.imageioimpl.plugins.tiff.TIFFImageReaderSpi"""
+
+        timeregex_template = """regex=(?<=_)({mosaic_time_regex})"""
+
+        with open(dirname + '/timeregex.properties', 'w') as timeregex_prop_file:
+            timeregex_prop_file.write(timeregex_template.format(**context))
+
+    else:
+        indexer_template = """AbsolutePath={abs_path_flag}
+Schema= the_geom:Polygon,location:String,{time_attr}
+CheckAuxiliaryMetadata={aux_metadata_flag}
+SuggestedSPI=it.geosolutions.imageioimpl.plugins.tiff.TIFFImageReaderSpi"""
+
+    datastore_template = """SPI=org.geotools.data.postgis.PostgisNGDataStoreFactory
+host={db_host}
+port={db_port}
+database={db_name}
+user={db_user}
+passwd={db_password}
+Loose\ bbox=true
+Estimated\ extends=false
+validate\ connections={db_conn_validate}
+Connection\ timeout={db_conn_timeout}
+min\ connections={db_conn_min}
+max\ connections={db_conn_max}"""
+
+    with open(dirname + '/indexer.properties', 'w') as indexer_prop_file:
+        indexer_prop_file.write(indexer_template.format(**context))
+
+    with open(dirname + '/datastore.properties', 'w') as datastore_prop_file:
+        datastore_prop_file.write(datastore_template.format(**context))
+
+    if not append_to_mosaic_opts:
+
+        import zipfile
+        z = zipfile.ZipFile(dirname + '/' + head + '.zip', "w")
+
+        z.write(dst_file, arcname=head + "_" + mosaic_time_value + tail)
+        z.write(dirname + '/indexer.properties', arcname='indexer.properties')
+        z.write(dirname + '/datastore.properties', arcname='datastore.properties')
+        if mosaic_time_regex:
+            z.write(dirname + '/timeregex.properties', arcname='timeregex.properties')
+
+        z.close()
+
+        # 2. Send a "create ImageMosaic" request to GeoServer through gs_config
+        cat = gs_catalog
+        cat._cache.clear()
+        # - name = name of the ImageMosaic (equal to the base_name)
+        # - data = abs path to the zip file
+        # - configure = parameter allows for future configuration after harvesting
+        name = head
+        data = open(dirname + '/' + head + '.zip', 'rb')
+        cat.create_imagemosaic(name, data)
+
+        # configure time as LIST
+        if mosaic_time_regex:
+            set_time_dimension(cat, name, time_presentation, time_presentation_res,
+                               time_presentation_default_value, time_presentation_reference_value)
+
+        # - since GeoNode will uploade the first granule again through the Importer, we need to /
+        #   delete the one created by the gs_config
+        mosaic_delete_first_granule(cat, name)
+
+        return head
+    else:
+        cat = gs_catalog
+        cat._cache.clear()
+        cat.reset()
+        cat.reload()
+
+        return append_to_mosaic_name

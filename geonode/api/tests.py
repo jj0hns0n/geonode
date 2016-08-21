@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 from django.core.urlresolvers import reverse
 from tastypie.test import ResourceTestCase
 
@@ -122,6 +142,8 @@ class SearchApiTests(ResourceTestCase):
     def test_category_filters(self):
         """Test category filtering"""
 
+        # check we get the correct layers number returnered filtering on one
+        # and then two different categories
         filter_url = self.list_url + '?category__identifier=location'
 
         resp = self.api_client.get(filter_url)
@@ -138,6 +160,8 @@ class SearchApiTests(ResourceTestCase):
     def test_tag_filters(self):
         """Test keywords filtering"""
 
+        # check we get the correct layers number returnered filtering on one
+        # and then two different keywords
         filter_url = self.list_url + '?keywords__slug=layertagunique'
 
         resp = self.api_client.get(filter_url)
@@ -154,6 +178,8 @@ class SearchApiTests(ResourceTestCase):
     def test_owner_filters(self):
         """Test owner filtering"""
 
+        # check we get the correct layers number returnered filtering on one
+        # and then two different owners
         filter_url = self.list_url + '?owner__username=user1'
 
         resp = self.api_client.get(filter_url)
@@ -170,6 +196,8 @@ class SearchApiTests(ResourceTestCase):
     def test_title_filter(self):
         """Test title filtering"""
 
+        # check we get the correct layers number returnered filtering on the
+        # title
         filter_url = self.list_url + '?title=layer2'
 
         resp = self.api_client.get(filter_url)
@@ -179,6 +207,8 @@ class SearchApiTests(ResourceTestCase):
     def test_date_filter(self):
         """Test date filtering"""
 
+        # check we get the correct layers number returnered filtering on the
+        # title
         filter_url = self.list_url + '?date__exact=1985-01-01'
 
         resp = self.api_client.get(filter_url)

@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 import datetime
 import hashlib
 
@@ -7,6 +27,9 @@ from django.contrib.auth import get_user_model
 from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import signals
+from django.contrib.sites.models import Site
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
 
 from taggit.managers import TaggableManager
 from guardian.shortcuts import get_objects_for_group
@@ -28,20 +51,21 @@ class GroupProfile(models.Model):
                         'such as a mailing list, shared email, or exchange group.')
 
     group = models.OneToOneField(Group)
-    title = models.CharField(max_length=50)
+    title = models.CharField(_('Title'), max_length=50)
     slug = models.SlugField(unique=True)
-    logo = models.FileField(upload_to="people_group", blank=True)
-    description = models.TextField()
+    logo = models.ImageField(_('Logo'), upload_to="people_group", blank=True)
+    description = models.TextField(_('Description'))
     email = models.EmailField(
-        _('email'),
+        _('Email'),
         null=True,
         blank=True,
         help_text=email_help_text)
     keywords = TaggableManager(
-        _('keywords'),
+        _('Keywords'),
         help_text=_("A space or comma-separated list of keywords"),
         blank=True)
     access = models.CharField(
+        _('Access'),
         max_length=15,
         default="public'",
         choices=GROUP_CHOICES,
@@ -134,8 +158,11 @@ class GroupProfile(models.Model):
     def join(self, user, **kwargs):
         if user == user.get_anonymous():
             raise ValueError("The invited user cannot be anonymous")
-        GroupMember.objects.get_or_create(group=self, user=user, **kwargs)
-        user.groups.add(self.group)
+        member, created = GroupMember.objects.get_or_create(group=self, user=user, defaults=kwargs)
+        if created:
+            user.groups.add(self.group)
+        else:
+            raise ValueError("The invited user \"{0}\" is already a member".format(user.username))
 
     def invite(self, user, from_user, role="member", send=True):
         params = dict(role=role, from_user=from_user)
@@ -207,7 +234,7 @@ class GroupInvitation(models.Model):
             ("accepted", _("Accepted")),
             ("declined", _("Declined")),
         ),
-        default = "sent",
+        default="sent",
     )
     created = models.DateTimeField(default=datetime.datetime.now)
 
@@ -217,19 +244,20 @@ class GroupInvitation(models.Model):
     class Meta:
         unique_together = [("group", "email")]
 
-    # def send(self, from_user):
-    #     current_site = Site.objects.get_current()
-    #     domain = unicode(current_site.domain)
-        # ctx = {
-        #     "invite": self,
-        #     "group": self.group,
-        #     "from_user": from_user,
-        #     "domain": domain,
-        # }
-        # subject = render_to_string("groups/email/invite_user_subject.txt", ctx)
-        # message = render_to_string("groups/email/invite_user.txt", ctx)
+    def send(self, from_user):
+
+        current_site = Site.objects.get_current()
+        domain = unicode(current_site.domain)
+        ctx = {
+            "invite": self,
+            "group": self.group,
+            "from_user": from_user,
+            "domain": domain,
+        }
+        subject = render_to_string("groups/email/invite_user_subject.txt", ctx)
+        message = render_to_string("groups/email/invite_user.txt", ctx)
         # TODO Send a notification rather than a mail
-        # send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [self.email])
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [self.email])
 
     def accept(self, user):
         if not user.is_authenticated() or user == user.get_anonymous():

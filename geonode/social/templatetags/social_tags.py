@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 from django import template
 from django.utils.translation import ugettext as _
 register = template.Library()
@@ -30,6 +50,7 @@ def activity_item(action, **kwargs):
     raw_action = get_data(action, 'raw_action')
     object_name = get_data(action, 'object_name')
     preposition = _("to")
+    fragment = None
 
     if object:
         object_type = object.__class__._meta.object_name.lower()
@@ -46,6 +67,7 @@ def activity_item(action, **kwargs):
             activity_class = 'comment'
             preposition = _("on")
             object = None
+            fragment = "comments"
 
         if object_type == 'map':
             activity_class = 'map'
@@ -70,5 +92,6 @@ def activity_item(action, **kwargs):
         timestamp=action.timestamp,
         username=username,
         verb=verb,
+        fragment=fragment
     )
     return ctx

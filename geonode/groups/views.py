@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotAllowed
@@ -110,7 +130,7 @@ def group_members(request, slug):
         ctx["member_form"] = GroupMemberForm()
 
     ctx.update({
-        "object": group,
+        "group": group,
         "members": group.member_queryset(),
         "is_member": group.user_is_member(request.user),
         "is_manager": group.user_is_role(request.user, "manager"),
@@ -251,4 +271,18 @@ class GroupActivityView(ListView):
     def get_context_data(self, **kwargs):
         context = super(GroupActivityView, self).get_context_data(**kwargs)
         context['group'] = self.group
+        # Additional Filtered Lists Below
+        members = ([(member.user.id) for member in self.group.member_queryset()])
+        context['action_list_layers'] = Action.objects.filter(
+            public=True,
+            actor_object_id__in=members,
+            action_object_content_type__name='layer')[:15]
+        context['action_list_maps'] = Action.objects.filter(
+            public=True,
+            actor_object_id__in=members,
+            action_object_content_type__name='map')[:15]
+        context['action_list_comments'] = Action.objects.filter(
+            public=True,
+            actor_object_id__in=members,
+            action_object_content_type__name='comment')[:15]
         return context

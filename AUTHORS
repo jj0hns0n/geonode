@@ -1,4 +1,4 @@
-GeoNode development was started in 2006. 
+GeoNode development was started in 2009.
 
 The PRIMARY AUTHORS are (and/or have been):
 
@@ -31,6 +31,11 @@ The PRIMARY AUTHORS are (and/or have been):
     * Jean Jordaan (jean)
     * Humanitarian Information Unit (state-hiu)
     * Derek Hohls (gamesbook)
+    * Stefano Menegon (menegon)
+    * Patrick Dufour (pjdufour)
+    * Alessio Fabiani (afabiani)
+    * Daniel Berry (BerryDaniel)
+    * Francesco Bartoli (francbartoli)
 
 
 
@@ -42,7 +47,7 @@ Andrea Aime (aaime)
 Luca Casagrande (lucacasagrande)
 Corey Farwell (frewsxcv)
 Chris Patterson (chrispatterson)
-Christian Spanring (cspanring) 
+Christian Spanring (cspanring)
 Sergios Stamatis (MINDoSOFT)
 Tim Schaub (tschaub)
 Luke Hatcher (lukeman)
@@ -66,7 +71,6 @@ Nathan Hilbert (nathanhilbert)
 Elliot Bradbury (ebradbury)
 Mike Fedak (mikefedak)
 Arvin Dino (warex03)
-Stefano Menegon (menegon)
 Bebsher Salvio (blsalvio)
 Evan Ricafort (@robinhood0x00)
 Mark Iliffe (markiliffe)
@@ -74,9 +78,11 @@ Derek Hohls (gamesbook)
 Yewondwossen Assefa (assefay)
 Simone Balbo (sbsimo)
 Cristina Ospino (cristinao)
+John Jediny (nepanode)
+Guillermo Solano (gsolat)
 
 
 A big THANK YOU goes to:
 
-    Chris Holmes (OpenGeo) and Stuart Gill (The World Bank) for their vision, mentorship, and their work 
+    Chris Holmes (OpenGeo) and Stuart Gill (The World Bank) for their vision, mentorship, and their work
     aligning the stars to make this project a reality.

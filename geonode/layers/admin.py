@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,15 +20,20 @@
 
 from django.contrib import admin
 
-from geonode.base.admin import MediaTranslationAdmin
+from geonode.base.admin import MediaTranslationAdmin, ResourceBaseAdminForm
 from geonode.layers.models import Layer, Attribute, Style
 from geonode.layers.models import LayerFile, UploadSession
-
-import autocomplete_light
 
 
 class AttributeInline(admin.TabularInline):
     model = Attribute
+
+
+class LayerAdminForm(ResourceBaseAdminForm):
+
+    class Meta:
+        model = Layer
+        fields = '__all__'
 
 
 class LayerAdmin(MediaTranslationAdmin):
@@ -41,14 +46,14 @@ class LayerAdmin(MediaTranslationAdmin):
         'category')
     list_display_links = ('id',)
     list_editable = ('title', 'category')
-    list_filter = ('owner', 'category',
+    list_filter = ('storeType', 'owner', 'category',
                    'restriction_code_type__identifier', 'date', 'date_type')
     search_fields = ('typename', 'title', 'abstract', 'purpose',)
     filter_horizontal = ('contacts',)
     date_hierarchy = 'date'
     readonly_fields = ('uuid', 'typename', 'workspace')
     inlines = [AttributeInline]
-    form = autocomplete_light.modelform_factory(Layer)
+    form = LayerAdminForm
 
 
 class AttributeAdmin(admin.ModelAdmin):

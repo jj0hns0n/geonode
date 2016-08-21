@@ -1,7 +1,7 @@
 {% include "geonode/ext_header.html" %}
 {% include "geonode/app_header.html" %}
 {% include "geonode/geo_header.html" %}
-
+<script type="text/javascript" src="{{ STATIC_URL}}geonode/js/utils/thumbnail.js"></script>
 <script type="text/javascript">
 {% autoescape off %}
         var app;
@@ -33,22 +33,36 @@
                 
                 portalConfig: {
                     renderTo: "preview_map",
-                    height: 400 
+                    height: 600 
                 },
 
                 listeners: {
                     "ready": function() {
-                        map = app.mapPanel.map;
-                        bbox = app.map.layers.slice(-1)[0].bbox
+                        var map = app.mapPanel.map;
+                        var layer = app.map.layers.slice(-1)[0];
+
+                        // FIXME(Ariel): Zoom to extent until #1795 is fixed.
+                        //map.zoomToExtent(layer.maxExtent, false)
+                        
+                        var bbox = layer.bbox;
                         if (bbox != undefined)
                         {
-                            extent = OpenLayers.Bounds.fromArray(bbox).transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection(this.map.projection));
-                            zoomToData = function()
-                            {
-                                map.zoomToExtent(extent, false)
-                                map.events.unregister('changebaselayer', null, zoomToData)
-                            };
-                            map.events.register('changebaselayer',null,zoomToData);
+                           if (!Array.isArray(bbox) && Object.keys(layer.srs) in bbox) {
+                            bbox = bbox[Object.keys(layer.srs)].bbox;
+                           }
+
+                           var extent = OpenLayers.Bounds.fromArray(bbox);
+                           var zoomToData = function()
+                           {
+                               map.zoomToExtent(extent, false);
+                               app.mapPanel.center = map.center;
+                               app.mapPanel.zoom = map.zoom;
+                               map.events.unregister('changebaselayer', null, zoomToData);
+                           };
+                           map.events.register('changebaselayer',null,zoomToData);
+                           if(map.baseLayer){
+                            map.zoomToExtent(extent, false);
+                           }
                         }
                     },
                     "beforeunload": function() {
@@ -61,6 +75,53 @@
             };
 
             config = Ext.apply(config, {{ viewer|safe }});
+			
+			//
+			// Extrapolating the granules times
+			//
+			var is_mosaic = "{{resource.is_mosaic}}" == "True" ? true : false;
+			if(is_mosaic){
+				var resource_name = "{{resource.name}}";
+				
+				var granules_features = {% if all_granules %} {{all_granules.features}} {% else %} [] {% endif %};
+				
+				var time_list = [];
+				for(var i=0; i<granules_features.length; i++){
+					var feature = granules_features[i];
+					
+					if(feature.properties.time){
+						var date = new Date(feature.properties.time);
+						var time = date.toISOString();
+						
+						if(time){
+							time_list.push(time);
+						}
+					}
+				}
+				
+				//
+				// Setting the time dimension accordingly to the granule time list
+				// 
+				var layers = config.map.layers;
+				for(var layer in layers){
+					l = layers[layer];
+					if(!l.background && l.name && l.name.indexOf(resource_name) != -1){
+						l.dimensions = {
+							time:{
+								"name":"time",
+								"units":"ISO8601",
+								"unitsymbol":null,
+								"nearestVal":false,
+								"multipleVal":false,
+								"current":false,
+								"default":"current",
+								"values": time_list // granule time list
+							}
+						}
+					}
+				}
+			}
+			
             app = new GeoExplorer.Viewer(config);
 
             for (var key in app.tools) {
@@ -86,7 +147,11 @@
                     };
                 }
             });
-
+            Ext.Ajax.on('requestcomplete', function(req, cippa, opts){
+                if(opts.method == 'PUT'){
+                    $('#legend_icon').attr('src', $('#legend_icon').attr('src')+'&'+Math.random());
+                }   
+            }, this);
         });
     
     {% endautoescape %}

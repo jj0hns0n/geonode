@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 import logging
 from django.conf import settings
 from django.db import models
@@ -9,6 +29,7 @@ from geonode.layers.models import Layer
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import signals
 from geonode.people.enumerations import ROLE_VALUES
+from geonode.security.models import remove_object_permissions
 
 STATUS_VALUES = [
     'pending',
@@ -95,7 +116,7 @@ class ServiceLayer(models.Model):
 
 
 class WebServiceHarvestLayersJob(models.Model):
-    service = models.ForeignKey(Service, blank=False, null=False, unique=True)
+    service = models.OneToOneField(Service, blank=False, null=False)
     status = models.CharField(choices=[(
         x, x) for x in STATUS_VALUES], max_length=10, blank=False, null=False, default='pending')
 
@@ -131,6 +152,7 @@ def pre_delete_service(instance, sender, **kwargs):
         except FailedRequestError:
             logger.error(
                 "Could not delete cascading WMS Store for %s - maybe already gone" % instance.name)
+    remove_object_permissions(instance.get_self_resource())
 
 
 signals.pre_delete.connect(pre_delete_service, sender=Service)

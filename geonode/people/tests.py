@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +19,6 @@
 #########################################################################
 
 from django.test import TestCase
-from django.test.client import Client
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
@@ -31,21 +31,20 @@ class PeopleTest(TestCase):
     fixtures = ('people_data.json', 'bobby.json')
 
     def test_forgot_username(self):
-        c = Client()
         url = reverse('forgot_username')
 
         # page renders
-        response = c.get(url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
         # and responds for a bad email
-        response = c.post(url, data={
+        response = self.client.post(url, data={
             'email': 'foobar@doesnotexist.com'
         })
         # self.assertContains(response, "No user could be found with that email address.")
 
         admin = get_user_model().objects.get(username='bobby')
-        response = c.post(url, data={
+        response = self.client.post(url, data={
             'email': admin.email
         })
         # and sends a mail for a good one

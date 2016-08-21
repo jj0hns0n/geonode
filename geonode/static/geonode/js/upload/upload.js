@@ -5,14 +5,14 @@
 
 var layers = {};
 
-var geogit_stores = {};
+var geogig_stores = {};
 
 define(['underscore',
         'upload/LayerInfo',
         'upload/FileTypes',
         'upload/path',
         'upload/common',
-        'text!templates/upload.html'], function (_, LayerInfo, fileTypes, path, common, upload) {
+        'text!templates/upload.html'], function (_, LayerInfo, fileTypes, path, common, uploadTemplate) {
 
     var templates = {},
         findFileType,
@@ -22,9 +22,8 @@ define(['underscore',
         types,
         buildFileInfo,
         displayFiles,
-        init_geogit_stores,
+        init_geogig_stores,
         doUploads,
-        doTime,
         doSrs,
         doDelete,
         doResume,
@@ -33,7 +32,7 @@ define(['underscore',
         checkFiles,
         fileTypes = fileTypes;
 
-    $('body').append(upload);
+    $('body').append(uploadTemplate);
 
     templates.errorTemplate = _.template($('#errorTemplate').html());
 
@@ -123,7 +122,7 @@ define(['underscore',
             if (!info.type) {
                 log_error({
                     title: 'Unsupported type',
-                    message: interpolate(gettext('The file %s is an unsupported file type, please select another file.',[info.files[0].name]))
+                    message: interpolate(gettext('The file %s is an unsupported file type, please select another file.'),[info.files[0].name])
                 });
                 delete layers[name];
             } else {
@@ -146,10 +145,34 @@ define(['underscore',
         var files = layers[Object.keys(layers)[0]]['files'];
         var types = [];
         for (var i = 0; i<files.length; i++){
-            var ext = files[i].name.split('.').pop();
+            var base_name = files[i].name.split('.')[0];
+            var ext = files[i].name.split('.').pop().toLowerCase();
             if ($.inArray(ext,types) == -1){
                 types.push(ext);
             }
+
+            var mosaic_is_valid = true;
+            var is_granule = $('#' + base_name + '-mosaic').is(':checked');
+            
+            var is_time_enabled = $('#' + base_name + '-timedim').is(':checked');
+            var is_time_valid = is_time_enabled && !$('#' + base_name + '-timedim-value-valid').is(':visible');
+
+            if (is_granule && is_time_enabled) {
+                mosaic_is_valid = is_time_valid;
+            }
+
+            var is_adv_options_enabled = $('#' + base_name + '-timedim-presentation').is(':checked');
+            var default_value = $('#' + base_name + '-timedim-defaultvalue-format-select').val();
+            
+            if (default_value == 'NEAREST' || default_value == 'FIXED') {
+                var is_reference_value_valid = is_adv_options_enabled && !$('#' + base_name + '-timedim-defaultvalue-ref-value-valid').is(':visible')
+                mosaic_is_valid = is_time_valid && is_reference_value_valid;
+            }
+            
+            if (is_granule && !mosaic_is_valid) {
+                return false;
+            }
+
         }
         var matched = false;
         for (var file_type in fileTypes){
@@ -200,19 +223,19 @@ define(['underscore',
                     url: data.redirect_to,
                     async: false,
                     failure: function (resp, status) {
-                        self.markError(resp, status); 
+                        common.logError(resp, status);
                     },
                     success: function (resp, status) {
                         window.location = resp.url;
-                    },
+                    }
                 });
             } else if ('url' in data) {
                 window.location = data.url;
             } else {
-                self.markError(resp, status); 
+                common.logError("unexpected response");
             }
         }).fail(function (resp) {
-            self.markError(resp, status); 
+            common.logError(resp);
         });
     };
 
@@ -228,62 +251,38 @@ define(['underscore',
                     common.make_request({
                         url: data.redirect_to,
                         async: false,
-                        failure: function (resp, status) {self.markError(resp, status); },
+                        failure: function (resp, status) {common.logError(resp); },
                         success: function (resp, status) {
                             window.location = resp.url;
-                        },
+                        }
                     });
                 } else if ('url' in data) {
                     window.location = data.url; 
                 } else {
-                    self.markError(resp, status); 
+                    common.logError("unexpected response");
                 }
            },
            failure: function (resp, status) {
-                self.markError(resp, status); 
-           },
+                common.logError(resp);
+           }
         });
         return false; 
     };
 
-    doTime = function (event) {
-        var form = $("#timeForm")
-        $.ajaxQueue({
-           type: "POST",
-           url: '/upload/time',
-           data: form.serialize(), // serializes the form's elements.
-           success: function(data)
-           {
-               if('redirect_to' in data) {
-                    common.make_request({
-                        url: data.redirect_to,
-                        async: false,
-                        failure: function (resp, status) {self.markError(resp, status); },
-                        success: function (resp, status) {
-                            window.location = resp.url;
-                        },
-                    });
-                } else if ('url' in data) {
-                    window.location = data.url; 
-                } else {
-                    self.markError(resp, status); 
-                }
-           },
-           failure: function (resp, status) {
-                    self.markError(resp, status); 
-           },
-        });
-        return false;        
-    };
 
     /** Function to Upload the selected files to the server
      *
      *  @returns false
      */
     doUploads = function () {
+        if ($.isEmptyObject(layers)) {
+            common.logError('Please provide some files');
+            return false;
+        }
+
         var checked = checkFiles();
         if ($.isEmptyObject(layers) || !checked) {
-            alert(gettext('You are uploading an incomplete set of files.'));
+            alert(gettext('You are trying to upload an incomplete set of files or not all mandatory options have been validated.\n\nPlease check for errors in the form!'));
         } else {
             $.each(layers, function (name, layerinfo) {
                 layerinfo.uploadFiles();
@@ -296,13 +295,13 @@ define(['underscore',
      *
      *  @returns false
      */
-    init_geogit_stores = function() {
+    init_geogig_stores = function() {
         $.ajax({
-            url: '/gs/rest/stores/geogit/',
+            url: '/gs/rest/stores/geogig/',
             async: true,
             contentType: false,
         }).done(function (resp) {
-            geogit_stores = JSON.parse(resp);
+            geogig_stores = JSON.parse(resp);
         }).fail(function (resp) {
             //
         });        
@@ -319,6 +318,9 @@ define(['underscore',
             dropZone = document.querySelector(options.dropZone),
             file_queue = $(options.file_queue),
             doClearState = function () {
+                // http://stackoverflow.com/questions/1043957/clearing-input-type-file-using-jquery/13351234#13351234
+                $("#file-input").wrap('<form>').closest('form').get(0).reset();
+                $("#file-input").unwrap();
                 // set the global layer object to empty
                 layers = {};
                 // redraw the file display view
@@ -354,14 +356,15 @@ define(['underscore',
         $(options.upload_button).on('click', doUploads);
         $("[id^=delete]").on('click', doDelete);
         $("[id^=resume]").on('click', doResume);
-        init_geogit_stores();
+        if (geogig_enabled) {
+            init_geogig_stores();
+        }
     };
 
     // public api
 
     return {
         initialize: initialize,
-        doTime: doTime,
         doSrs: doSrs,
         doDelete: doDelete,
         doResume: doResume

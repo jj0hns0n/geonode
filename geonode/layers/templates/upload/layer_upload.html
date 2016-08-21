@@ -12,8 +12,28 @@
 {{ block.super }}
 {% endblock %}
 
-{% block body %}
+{% block body_outer %}
+<div class="page-header">
+  <a href="{% url "layer_browse" %}" class="btn btn-primary pull-right">{% trans "Explore Layers" %}</a>
+  <h2 class="page-title">{% trans "Upload Layers" %}</h2>
 
+  <script language="javascript">
+    var json_mosaics = [
+          {% for mosaic in mosaics %}
+            {
+                "name" : "{{mosaic.name}}",
+                "workspace" : "{{mosaic.workspace}}",
+                "is_mosaic" : "{{mosaic.is_mosaic}}",
+                "has_time" : "{{mosaic.has_time}}",
+                "has_elevation" : "{{mosaic.has_elevation}}",
+                "time_regex" : "{{mosaic.time_regex}}",
+                "elevation_regex" : "{{mosaic.elevation_regex}}"
+            },
+          {% endfor %}
+    ]
+  </script>
+</div>
+<div class="row">
   <div class="col-md-8">
     {% if incomplete %}
     <section class="widget" id="incomplete-download-list">
@@ -47,6 +67,8 @@
     </div>
     {% endif %}
 
+    <div id="upload-status"></div>
+
     <section id="drop-zone">
       <h3><i class="fa fa-cloud-upload"></i><br />{% trans "Drop files here" %}</h3>
     </section>
@@ -61,13 +83,16 @@
       <ul id="global-errors"></ul>
       <h4>{% trans "Files to be uploaded" %}</h4>
       <div id="file-queue"></div>
+      <div class="checkbox" style="display:none;" id="metadata_uploaded_preserve_check">
+          Preserve Metadata XML <input type="checkbox" name="metadata_uploaded_preserve" id="id_metadata_uploaded_preserve"/>
+      </div>
     </section>
 
     <section class="charset">
       <p>{% trans "Select the charset or leave default" %}</p>
       <select id="charset">
         {% for charset in charsets %}
-        {% if charset.0 == 'UTF-8' %} 
+        {% if charset.0 == 'UTF-8' %}
         <option selected='selected' value={{ charset.0 }}>{{ charset.1 }}</option>
         {% else %}
         <option value={{ charset.0 }}>{{ charset.1 }}</option>
@@ -81,35 +106,31 @@
       <a href="#" id="upload-button" class="btn btn-danger">{% trans "Upload files" %}</a>
     </section>
   </div>
-{% endblock %}
 
-
-{% block sidebar %}
-
-{% if GEONODE_SECURITY_ENABLED %}
-<div class="col-md-4">
-  <h3>{% trans "Permissions"  %}</h3>
-  <form id="permission_form">
-    {% include "_permissions.html" %}
-  </form>
+  {% if GEONODE_SECURITY_ENABLED %}
+  <div class="col-md-4">
+    <h3>{% trans "Permissions"  %}</h3>
+    <form id="permission_form">
+      {% include "_permissions.html" %}
+    </form>
+  </div>
+  {% endif %}
 </div>
-{% endif %}
-
 {% endblock %}
 
 
 {% block extra_script %}
-<script data-main="{% static 'geonode/js/upload/main' %}" 
+<script data-main="{% static 'geonode/js/upload/main' %}"
   src="{% static 'lib/js/require.js' %}">
 </script>
-
 <script type="text/javascript">
 {% autoescape off %}
 
   csrf_token =  "{{ csrf_token }}",
   form_target = "{{ UPLOADER_URL }}",
-  geogit_enabled = {{ GEOGIT_ENABLED|lower  }},
+  geogig_enabled = {{ GEOGIG_ENABLED|lower  }},
   time_enabled = {{ TIME_ENABLED|lower  }},
+  mosaic_enabled = {{ MOSAIC_ENABLED|lower  }},
   userLookup = "{% url "geonode.views.ajax_lookup" %}"
 
 {% endautoescape %}

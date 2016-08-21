@@ -16,7 +16,7 @@
 {% block body %}
 
   <div class="col-md-8">
-    <h2 class="page-title">{% trans "Replace Layer: " %}{{ layer.title }}</h2>
+    <p class="lead">{% trans "Replace Layer: " %}<a href="{{ layer.get_absolute_url }}">{{ layer.title }}</a></p>
 
     {% if incomplete %}
     <section class="widget" id="incomplete-download-list">
@@ -111,8 +111,9 @@
 
   csrf_token =  "{{ csrf_token }}",
   form_target = "{% url "layer_replace" layer.service_typename %}",
-  geogit_enabled = {{ GEOGIT_ENABLED|lower  }},
+  geogig_enabled = {{ GEOGIG_ENABLED|lower  }},
   time_enabled = {{ TIME_ENABLED|lower  }},
+  mosaic_enabled = {{ MOSAIC_ENABLED|lower  }},
   userLookup = "{% url "geonode.views.ajax_lookup" %}"
 
 {% endautoescape %}

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,13 +27,35 @@ logger = logging.getLogger(__name__)
 if "notification" in settings.INSTALLED_APPS:
     import notification
 
-    def create_notice_types(app, created_models, verbosity, **kwargs):
-        notification.models.NoticeType.create("layer_uploaded", _("Layer Uploaded"), _("A layer was uploaded"))
-        notification.models.NoticeType.create("layer_comment", _("Comment on Layer"), _("A layer was commented on"))
-        notification.models.NoticeType.create("layer_rated", _("Rating for Layer"), _("A rating was given to a layer"))
+    if hasattr(notification, 'models'):
+        def create_notice_types(app, created_models, verbosity, **kwargs):
+            notification.models.NoticeType.create(
+                "layer_created",
+                _("Layer Created"),
+                _("A Layer was created"))
+            notification.models.NoticeType.create(
+                "layer_updated",
+                _("Layer Updated"),
+                _("A Layer was updated"))
+            notification.models.NoticeType.create(
+                "layer_deleted",
+                _("Layer Deleted"),
+                _("A Layer was deleted"))
+            notification.models.NoticeType.create(
+                "layer_comment",
+                _("Comment on Layer"),
+                _("A layer was commented on"))
+            notification.models.NoticeType.create(
+                "layer_rated",
+                _("Rating for Layer"),
+                _("A rating was given to a layer"))
 
-    signals.post_syncdb.connect(create_notice_types, sender=notification)
-    logger.info("Notifications Configured for geonode.layers.managment.commands")
+        signals.post_syncdb.connect(
+            create_notice_types,
+            sender=notification.models)
+        logger.info(
+            "Notifications Configured for geonode.layers.management.commands")
 else:
-    logger.info("Skipping creation of NoticeTypes for geonode.layers.management.commands, since notification \
-        app was not found.")
+    logger.info(
+        "Skipping creation of NoticeTypes for geonode.layers.management.commands,"
+        " since notification app was not found.")

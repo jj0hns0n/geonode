@@ -1,10 +1,30 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 from geonode.maps.models import Map, MapLayer
 from django.conf import settings
 
 maplayers = [{"fixed": False,
               "group": "background",
               "layer_params": "",
-              "map": 1,
+              "map": 'GeoNode Default Map',
               "name": "geonode:CA",
               "ows_url": "http://localhost:8080/geoserver/wms",
               "source_params": "",
@@ -18,7 +38,7 @@ maplayers = [{"fixed": False,
               "layer_params": "{\"args\": [\"bluemarble\", \"http://maps.opengeo.org/geowebcache/service/wms\", \
               {\"layers\": [\"bluemarble\"], \"tiled\": true, \"tilesOrigin\": [-20037508.34, -20037508.34],\
               \"format\": \"image/png\"}, {\"buffer\": 0}], \"type\": \"OpenLayers.Layer.WMS\"}",
-              "map": 1,
+              "map": 'GeoNode Default Map',
               "name": None,
               "opacity": 1,
               "source_params": "{\"ptype\": \"gxp_olsource\"}",
@@ -30,7 +50,7 @@ maplayers = [{"fixed": False,
               "layer_params": "{\"args\": [\"geonode:CA\", \"http://localhost:8080/geoserver/wms\", {\"layers\": \
               [\"geonode:CA\"], \"tiled\": true, \"tilesOrigin\": [-20037508.34, -20037508.34], \"format\":\
                \"image/png\"}, {\"buffer\": 0}], \"type\": \"OpenLayers.Layer.WMS\"}",
-              "map": 1,
+              "map": 'GeoNode Default Map',
               "name": None,
               "opacity": 1,
               "source_params": "{\"ptype\": \"gxp_olsource\"}",
@@ -40,7 +60,7 @@ maplayers = [{"fixed": False,
              {"fixed": True,
               "group": "background",
               "layer_params": "{}",
-              "map": 1,
+              "map": 'GeoNode Default Map',
               "name": "SATELLITE",
               "opacity": 1,
               "source_params": "{\"apiKey\":\
@@ -52,7 +72,7 @@ maplayers = [{"fixed": False,
              {"fixed": True,
               "group": "background",
               "layer_params": "{\"args\": [\"No background\"], \"type\": \"OpenLayers.Layer\"}",
-              "map": 1,
+              "map": 'GeoNode Default Map',
               "name": None,
               "opacity": 1,
               "source_params": "{\"ptype\": \"gxp_olsource\"}",
@@ -78,7 +98,7 @@ def create_maplayers():
             group=ml['group'],
             name=ml['name'],
             layer_params=ml['layer_params'],
-            map=Map.objects.get(pk=ml['map']),
+            map=Map.objects.get(title=ml['map']),
             source_params=ml['source_params'],
             stack_order=ml['stack_order'],
             opacity=ml['opacity'],

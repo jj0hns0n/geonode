@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
+
 '''An incomplete replacement for the various file support functions currently
 scattered over the codebase
 
@@ -25,7 +27,6 @@ scattered over the codebase
 import os.path
 from geoserver.resource import FeatureType
 from geoserver.resource import Coverage
-from tempfile import mkstemp
 
 from UserList import UserList
 import zipfile
@@ -109,9 +110,8 @@ class FileType(object):
         base_matches = [
             f for f in others if os.path.splitext(f)[0] == base_name]
         slds = _find_file_type(base_matches, extension='.sld')
-        aux_files = [
-            f for f in others if os.path.splitext(f)[1][
-                1:].lower() in self.auxillary_file_exts]
+        aux_files = [f for f in others if os.path.splitext(f)[1][1:].lower()
+                     in self.auxillary_file_exts]
         xmls = _find_file_type(base_matches, extension='.xml')
         return aux_files, slds, xmls
 
@@ -122,23 +122,52 @@ class FileType(object):
 TYPE_UNKNOWN = FileType("unknown", None, None)
 
 types = [
-    FileType(
-        "Shapefile", "shp", vector, auxillary_file_exts=(
-            'dbf', 'shx', 'prj')), FileType(
-                "GeoTIFF", "tif", raster, aliases=(
-                    'tiff', 'geotif', 'geotiff')), FileType(
-                        "PNG", "png", raster, auxillary_file_exts=(
-                            'prj',)), FileType(
-                                "JPG", "jpg", raster, auxillary_file_exts=(
-                                    'prj',)), FileType(
-                                        "CSV", "csv", vector), FileType(
-                                            "KML", "kml", vector, aliases=(
-                                                'kmz',)), ]
+    FileType("Shapefile", "shp", vector,
+             auxillary_file_exts=('dbf', 'shx', 'prj')),
+    FileType("GeoTIFF", "tif", raster,
+             aliases=('tiff', 'geotif', 'geotiff')),
+    # requires geoserver importer extension
+    FileType("PNG", "png", raster,
+             auxillary_file_exts=('prj')),
+    FileType("JPG", "jpg", raster,
+             auxillary_file_exts=('prj')),
+    FileType("CSV", "csv", vector),
+    FileType("GeoJSON", "geojson", vector),
+    FileType("KML", "kml", vector,
+             aliases=('kmz')),
+    # requires geoserver gdal extension
+    FileType("ERDASImg", "img", raster),
+    FileType("NITF", "ntf", raster,
+             aliases=('nitf')),
+    FileType("CIB1", "i41", raster,
+             aliases=('i42', 'i43', 'i44', 'i45', 'i46', 'i47', 'i48', 'i49')),
+    FileType("CIB5", "i21", raster,
+             aliases=('i22', 'i23', 'i24', 'i25', 'i26', 'i27', 'i28', 'i29')),
+    FileType("CIB10", "i11", raster,
+             aliases=('i12', 'i13', 'i14', 'i15', 'i16', 'i17', 'i18', 'i19')),
+    FileType("GNC", "gn1", raster,
+             aliases=('gn2', 'gn3', 'gn4', 'gn5', 'gn6', 'gn7', 'gn8', 'gn9')),
+    FileType("JNC", "jn1", raster,
+             aliases=('jn2', 'jn3', 'jn4', 'jn5', 'jn6', 'jn7', 'jn8', 'jn9')),
+    FileType("ONC", "on1", raster,
+             aliases=('on2', 'on3', 'on4', 'on5', 'on6', 'on7', 'on8', 'on9')),
+    FileType("TPC", "tp1", raster,
+             aliases=('tp2', 'tp3', 'tp4', 'tp5', 'tp6', 'tp7', 'tp8', 'tp9')),
+    FileType("JOG", "ja1", raster,
+             aliases=('ja2', 'ja3', 'ja4', 'ja5', 'ja6', 'ja7', 'ja8', 'ja9')),
+    FileType("TLM100", "tc1", raster,
+             aliases=('tc2', 'tc3', 'tc4', 'tc5', 'tc6', 'tc7', 'tc8', 'tc9')),
+    FileType("TLM50", "tl1", raster,
+             aliases=('tl2', 'tl3', 'tl4', 'tl5', 'tl6', 'tl7', 'tl8', 'tl9')),
+    # requires gdal plugin for mrsid and jp2
+    FileType("MrSID", "sid", raster,
+             auxillary_file_exts=('sdw')),
+    FileType("JP2", "jp2", raster)
+]
 
 
 def _contains_bad_names(file_names):
     '''return True if the list of names contains a bad one'''
-    xml_unsafe = re.compile(r"(^[^a-zA-Z\._]+)|([^a-zA-Z\._0-9]+)")
     return any([xml_unsafe.search(f) for f in file_names])
 
 
@@ -169,26 +198,6 @@ def _rename_files(file_names):
         else:
             files.append(f)
     return files
-
-
-def _rename_zip(old_name, valid_name):
-    """Rename files inside zip """
-    handle, tempfile = mkstemp()
-    old_zip = zipfile.ZipFile(old_name, 'r')
-    new_zip = zipfile.ZipFile(open(tempfile, "wb"), "w")
-
-    files_zip = old_zip.namelist()
-    files = ['.shp', '.prj', '.shx', '.dbf', '.sld']
-    for file in files_zip:
-        name, ext = os.path.splitext(file)
-        if ext.lower() in files:
-            # OS X creates hidden subdirectory with garbage files having same
-            # extensions; ignore.
-            files.remove(ext)
-            new_zip.writestr(valid_name + ext, old_zip.read(file))
-    old_zip.close()
-    new_zip.close()
-    os.rename(tempfile, old_name)
 
 
 def _find_file_type(file_names, extension):
@@ -226,7 +235,8 @@ def scan_file(file_name):
         zf.close()
 
     def dir_files():
-        abs = lambda *p: os.path.abspath(os.path.join(*p))
+        def abs(*p):
+            return os.path.abspath(os.path.join(*p))
         return [abs(dirname, f) for f in os.listdir(dirname)]
 
     if files is None:

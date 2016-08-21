@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2016 OSGeo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 import re
 from django.db.models import Q
 from django.http import HttpResponse
@@ -15,8 +35,6 @@ from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
 
 from tastypie.utils.mime import build_content_type
-if settings.HAYSTACK_SEARCH:
-    from haystack.query import SearchQuerySet  # noqa
 
 from geonode.layers.models import Layer
 from geonode.maps.models import Map
@@ -25,8 +43,12 @@ from geonode.base.models import ResourceBase
 
 from .authorization import GeoNodeAuthorization
 
-from .api import TagResource, ProfileResource, TopicCategoryResource, \
+from .api import TagResource, RegionResource, ProfileResource, \
+    TopicCategoryResource, \
     FILTER_TYPES
+
+if settings.HAYSTACK_SEARCH:
+    from haystack.query import SearchQuerySet  # noqa
 
 LAYER_SUBTYPES = {
     'vector': 'dataStore',
@@ -41,6 +63,7 @@ class CommonMetaApi:
     allowed_methods = ['get']
     filtering = {'title': ALL,
                  'keywords': ALL_WITH_RELATIONS,
+                 'regions': ALL_WITH_RELATIONS,
                  'category': ALL_WITH_RELATIONS,
                  'owner': ALL_WITH_RELATIONS,
                  'date': ALL,
@@ -51,6 +74,7 @@ class CommonMetaApi:
 
 class CommonModelApi(ModelResource):
     keywords = fields.ToManyField(TagResource, 'keywords', null=True)
+    regions = fields.ToManyField(RegionResource, 'regions', null=True)
     category = fields.ToOneField(
         TopicCategoryResource,
         'category',
@@ -142,13 +166,20 @@ class CommonModelApi(ModelResource):
             type_facets.append(resource_filter)
 
         # Publication date range (start,end)
-        date_range = parameters.get("date_range", ",").split(",")
+        date_end = parameters.get("date__lte", None)
+        date_start = parameters.get("date__gte", None)
 
         # Topic category filter
         category = parameters.getlist("category__identifier__in")
 
         # Keyword filter
         keywords = parameters.getlist("keywords__slug__in")
+
+        # Region filter
+        regions = parameters.getlist("regions__name__in")
+
+        # Owner filters
+        owner = parameters.getlist("owner__username__in")
 
         # Sort order
         sort = parameters.get("order_by", "relevance")
@@ -234,15 +265,31 @@ class CommonModelApi(ModelResource):
                     SearchQuerySet() if sqs is None else sqs).filter_or(
                     keywords_exact=keyword)
 
+        # filter by regions: use filter_or with regions_exact
+        # not using exact leads to fuzzy matching and too many results
+        # using narrow with exact leads to zero results if multiple keywords
+        # selected
+        if regions:
+            for region in regions:
+                sqs = (
+                    SearchQuerySet() if sqs is None else sqs).filter_or(
+                    regions_exact__exact=region)
+
+        # filter by owner
+        if owner:
+            sqs = (
+                SearchQuerySet() if sqs is None else sqs).narrow(
+                    "owner__username:%s" % ','.join(map(str, owner)))
+
         # filter by date
-        if date_range[0]:
+        if date_start:
             sqs = (SearchQuerySet() if sqs is None else sqs).filter(
-                SQ(date__gte=date_range[0])
+                SQ(date__gte=date_start)
             )
 
-        if date_range[1]:
+        if date_end:
             sqs = (SearchQuerySet() if sqs is None else sqs).filter(
-                SQ(date__lte=date_range[1])
+                SQ(date__lte=date_end)
             )
 
         # Filter by geographic bounding box
@@ -259,10 +306,10 @@ class CommonModelApi(ModelResource):
         # Apply sort
         if sort.lower() == "-date":
             sqs = (
-                SearchQuerySet() if sqs is None else sqs).order_by("-modified")
+                SearchQuerySet() if sqs is None else sqs).order_by("-date")
         elif sort.lower() == "date":
             sqs = (
-                SearchQuerySet() if sqs is None else sqs).order_by("modified")
+                SearchQuerySet() if sqs is None else sqs).order_by("date")
         elif sort.lower() == "title":
             sqs = (SearchQuerySet() if sqs is None else sqs).order_by(
                 "title_sortable")
@@ -274,7 +321,7 @@ class CommonModelApi(ModelResource):
                 "-popular_count")
         else:
             sqs = (
-                SearchQuerySet() if sqs is None else sqs).order_by("-modified")
+                SearchQuerySet() if sqs is None else sqs).order_by("-date")
 
         return sqs
 
@@ -288,23 +335,21 @@ class CommonModelApi(ModelResource):
 
         if not settings.SKIP_PERMS_FILTER:
             # Get the list of objects the user has access to
-            filter_set = set(
-                get_objects_for_user(
-                    request.user,
-                    'base.view_resourcebase').values_list(
-                    'id',
-                    flat=True))
+            filter_set = get_objects_for_user(request.user, 'base.view_resourcebase')
+            if settings.RESOURCE_PUBLISHING:
+                filter_set = filter_set.filter(is_published=True)
 
+            filter_set_ids = filter_set.values_list('id')
             # Do the query using the filterset and the query term. Facet the
             # results
             if len(filter_set) > 0:
-                sqs = sqs.filter(oid__in=filter_set).facet('type').facet('subtype').facet('owner').facet('keywords')\
-                    .facet('category')
+                sqs = sqs.filter(id__in=filter_set_ids).facet('type').facet('subtype').facet('owner')\
+                    .facet('keywords').facet('regions').facet('category')
             else:
                 sqs = None
         else:
             sqs = sqs.facet('type').facet('subtype').facet(
-                'owner').facet('keywords').facet('category')
+                'owner').facet('keywords').facet('regions').facet('category')
 
         if sqs:
             # Build the Facet dict
@@ -349,10 +394,15 @@ class CommonModelApi(ModelResource):
                     "total_count": total_count,
                     "facets": facets,
                     },
-            'objects': map(lambda x: x.get_stored_fields(), objects),
+            'objects': map(lambda x: self.get_haystack_api_fields(x), objects),
         }
         self.log_throttled_access(request)
         return self.create_response(request, object_list)
+
+    def get_haystack_api_fields(self, haystack_object):
+        object_fields = dict((k, v) for k, v in haystack_object.get_stored_fields().items()
+                             if not re.search('_exact$|_sortable$', k))
+        return object_fields
 
     def get_list(self, request, **kwargs):
         """
@@ -401,16 +451,15 @@ class CommonModelApi(ModelResource):
             'id',
             'uuid',
             'title',
+            'date',
             'abstract',
             'csw_wkt_geometry',
             'csw_type',
-            'distribution_description',
-            'distribution_url',
-            'owner_id',
+            'owner__username',
             'share_count',
             'popular_count',
             'srid',
-            'category',
+            'category__gn_description',
             'supplemental_information',
             'thumbnail_url',
             'detail_url',
@@ -426,6 +475,7 @@ class CommonModelApi(ModelResource):
 
         desired_format = self.determine_format(request)
         serialized = self.serialize(request, data, desired_format)
+
         return response_class(
             content=serialized,
             content_type=build_content_type(desired_format),
@@ -450,6 +500,8 @@ class ResourceBaseResource(CommonModelApi):
     class Meta(CommonMetaApi):
         queryset = ResourceBase.objects.polymorphic_queryset() \
             .distinct().order_by('-date')
+        if settings.RESOURCE_PUBLISHING:
+            queryset = queryset.filter(is_published=True)
         resource_name = 'base'
         excludes = ['csw_anytext', 'metadata_xml']
 
@@ -460,6 +512,8 @@ class FeaturedResourceBaseResource(CommonModelApi):
 
     class Meta(CommonMetaApi):
         queryset = ResourceBase.objects.filter(featured=True).order_by('-date')
+        if settings.RESOURCE_PUBLISHING:
+            queryset = queryset.filter(is_published=True)
         resource_name = 'featured'
 
 
@@ -469,6 +523,8 @@ class LayerResource(CommonModelApi):
 
     class Meta(CommonMetaApi):
         queryset = Layer.objects.distinct().order_by('-date')
+        if settings.RESOURCE_PUBLISHING:
+            queryset = queryset.filter(is_published=True)
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml']
 
@@ -479,6 +535,8 @@ class MapResource(CommonModelApi):
 
     class Meta(CommonMetaApi):
         queryset = Map.objects.distinct().order_by('-date')
+        if settings.RESOURCE_PUBLISHING:
+            queryset = queryset.filter(is_published=True)
         resource_name = 'maps'
 
 
@@ -490,4 +548,6 @@ class DocumentResource(CommonModelApi):
         filtering = CommonMetaApi.filtering
         filtering.update({'doc_type': ALL})
         queryset = Document.objects.distinct().order_by('-date')
+        if settings.RESOURCE_PUBLISHING:
+            queryset = queryset.filter(is_published=True)
         resource_name = 'documents'

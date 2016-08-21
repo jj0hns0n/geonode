@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,7 +36,7 @@ def geoserver_urls(request):
         MAPFISH_PRINT_ENABLED=ogc_server_settings.MAPFISH_PRINT_ENABLED,
         PRINT_NG_ENABLED=ogc_server_settings.PRINT_NG_ENABLED,
         GEONODE_SECURITY_ENABLED=ogc_server_settings.GEONODE_SECURITY_ENABLED,
-        GEOGIT_ENABLED=ogc_server_settings.GEOGIT_ENABLED,
+        GEOGIG_ENABLED=ogc_server_settings.GEOGIG_ENABLED,
         TIME_ENABLED=getattr(
                 settings,
                 'UPLOADER',
@@ -43,6 +44,14 @@ def geoserver_urls(request):
                     'OPTIONS',
                     dict()).get(
                         'TIME_ENABLED',
+                        False),
+        MOSAIC_ENABLED=getattr(
+                settings,
+                'UPLOADER',
+                dict()).get(
+                    'OPTIONS',
+                    dict()).get(
+                        'MOSAIC_ENABLED',
                         False),
     )
     return defaults

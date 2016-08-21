@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,28 +29,16 @@ js_info_dict = {
 }
 
 urlpatterns = patterns('geonode.documents.views',
-                       url(r'^$',
-                           TemplateView.as_view(template_name='documents/document_list.html'),
+                       url(r'^$', TemplateView.as_view(template_name='documents/document_list.html'),
                            name='document_browse'),
-                       url(r'^(?P<docid>\d+)/?$',
-                           'document_detail',
-                           name='document_detail'),
-                       url(r'^(?P<docid>\d+)/download/?$',
-                           'document_download',
-                           name='document_download'),
-                       url(r'^(?P<docid>\d+)/replace$',
-                           login_required(DocumentUpdateView.as_view()),
+                       url(r'^(?P<docid>\d+)/?$', 'document_detail', name='document_detail'),
+                       url(r'^(?P<docid>\d+)/download/?$', 'document_download', name='document_download'),
+                       url(r'^(?P<docid>\d+)/replace$', login_required(DocumentUpdateView.as_view()),
                            name="document_replace"),
-                       url(r'^(?P<docid>\d+)/remove$',
-                           'document_remove',
-                           name="document_remove"),
-                       url(r'^upload/?$',
-                           login_required(DocumentUploadView.as_view()),
-                           name='document_upload'),
-                       url(r'^search/?$',
-                           'document_search_page',
-                           name='document_search_page'),
-                       url(r'^(?P<docid>\d+)/metadata$',
-                           'document_metadata',
-                           name='document_metadata'),
+                       url(r'^(?P<docid>\d+)/remove$', 'document_remove', name="document_remove"),
+                       url(r'^upload/?$', login_required(DocumentUploadView.as_view()), name='document_upload'),
+                       url(r'^search/?$', 'document_search_page', name='document_search_page'),
+                       url(r'^(?P<docid>[^/]*)/metadata_detail$', 'document_metadata_detail',
+                           name='document_metadata_detail'),
+                       url(r'^(?P<docid>\d+)/metadata$', 'document_metadata', name='document_metadata'),
                        )

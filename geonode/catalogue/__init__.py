@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,8 +47,8 @@ def load_backend(backend_name):
         # listing all possible (built-in) CSW backends.
         backend_dir = os.path.join(os.path.dirname(__file__), 'backends')
         try:
-            available_backends = [f for f in os.listdir(backend_dir) if os.path.isdir(os.path.join(backend_dir, f))
-                                  and not f.startswith('.')]
+            available_backends = [f for f in os.listdir(backend_dir) if os.path.isdir(os.path.join(backend_dir, f)) and
+                                  not f.startswith('.')]
         except EnvironmentError:
             available_backends = []
 

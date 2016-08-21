@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2012 OpenPlans
+# Copyright (C) 2016 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,10 @@ import uuid
 from django.conf import settings
 from django.db import models
 from django.db.models import signals
-from django.utils import simplejson as json
+try:
+    import json
+except ImportError:
+    from django.utils import simplejson as json
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist
@@ -40,6 +43,7 @@ from geonode.utils import GXPLayerBase
 from geonode.utils import layer_from_viewer_config
 from geonode.utils import default_map_config
 from geonode.utils import num_encode
+from geonode.security.models import remove_object_permissions
 
 from agon_ratings.models import OverallRating
 
@@ -126,9 +130,16 @@ class Map(ResourceBase, GXPMapBase):
         # the readme text will appear in a README file in the zip
         readme = (
             "Title: %s\n" +
-            "Author: %s\n"
+            "Author: %s\n" +
             "Abstract: %s\n"
-        ) % (self.title, "The GeoNode Team", self.abstract)
+        ) % (self.title, self.poc, self.abstract)
+        if self.license:
+            readme += "License: %s" % self.license
+            if self.license.url:
+                readme += " (%s)" % self.license.url
+            readme += "\n"
+        if self.constraints_other:
+            readme += "Additional constraints: %s\n" % self.constraints_other
 
         def layer_json(lyr):
             return {
@@ -222,7 +233,7 @@ class Map(ResourceBase, GXPMapBase):
         self.owner = user
         self.title = title
         self.abstract = abstract
-        self.projection = "EPSG:900913"
+        self.projection = getattr(settings, 'DEFAULT_MAP_CRS', 'EPSG:900913')
         self.zoom = 0
         self.center_x = 0
         self.center_y = 0
@@ -300,9 +311,12 @@ class Map(ResourceBase, GXPMapBase):
         Returns layer group name from local OWS for this map instance.
         """
         if 'geonode.geoserver' in settings.INSTALLED_APPS:
-            from geonode.geoserver.helpers import gs_catalog
+            from geonode.geoserver.helpers import gs_catalog, ogc_server_settings
             lg_name = '%s_%d' % (slugify(self.title), self.id)
-            return gs_catalog.get_layergroup(lg_name)
+            return {
+                'catalog': gs_catalog.get_layergroup(lg_name),
+                'ows': ogc_server_settings.ows
+                }
         else:
             return None
 
@@ -310,7 +324,7 @@ class Map(ResourceBase, GXPMapBase):
         """
         Publishes local map layers as WMS layer group on local OWS.
         """
-        if 'geonode.geoserver' not in settings.INSTALLED_APPS:
+        if 'geonode.geoserver' in settings.INSTALLED_APPS:
             from geonode.geoserver.helpers import gs_catalog
             from geoserver.layergroup import UnsavedLayerGroup as GsUnsavedLayerGroup
         else:
@@ -377,7 +391,7 @@ class MapLayer(models.Model, GXPLayerBase):
         null=True,
         max_length=200,
         blank=True)
-    # The mimetype of the image format to use for tiles (image/png, image/jpeg,
+    # The content_type of the image format to use for tiles (image/png, image/jpeg,
     # image/gif...)
 
     name = models.CharField(_('name'), null=True, max_length=200)
@@ -507,6 +521,7 @@ def pre_delete_map(instance, sender, **kwrargs):
     OverallRating.objects.filter(
         content_type=ct,
         object_id=instance.id).delete()
+    remove_object_permissions(instance.get_self_resource())
 
 
 class MapSnapshot(models.Model):
